@@ -110,7 +110,7 @@ function toRanking(address: string, p: {
  * contract is unset or the player has no record yet. */
 export async function getPlayerRanking(address: string): Promise<PlayerRanking> {
   const fallback = toRanking(address, {
-    points: 0n, wins: 0n, losses: 0n, draws: 0n, exists: false,
+    points: BigInt(0), wins: BigInt(0), losses: BigInt(0), draws: BigInt(0), exists: false,
   })
   if (!isConfigured() || !address) return fallback
   try {
@@ -143,7 +143,7 @@ export async function getOnchainLeaderboard(limit = 100): Promise<LeaderboardRow
       address: RANKING_CONTRACT_ADDRESS as `0x${string}`,
       abi: RANKING_ABI,
       functionName: 'getPlayers',
-      args: [0n, BigInt(n)],
+      args: [BigInt(0), BigInt(n)],
     })) as [string[], { points: bigint; wins: bigint; losses: bigint; draws: bigint; lastPlayed: bigint; exists: boolean }[]]
 
     const rows = addrs.map((a, i) => {

@@ -7,18 +7,17 @@ import { useToast } from '@/components/ui/Toast'
 import { getAIMove, type AIDifficulty } from '@/lib/ai'
 import { sounds } from '@/lib/sounds'
 import { WalletButton } from '@/components/wallet/WalletButton'
-import { fetchTrivia, revealTrivia, peekTrivia, TriviaSessionExpiredError, WS_URL, type TriviaQuestion } from '@/lib/api'
-import { useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey } from '@solana/web3.js'
-import { useAnchorClient } from '@/hooks/useAnchorClient'
-import { resignGame, resignGameUsdc, settleWithProof, fetchOpenGame, payHintOffchain, getUsdcBalance, type HintId } from '@/lib/anchor-client'
-import { reportMatchFinish, reportVsAiResult } from '@/lib/api'
+import { fetchTrivia, revealTrivia, peekTrivia, TriviaSessionExpiredError, WS_URL, reportMatchFinish, reportVsAiResult, type TriviaQuestion } from '@/lib/api'
+import { useWallet } from '@/hooks/useWallet'
 import { SoundToggle } from '@/components/SoundToggle'
 import { IconRobot, IconCrosshair } from '@/components/ui/StateIcons'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { EXTRA_TIME_HINT_SECONDS } from '@/lib/constants'
+import { EXTRA_TIME_HINT_SECONDS, FREE_HINTS_PER_MATCH } from '@/lib/constants'
 import { TRIVIA_BANK } from '@/lib/trivia-bank'
+
+// Hint identifiers (formerly imported from the deleted anchor-client module).
+type HintId = 'eliminate2' | 'category' | 'extra-time' | 'first-letter' | 'skip'
 
 // ── Design tokens ────────────────────────────────────────────────────
 const BLUE       = '#0071E3'
@@ -38,20 +37,6 @@ const HINT_LABEL: Record<HintId, string> = {
   'extra-time':   'Extra Time',
   'first-letter': 'First Letter',
   'skip':         'Skip Question',
-}
-const HINT_PRICE: Record<HintId, string> = {
-  'eliminate2':   '0.002',
-  'category':     '0.001',
-  'extra-time':   '0.003',
-  'first-letter': '0.001',
-  'skip':         '0.005',
-}
-const HINT_PRICE_USDC: Record<HintId, string> = {
-  'eliminate2':   '0.40',
-  'category':     '0.20',
-  'extra-time':   '0.60',
-  'first-letter': '0.20',
-  'skip':         '1.00',
 }
 const HINT_DESCRIPTION: Record<HintId, string> = {
   'eliminate2':   'Removes 2 wrong answer choices.',
@@ -297,7 +282,7 @@ function HintIcon({ id }: { id: HintId }) {
   }
 }
 
-function HintPill({ id, label, cost, currency = 'SOL', onClick, disabled, loading = false }: { id: HintId; label: string; cost: string; currency?: 'SOL' | 'USDC'; onClick: () => void; disabled: boolean; loading?: boolean }) {
+function HintPill({ id, label, onClick, disabled, loading = false }: { id: HintId; label: string; onClick: () => void; disabled: boolean; loading?: boolean }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{ appearance: 'none', border: 'none', background: 'var(--mdd-card)', borderRadius: 999, padding: '6px 11px 6px 7px', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.06)', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.45 : 1, fontFamily: 'inherit', transition: 'all 140ms ease' }}>
       <span style={{ width: 22, height: 22, borderRadius: 11, background: 'var(--mdd-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
@@ -306,7 +291,6 @@ function HintPill({ id, label, cost, currency = 'SOL', onClick, disabled, loadin
           : <HintIcon id={id} />}
       </span>
       <span style={{ fontSize: 12, fontWeight: 600, color: INK }}>{label}</span>
-      <span style={{ fontSize: 11, fontWeight: 600, color: MUTED, fontVariantNumeric: 'tabular-nums' }}>{cost} {currency}</span>
     </button>
   )
 }
@@ -444,36 +428,28 @@ function ModeBanner({ msg }: { msg: string }) {
 
 // ── Leaderboard (static sidebar) ──────────────────────────────────────
 const LEADERBOARD = [
-  { rank: 1, addr: '0x9f…c2', wins: 142, sol: '+12.4' },
-  { rank: 2, addr: '0xa1…7d', wins: 128, sol: '+9.8' },
-  { rank: 3, addr: '0x3f…a9', wins: 121, sol: '+8.1', opponent: true },
-  { rank: 4, addr: '0xbe…04', wins: 117, sol: '+7.6' },
-  { rank: 5, addr: '0x44…8e', wins: 99,  sol: '+5.2', you: true },
+  { rank: 1, addr: '0x9f…c2', wins: 142, pts: '1842' },
+  { rank: 2, addr: '0xa1…7d', wins: 128, pts: '1798' },
+  { rank: 3, addr: '0x3f…a9', wins: 121, pts: '1751', opponent: true },
+  { rank: 4, addr: '0xbe…04', wins: 117, pts: '1726' },
+  { rank: 5, addr: '0x44…8e', wins: 99,  pts: '1602', you: true },
 ]
 
 // ── Game Over Modal ───────────────────────────────────────────────────
-function GameOverModal({ winner, isVsAI, myMark, stake, currency }: { winner: GameWinner; isVsAI: boolean; myMark: 'X' | 'O'; stake: number; currency: 'sol' | 'usdc' }) {
+function GameOverModal({ winner, isVsAI, myMark, ranked }: { winner: GameWinner; isVsAI: boolean; myMark: 'X' | 'O'; ranked: boolean }) {
   const iWon  = winner === myMark
   const isDraw = winner === 'draw'
-  const unit = currency.toUpperCase()
-  const isFreePlay = stake <= 0
-  const winAmount = (stake * 2 * 0.975).toFixed(3)
 
-  // Subtitle copy: avoid leaking "+0.000 SOL" / "Pot split 50/50" text in
-  // free-play and vs-AI rounds where there's no real money on the line.
   const subtitle = (() => {
     if (iWon) {
       if (isVsAI) return 'Practice round complete'
-      if (isFreePlay) return 'Nice match — no stake on this one'
-      return `+${winAmount} ${unit} sent to your wallet`
+      return ranked ? 'Ranked win — points added to your ladder' : 'Nice match — casual win'
     }
     if (isDraw) {
-      if (isVsAI || isFreePlay) return "Stalemate — neither side won"
-      return 'Pot split 50/50'
+      return isVsAI ? 'Stalemate — neither side won' : 'A hard-fought draw'
     }
     if (isVsAI) return 'The AI was too strong this time'
-    if (isFreePlay) return 'Tough luck — try again'
-    return 'Better luck next time'
+    return ranked ? 'Ranked loss — points deducted' : 'Better luck next time'
   })()
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(8px)' }}>
@@ -507,12 +483,12 @@ interface LogEntry { q: string; correct: boolean; time: number }
 // ── Main Page ─────────────────────────────────────────────────────────
 export default function GamePage({ params }: { params: { matchId: string } }) {
   const toast = useToast()
-  const { publicKey } = useWallet()
-  const anchorClient  = useAnchorClient()
+  const { address } = useWallet()
 
-  const playerOnePubkeyRef = useRef<PublicKey | null>(null)
-  const playerTwoPubkeyRef = useRef<PublicKey | null>(null)
-  const publicKeyRef        = useRef<PublicKey | null>(null)
+  // Opponent / player addresses are plain lowercase 0x strings now.
+  const playerOneAddrRef = useRef<string | null>(null)
+  const playerTwoAddrRef = useRef<string | null>(null)
+  const addressRef       = useRef<string | undefined>(undefined)
 
   const [isVsAI, setIsVsAI]         = useState(false)
   const [myMark, setMyMark]         = useState<'X' | 'O'>('X')
@@ -540,26 +516,23 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   // optPerm[displayIdx] = originalIdx — reshuffled for every new question
   const [optPerm, setOptPerm] = useState<number[]>([0, 1, 2, 3])
 
-  // Hint state — local effects of purchased hints. The on-chain ledger
-  // (per-match) prevents buying the same hint twice within a match; we reset
-  // these visual effects when the question changes.
-  // Persisted per-match so a page refresh / WS reconnect mid-match doesn't reset
-  // the set and let the player re-buy (and re-pay for) hints they already own.
-  // The on-chain HintLedger is bypassed in off-chain mode, so this client store
-  // is the only double-spend guard for the player's own wallet.
-  const usedHintsKey = `mddUsedHints:${params.matchId}`
-  const [usedHints, setUsedHints]               = useState<Set<HintId>>(() => {
-    if (typeof window === 'undefined') return new Set()
+  // Hint state — hints are now FREE but limited to FREE_HINTS_PER_MATCH total
+  // uses per match. We track a usage counter (persisted per-match so a refresh /
+  // WS reconnect mid-match doesn't reset the budget). Visual effects reset when
+  // the question changes.
+  const hintsUsedKey = `mddHintsUsed:${params.matchId}`
+  const [hintsUsed, setHintsUsed]               = useState<number>(() => {
+    if (typeof window === 'undefined') return 0
     try {
-      const raw = sessionStorage.getItem(`mddUsedHints:${params.matchId}`)
-      return raw ? new Set(JSON.parse(raw) as HintId[]) : new Set()
-    } catch { return new Set() }
+      const raw = sessionStorage.getItem(`mddHintsUsed:${params.matchId}`)
+      return raw ? Math.max(0, parseInt(raw, 10) || 0) : 0
+    } catch { return 0 }
   })
-  const [purchasingHint, setPurchasingHint]     = useState<HintId | null>(null)
-  const [hintToConfirm, setHintToConfirm]       = useState<HintId | null>(null)
+  const [applyingHint, setApplyingHint]         = useState<HintId | null>(null)
   const [extraTimeBumps, setExtraTimeBumps]     = useState(0)
   const [firstLetterHint, setFirstLetterHint]   = useState<string | null>(null)
   const [categoryHint, setCategoryHint]         = useState<string | null>(null)
+  const hintsLeft = Math.max(0, FREE_HINTS_PER_MATCH - hintsUsed)
 
   // Mode-specific state
   const [isShifting, setIsShifting] = useState(false)
@@ -571,16 +544,12 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   // Resign / forfeit-match confirm
   const [confirmResign, setConfirmResign] = useState(false)
 
-  // Stake + currency are read from sessionStorage after mount to avoid
-  // SSR/CSR hydration mismatch (server has no sessionStorage).
-  const [stake, setStake] = useState(0)
-  const [currency, setCurrency] = useState<'sol' | 'usdc'>('sol')
+  // Ranked flag is read from sessionStorage after mount to avoid SSR/CSR
+  // hydration mismatch (server has no sessionStorage). '1' => ranked.
+  const [ranked, setRanked] = useState(false)
   useEffect(() => {
-    setStake(parseFloat(sessionStorage.getItem('mddStake') ?? '0.05'))
-    const c = sessionStorage.getItem('mddCurrency')
-    setCurrency(c === 'usdc' ? 'usdc' : 'sol')
+    setRanked(sessionStorage.getItem('mddRanked') === '1')
   }, [])
-  const currencyLabel = currency.toUpperCase()
 
   const gameOver = winner !== null
 
@@ -610,12 +579,11 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   useEffect(() => { currentPlayerRef.current = currentPlayer }, [currentPlayer])
   useEffect(() => { winnerRef.current = winner }, [winner])
   useEffect(() => {
-    try { sessionStorage.setItem(usedHintsKey, JSON.stringify(Array.from(usedHints))) } catch {}
-  }, [usedHints, usedHintsKey])
+    try { sessionStorage.setItem(hintsUsedKey, String(hintsUsed)) } catch {}
+  }, [hintsUsed, hintsUsedKey])
 
-  // Reset visual hint effects when the question changes — used hints stay
-  // tracked in `usedHints` state across questions because the on-chain
-  // ledger blocks repeats per match.
+  // Reset visual hint effects when the question changes — the per-match hint
+  // budget (hintsUsed) persists across questions.
   useEffect(() => {
     setFirstLetterHint(null)
     setCategoryHint(null)
@@ -689,8 +657,8 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     try {
       const p1 = sessionStorage.getItem('mddPlayerOnePubkey')
       const p2 = sessionStorage.getItem('mddPlayerTwoPubkey')
-      if (p1) playerOnePubkeyRef.current = new PublicKey(p1)
-      if (p2) playerTwoPubkeyRef.current = new PublicKey(p2)
+      if (p1) playerOneAddrRef.current = p1.toLowerCase()
+      if (p2) playerTwoAddrRef.current = p2.toLowerCase()
     } catch {}
 
     const savedCats = JSON.parse(sessionStorage.getItem('mddCategories') ?? '[]') as string[]
@@ -724,8 +692,8 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Keep publicKeyRef current so the WS closure always sees the latest wallet.
-  useEffect(() => { publicKeyRef.current = publicKey }, [publicKey])
+  // Keep addressRef current so the WS closure always sees the latest wallet.
+  useEffect(() => { addressRef.current = address }, [address])
 
   // WS for PvP. Connect immediately (don't wait for the loading screen to
   // finish) so we never miss a `board_updated` broadcast from the opponent
@@ -784,14 +752,16 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               setBoard(msg.match.board); setCurrentPlayer(msg.match.currentPlayer)
             }
             try {
-              if (msg.match.playerOne) playerOnePubkeyRef.current = new PublicKey(msg.match.playerOne)
-              if (msg.match.playerTwo) playerTwoPubkeyRef.current = new PublicKey(msg.match.playerTwo)
+              const p1 = typeof msg.match.playerOne === 'string' ? msg.match.playerOne.toLowerCase() : null
+              const p2 = typeof msg.match.playerTwo === 'string' ? msg.match.playerTwo.toLowerCase() : null
+              if (p1) playerOneAddrRef.current = p1
+              if (p2) playerTwoAddrRef.current = p2
               // Authoritatively derive myMark from the server's player list so a
               // stale sessionStorage value (e.g. from a race-condition in the lobby
               // polling path) can never put both players on the same side.
-              const myAddr = publicKeyRef.current?.toBase58()
-              if (myAddr && msg.match.playerOne && msg.match.playerTwo) {
-                const correctMark: 'X' | 'O' = myAddr === msg.match.playerOne ? 'X' : 'O'
+              const myAddr = addressRef.current
+              if (myAddr && p1 && p2) {
+                const correctMark: 'X' | 'O' = myAddr === p1 ? 'X' : 'O'
                 setMyMark(correctMark)
                 sessionStorage.setItem('mddMyMark', correctMark)
               }
@@ -865,7 +835,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   // React StrictMode double-invoke in dev.
   const finishedOnceRef = useRef(false)
 
-  // Sound + save on game over
+  // Sound + result handoff on game over
   useEffect(() => {
     if (!winner) return
     if (finishedOnceRef.current) return
@@ -874,158 +844,92 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     else if (winner === 'draw') sounds.draw()
     else sounds.lose()
 
+    const iWon   = winner === myMark
+    const isDraw = winner === 'draw'
+    const resultStr: 'win' | 'loss' | 'draw' = iWon ? 'win' : isDraw ? 'draw' : 'loss'
+
     const modeId  = sessionStorage.getItem('mddMode') ?? 'classic'
     const modeMap: Record<string, string> = { classic: 'Classic Duel', shifting: 'Shifting Board', scaleup: 'Scale Up', blitz: 'Blitz', 'vs-ai': 'vs AI' }
-    const stakeNow = parseFloat(sessionStorage.getItem('mddStake') ?? '0.05')
-    const currencyNow = (sessionStorage.getItem('mddCurrency') === 'usdc' ? 'usdc' : 'sol') as 'sol' | 'usdc'
-    const opponentAddr = myMark === 'X'
-      ? playerTwoPubkeyRef.current?.toBase58()
-      : playerOnePubkeyRef.current?.toBase58()
+    const modeLabel = modeMap[modeId] ?? modeId
+
+    // A wallet connection is required for a ranked match — without it we can't
+    // identify the player on-chain, so we gracefully fall back to casual.
+    const effectiveRanked = !isVsAI && ranked && !!address
+
+    const opponentAddr = myMark === 'X' ? playerTwoAddrRef.current : playerOneAddrRef.current
     const opponentDisplay = isVsAI
       ? 'MindDuel AI'
-      : opponentAddr ? `${opponentAddr.slice(0, 4)}…${opponentAddr.slice(-4)}` : '???'
-    const matchResult = { result: winner === myMark ? 'win' : winner === 'draw' ? 'draw' : 'lose', opponent: opponentDisplay, mode: modeMap[modeId] ?? modeId, isVsAI, stake: stakeNow, currency: currencyNow, log: matchLogRef.current }
+      : opponentAddr ? `${opponentAddr.slice(0, 6)}…${opponentAddr.slice(-4)}` : '???'
+
+    // Local match summary + history (no stake / currency on Celo).
+    const matchResult = { result: resultStr === 'loss' ? 'lose' : resultStr, opponent: opponentDisplay, mode: modeLabel, isVsAI, ranked: effectiveRanked, log: matchLogRef.current }
     sessionStorage.setItem('mddLastMatch', JSON.stringify(matchResult))
 
     const stored = JSON.parse(localStorage.getItem('mddHistory') ?? '[]')
-    const entry = { id: Date.now().toString(), timestamp: Date.now(), result: matchResult.result, opponent: matchResult.opponent, mode: matchResult.mode, isVsAI, stake: stakeNow, currency: currencyNow, questions: matchLogRef.current.length, correct: matchLogRef.current.filter(l => l.correct).length }
+    const entry = { id: Date.now().toString(), timestamp: Date.now(), result: matchResult.result, opponent: matchResult.opponent, mode: modeLabel, isVsAI, ranked: effectiveRanked, questions: matchLogRef.current.length, correct: matchLogRef.current.filter(l => l.correct).length }
     localStorage.setItem('mddHistory', JSON.stringify([entry, ...stored].slice(0, 50)))
 
-    // Mirror vs-AI matches to backend so they appear in /history alongside PvP.
-    if (isVsAI && publicKey) {
-      const result: 'win' | 'loss' | 'draw' =
-        matchResult.result === 'win'  ? 'win'  :
-        matchResult.result === 'draw' ? 'draw' : 'loss'
-      void reportVsAiResult({ player: publicKey.toBase58(), mode: modeId, result })
-    }
-
-    // Record the result in DB immediately, regardless of on-chain settle.
-    // To avoid needing both players' addresses (which the joiner has but
-    // the creator may not), we use a simple convention: only the winner
-    // reports. For draws, either side reports null. Losers stay silent —
-    // the winner's call is the source of truth. finishMatch on the BE is
-    // idempotent so the later settle-success retry can patch the txSig.
-    if (!isVsAI && publicKey) {
-      const iWon  = winner === myMark
-      const isDraw = winner === 'draw'
-      const shouldReport = iWon || isDraw
-      if (shouldReport) {
-        const stakeAmt = parseFloat(sessionStorage.getItem('mddStake') ?? '0')
-        const pot = stakeAmt * 2
-        const fee = pot * 0.025
-        void reportMatchFinish({
-          matchId:    params.matchId,
-          winner:     isDraw ? null : publicKey.toBase58(),
-          pot,
-          fee,
-          onChainSig: null,
-        })
+    // Compute the result handoff for /result and report to the backend.
+    // The frontend NEVER sends a transaction: the backend relayer records
+    // ranked PvP results on-chain and returns the points deltas + tx hash.
+    const writeResult = (pointsDelta: number, newPoints: number | null, txHash: string | null) => {
+      const payload = {
+        result: resultStr,
+        ranked: effectiveRanked,
+        pointsDelta,
+        newPoints,
+        txHash,
+        mode: modeLabel,
+        opponent: isVsAI ? 'MindDuel AI' : (opponentAddr ?? null),
       }
+      sessionStorage.setItem('mddResult', JSON.stringify(payload))
     }
 
-    const stakeForSettle = parseFloat(sessionStorage.getItem('mddStake') ?? '0')
-    // ── Off-chain gameplay settlement ────────────────────────────────────
-    // Moves are no longer broadcast on-chain (no commit/reveal popups during
-    // play), so the GameAccount's board stays empty — settle_game would
-    // refuse to pay out because it can't detect a winner from chain state.
-    //
-    // We use `resign_game` instead: the LOSER's client signs ONE tx at
-    // game-over, which transfers the prize to the opponent and closes the
-    // GameAccount. Winner receives funds with zero popups.
-    //
-    // Edge cases:
-    //   • Draws — neither side resigns. Funds settle 50/50 via the 24h
-    //     timeout branch in settle_game (any side can call after timeout).
-    //   • Loser closes tab before signing — same fallback (winner waits 24h).
-    const iLostPvP = !isVsAI && winner !== 'draw' && winner !== myMark
-    if (iLostPvP && anchorClient && publicKey && playerOnePubkeyRef.current && playerTwoPubkeyRef.current && stakeForSettle > 0) {
-      const matchCurrency = sessionStorage.getItem('mddCurrency') ?? 'sol'
-      const resignPromise = matchCurrency === 'usdc'
-        ? resignGameUsdc(anchorClient, publicKey, playerOnePubkeyRef.current, playerTwoPubkeyRef.current, params.matchId)
-        : resignGame(anchorClient, publicKey, playerOnePubkeyRef.current, playerTwoPubkeyRef.current, params.matchId)
-      resignPromise
-        .then(sig => {
-          toast('Prize sent to opponent on-chain ✓', 'success')
-          const winnerAddr = winner === 'X'
-            ? playerOnePubkeyRef.current?.toBase58() ?? null
-            : playerTwoPubkeyRef.current?.toBase58() ?? null
-          const stakeAmt = parseFloat(sessionStorage.getItem('mddStake') ?? '0')
-          const pot = stakeAmt * 2
-          const fee = pot * 0.025
-          void reportMatchFinish({
-            matchId:    params.matchId,
-            winner:     winnerAddr,
-            pot,
-            fee,
-            onChainSig: typeof sig === 'string' ? sig : null,
-          })
-        })
-        .catch(e => {
-          const msg = e instanceof Error ? e.message : String(e)
-          console.error('resignGame failed:', e)
-          if (/User rejected|rejected by user/i.test(msg)) {
-            toast('Settle skipped — opponent can claim via 24h timeout.', 'warning')
-          } else if (/offline|network|fetch|timed?\s?out/i.test(msg)) {
-            toast('Network issue settling on-chain. Funds remain in escrow.', 'error')
-          } else if (/InvalidGameState|GameStillActive|AccountNotInitialized|0xbc4|3012|already.+(settled|finished|closed)|account.+(does\s?not\s?exist|not.*initialized)/i.test(msg)) {
-            // Race: opponent (winner) already settled and CLOSED the game
-            // account first — Anchor then reports it as AccountNotInitialized
-            // (0xbc4 / 3012). The opponent already has the prize, so this is a
-            // success from our side. Silent.
-          } else {
-            toast('On-chain settle failed: ' + msg.slice(0, 100), 'error')
-          }
-        })
+    if (isVsAI) {
+      // vs-AI: never ranked. Mirror to the backend for history, no on-chain.
+      if (address) void reportVsAiResult({ player: address, mode: modeId, result: resultStr })
+      writeResult(0, null, null)
+      return
     }
 
-    // Winner path (SOL): oracle-signed settle as a FALLBACK only. The loser's
-    // resign (above) is the primary settlement — the loser is right here
-    // conceding, so it almost always lands. Both resign and settle_with_proof
-    // pay the winner and CLOSE the same game account, so if the winner also
-    // raced a settle they'd collide on the closed account (AccountNotInitialized
-    // / 0xbc4). To avoid that we wait a grace period, then check whether the
-    // game is still open; only if the loser HASN'T settled do we claim. This
-    // covers the real gap (loser closed their tab) without the double-settle.
-    const iWonPvP = !isVsAI && winner !== 'draw' && winner === myMark
-    const settleCurrency = sessionStorage.getItem('mddCurrency') ?? 'sol'
-    if (iWonPvP && settleCurrency === 'sol' && anchorClient && publicKey
-        && playerOnePubkeyRef.current && playerTwoPubkeyRef.current && stakeForSettle > 0) {
-      const winnerPk = winner === 'X' ? playerOnePubkeyRef.current : playerTwoPubkeyRef.current
-      const p1 = playerOnePubkeyRef.current
-      void (async () => {
-        try {
-          // Give the loser's resign time to land (sign + confirm).
-          await new Promise(r => setTimeout(r, 6000))
-          // Still open? If the loser already settled, the account is closed and
-          // fetchOpenGame returns null → nothing to do.
-          const open = await fetchOpenGame(anchorClient, p1, params.matchId).catch(() => null)
-          if (!open || open.status === 'finished') return
-          const sig = await settleWithProof(
-            anchorClient,
-            publicKey,
-            p1,
-            playerTwoPubkeyRef.current!,
-            winnerPk,
-            params.matchId,
-          )
-          toast('Pot claimed on-chain ✓', 'success')
-          void reportMatchFinish({
-            matchId:    params.matchId,
-            winner:     winnerPk.toBase58(),
-            pot:        stakeForSettle * 2,
-            fee:        stakeForSettle * 2 * 0.025,
-            onChainSig: sig,
-          })
-        } catch (e) {
-          // Non-fatal: the loser's resign or the 24h timeout still settles. A
-          // closed-account race here is expected and harmless.
-          const msg = e instanceof Error ? e.message : String(e)
-          if (!/AccountNotInitialized|0xbc4|InvalidGameState|already.+(settled|finished|closed)|does\s?not\s?exist/i.test(msg)) {
-            console.error('oracle settle fallback failed:', e)
-          }
-        }
-      })()
+    if (!effectiveRanked) {
+      // Casual PvP (or ranked without a connected wallet): no points, no chain.
+      writeResult(0, null, null)
+      return
     }
+
+    // Ranked PvP — only the winner (or either side on a draw) reports; the
+    // backend's finish is idempotent. We still write a local result first so
+    // the result page renders instantly, then patch deltas from the response.
+    writeResult(0, null, null)
+    // Report the ACTUAL winner address (not just "me") so the loser's client
+    // records the same outcome — the backend is idempotent per matchId, so both
+    // sides reporting the same winner records the on-chain result exactly once
+    // while each client still receives its own points delta back.
+    const winnerAddr = isDraw ? null : (iWon ? address! : opponentAddr)
+    if (!isDraw && !winnerAddr) return // can't identify the winner on-chain
+    void (async () => {
+      const res = await reportMatchFinish({
+        matchId: params.matchId,
+        winner:  winnerAddr,
+        ranked:  true,
+      })
+      if (!res.ok) {
+        toast('Couldn\'t record ranked result — points may sync later.', 'warning')
+        return
+      }
+      let pointsDelta = 0
+      let newPoints: number | null = null
+      if (iWon) {
+        pointsDelta = res.winnerDelta ?? 0
+        newPoints   = res.winnerPoints ?? null
+      } else if (!isDraw) {
+        pointsDelta = res.loserDelta ?? 0
+        newPoints   = res.loserPoints ?? null
+      }
+      writeResult(pointsDelta, newPoints, res.txHash ?? null)
+      if (res.txHash) toast('Ranked result recorded on-chain ✓', 'success')
+    })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [winner])
 
@@ -1213,7 +1117,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       setTriviaFetching(true)
       try {
         const savedCats = JSON.parse(sessionStorage.getItem('mddCategories') ?? '[]') as string[]
-        const playerId  = publicKey?.toBase58() ?? params.matchId
+        const playerId  = address ?? params.matchId
         // Pass matchId so the backend can deduplicate across both players:
         // neither player will receive a question the other already answered
         // in this match, regardless of their individual ring buffers.
@@ -1268,10 +1172,9 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     if (correct) sounds.correct()
     else sounds.wrong()
 
-    // Off-chain gameplay: no on-chain commit/reveal per move = zero wallet
-    // popups during play. Stake is locked at game start (initialize_game) and
-    // released at game end (resign_game from loser → pays winner). The chain
-    // is the escrow + settlement layer; the BE WS is the move authority.
+    // Pure off-chain gameplay: moves are synced over the backend WebSocket;
+    // the frontend never sends a transaction. Ranked results are recorded
+    // on-chain by the backend relayer at game-over.
 
     setTimeout(() => {
       toast(correct ? 'Correct! Move placed.' : 'Wrong answer — turn lost.', correct ? 'success' : 'error')
@@ -1280,7 +1183,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       advanceTurn(correct, pendingCell)
     }, 900)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingCell, localQ, apiSessionId, isVsAI, displayQ, anchorClient, publicKey, optPerm])
+  }, [pendingCell, localQ, apiSessionId, isVsAI, displayQ, optPerm])
 
   /**
    * Forfeit current turn without placing a piece. Centralised so every
@@ -1308,48 +1211,16 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   }
 
   /**
-   * Resign the match. The on-chain `resign_game` instruction settles
-   * immediately: opponent gets the prize (pot − 2.5% fee), platform fee
-   * goes to treasury, and the GameAccount PDA is closed so the wallet
-   * is free for a new match. Local state + WS broadcast follows so the
-   * opponent sees "You Won" without waiting.
+   * Resign the match. There is no on-chain transaction or escrow on Celo —
+   * the frontend simply declares the opponent the winner locally and broadcasts
+   * it over WebSocket. Setting `winner` fires the game-over effect, which for a
+   * ranked match reports the opponent as winner to the backend relayer (which
+   * records the result on-chain and adjusts both players' points).
    */
-  async function performResign() {
+  function performResign() {
     setConfirmResign(false)
     const oppMark: 'X' | 'O' = myMark === 'X' ? 'O' : 'X'
-
-    // For staked PvP: fire on-chain resign (releases escrow to opponent + closes PDA).
-    const stakeNow = parseFloat(sessionStorage.getItem('mddStake') ?? '0')
-    if (!isVsAI && stakeNow > 0 && anchorClient && publicKey
-        && playerOnePubkeyRef.current && playerTwoPubkeyRef.current) {
-      const matchCurrency = sessionStorage.getItem('mddCurrency') ?? 'sol'
-      try {
-        if (matchCurrency === 'usdc') {
-          await resignGameUsdc(anchorClient, publicKey, playerOnePubkeyRef.current, playerTwoPubkeyRef.current, params.matchId)
-        } else {
-          await resignGame(anchorClient, publicKey, playerOnePubkeyRef.current, playerTwoPubkeyRef.current, params.matchId)
-        }
-        toast('Resigned. Prize sent to opponent on-chain.', 'warning')
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e)
-        if (/User rejected|rejected by user/i.test(msg)) {
-          toast('Resign cancelled — no on-chain action.', 'info')
-          return
-        }
-        // Common race: opponent already settled (e.g. won-on-board) before we
-        // could resign. The PDA is closed → tx fails. Treat as already-resolved
-        // success since we're conceding anyway.
-        if (/InvalidGameState|GameStillActive|AccountNotInitialized|AccountNotFound|0xbc4|3012|already.+(settled|finished|closed)|account.+(does\s?not\s?exist|not.*initialized)/i.test(msg)) {
-          toast('Match already settled — opponent claimed the prize.', 'info')
-        } else {
-          console.error('resignGame failed:', e)
-          toast('On-chain resign failed: ' + msg.slice(0, 80), 'error')
-        }
-      }
-    } else {
-      toast('You resigned. Opponent wins.', 'warning')
-    }
-
+    toast('You resigned. Opponent wins.', 'warning')
     sounds.lose()
     if (!isVsAI) {
       sendWsEvent({ type: 'board_updated', board: boardRef.current, boardSize: boardSizeRef.current, nextPlayer: null, winner: oppMark, winLine: null })
@@ -1442,106 +1313,31 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   }
 
   /**
-   * Entry point for the hint pills. In vs-AI (free practice) we run the
-   * effect immediately; in staked PvP we open a confirm dialog so the user
-   * sees the cost before signing the on-chain `claim_hint` tx.
+   * Use a hint. Hints are FREE on Celo (no staking, no payment) but each match
+   * has a budget of FREE_HINTS_PER_MATCH total uses. We only consume from the
+   * budget if the effect actually applied (e.g. "Eliminate 2" with nothing left
+   * to eliminate doesn't burn a hint).
    */
-  async function requestPurchaseHint(id: HintId) {
-    if (purchasingHint) return
-    if (usedHints.has(id)) { toast('Hint already used', 'info'); return }
+  async function useHint(id: HintId) {
+    if (applyingHint) return
+    if (hintsLeft <= 0) { toast('No hints left this match', 'info'); return }
     if (pendingCell === null && id !== 'extra-time') {
       toast('Select a cell first', 'info')
       return
     }
-    const stakedPvP = !isVsAI && stake > 0
-    if (stakedPvP) {
-      // Pre-check balance so we fail fast with a clear message instead of
-      // letting the user click through the dialog and have the wallet reject.
-      const ok = await hasBalanceForHint(id)
-      if (!ok) return
-      setHintToConfirm(id)
-    } else {
-      void executePurchaseHint(id)
-    }
-  }
-
-  /** Returns true if the user has enough balance to cover the hint price. */
-  async function hasBalanceForHint(id: HintId): Promise<boolean> {
-    if (!anchorClient || !publicKey) return true
+    setApplyingHint(id)
     try {
-      if (currency === 'usdc') {
-        const bal = await getUsdcBalance(anchorClient.provider.connection, publicKey)
-        const need = parseFloat(HINT_PRICE_USDC[id])
-        if (bal < need) {
-          toast(`Need ${need} USDC for this hint — your balance is ${bal.toFixed(2)} USDC`, 'error')
-          return false
-        }
-      } else {
-        const lamports = await anchorClient.provider.connection.getBalance(publicKey)
-        const sol = lamports / 1_000_000_000
-        const need = parseFloat(HINT_PRICE[id])
-        if (sol < need) {
-          toast(`Need ${need} SOL for this hint — your balance is ${sol.toFixed(4)} SOL`, 'error')
-          return false
-        }
-      }
-      return true
-    } catch {
-      return true  // RPC blip — let the tx attempt and surface the real error
-    }
-  }
-
-  /**
-   * Run the actual purchase. In staked PvP we fire on-chain `claim_hint`
-   * first, only apply effect on confirmation. Each hint is one-shot per
-   * match: the on-chain ledger blocks repeats.
-   */
-  async function executePurchaseHint(id: HintId) {
-    setHintToConfirm(null)
-    setPurchasingHint(id)
-    try {
-      const stakedPvP = !isVsAI && stake > 0 && anchorClient && publicKey && playerOnePubkeyRef.current
-      let txSig: string | null = null
-      if (stakedPvP) {
-        try {
-          // Off-chain hint payment: split 80/20 to treasury + escrow via direct
-          // transfers (bypasses claim_hint program's NotYourTurn guard so both
-          // players can buy hints regardless of whose on-chain turn it is).
-          txSig = await payHintOffchain(anchorClient!, publicKey!, playerOnePubkeyRef.current!, id, currency)
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : 'Transaction failed'
-          if (msg.includes('User rejected')) {
-            toast('Hint purchase cancelled', 'info')
-          } else if (msg.toLowerCase().includes('insufficient')) {
-            toast(`Insufficient ${currency.toUpperCase()} balance for this hint`, 'error')
-          } else {
-            toast(msg, 'error')
-          }
-          return
-        }
-      }
-      // Mark used FIRST so a failed-apply doesn't let the user re-buy and
-      // double-charge themselves. The on-chain ledger already prevents
-      // re-buy server-side; this keeps the UI honest.
-      if (stakedPvP) setUsedHints(prev => new Set(prev).add(id))
-
       const applied = await applyHintLocal(id)
       if (applied) {
-        if (!stakedPvP) setUsedHints(prev => new Set(prev).add(id))
         sounds.hint()
-      } else if (stakedPvP) {
-        // On-chain payment confirmed but local effect couldn't apply (e.g.
-        // peek API down, session expired). User is owed the effect — surface
-        // it clearly with the tx so they can verify the charge.
-        toast(
-          txSig
-            ? `Hint paid on-chain but couldn't apply locally. Tx: ${txSig.slice(0, 8)}…`
-            : 'Hint paid on-chain but couldn\'t apply locally',
-          'warning',
-        )
+        setHintsUsed(prev => {
+          const next = prev + 1
+          try { sessionStorage.setItem(hintsUsedKey, String(next)) } catch { /* sessionStorage unavailable */ }
+          return next
+        })
       }
     } finally {
-      setPurchasingHint(null)
+      setApplyingHint(null)
     }
   }
 
@@ -1562,7 +1358,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     <div style={{ minHeight: '100vh', background: BG, fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif", color: INK, display: 'flex', flexDirection: 'column' }}>
 
       <AnimatePresence>
-        {gameOver && winner && <GameOverModal winner={winner} isVsAI={isVsAI} myMark={myMark} stake={stake} currency={currency} />}
+        {gameOver && winner && <GameOverModal winner={winner} isVsAI={isVsAI} myMark={myMark} ranked={ranked} />}
       </AnimatePresence>
 
       <AnimatePresence>
@@ -1638,7 +1434,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               <PlayerChip
                 color={BLUE}
                 label="YOU"
-                addr={publicKey ? `${publicKey.toBase58().slice(0, 4)}…${publicKey.toBase58().slice(-4)}` : '—'}
+                addr={address ? `${address.slice(0, 6)}…${address.slice(-4)}` : '—'}
                 mark={myMark}
                 active={currentPlayer === myMark}
               />
@@ -1649,18 +1445,18 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                 addr={(() => {
                   if (isVsAI) return 'MindDuel AI'
                   const opp = myMark === 'X'
-                    ? playerTwoPubkeyRef.current?.toBase58()
-                    : playerOnePubkeyRef.current?.toBase58()
-                  return opp ? `${opp.slice(0, 4)}…${opp.slice(-4)}` : 'waiting…'
+                    ? playerTwoAddrRef.current
+                    : playerOneAddrRef.current
+                  return opp ? `${opp.slice(0, 6)}…${opp.slice(-4)}` : 'waiting…'
                 })()}
                 mark={myMark === 'X' ? 'O' : 'X'}
                 active={currentPlayer !== myMark}
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 14px', background: isVsAI ? 'var(--mdd-bg-soft)' : '#E8F7EE', borderRadius: 999, whiteSpace: 'nowrap' }}>
-                <span style={{ fontSize: 11, color: isVsAI ? MUTED : GREEN_DARK, fontWeight: 600, letterSpacing: 0.3, textTransform: 'uppercase' }}>{isVsAI ? 'Mode' : 'Pot'}</span>
-                <span style={{ fontSize: 14, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isVsAI ? MUTED : GREEN_DARK, letterSpacing: -0.3 }}>{isVsAI ? 'Free' : `${(stake * 2).toFixed(2)} ${currencyLabel}`}</span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 14px', background: ranked && !isVsAI ? '#E8F7EE' : 'var(--mdd-bg-soft)', borderRadius: 999, whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 11, color: ranked && !isVsAI ? GREEN_DARK : MUTED, fontWeight: 600, letterSpacing: 0.3, textTransform: 'uppercase' }}>Mode</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: ranked && !isVsAI ? GREEN_DARK : MUTED, letterSpacing: -0.3 }}>{isVsAI ? 'Practice' : ranked ? 'Ranked' : 'Casual'}</span>
               </div>
             </div>
           </div>
@@ -1789,26 +1585,21 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, padding: '0 2px' }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: 0.5 }}>POWER-UPS</span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: MUTED }}>
-                  {isVsAI || stake === 0 ? 'free in practice' : 'paid on-chain to treasury'}
+                <span style={{ fontSize: 10, fontWeight: 600, color: hintsLeft > 0 ? GREEN_DARK : MUTED }}>
+                  {hintsLeft > 0 ? `${hintsLeft} free hint${hintsLeft === 1 ? '' : 's'} left` : 'no hints left'}
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {(['eliminate2', 'category', 'first-letter', 'extra-time', 'skip'] as HintId[]).map(id => {
-                  const cost = currency === 'usdc' ? HINT_PRICE_USDC[id] : HINT_PRICE[id]
-                  return (
-                    <HintPill
-                      key={id}
-                      id={id}
-                      label={HINT_LABEL[id]}
-                      cost={cost}
-                      currency={currency === 'usdc' ? 'USDC' : 'SOL'}
-                      onClick={() => requestPurchaseHint(id)}
-                      disabled={usedHints.has(id) || purchasingHint !== null || (pendingCell === null && id !== 'extra-time')}
-                      loading={purchasingHint === id}
-                    />
-                  )
-                })}
+                {(['eliminate2', 'category', 'first-letter', 'extra-time', 'skip'] as HintId[]).map(id => (
+                  <HintPill
+                    key={id}
+                    id={id}
+                    label={HINT_LABEL[id]}
+                    onClick={() => useHint(id)}
+                    disabled={hintsLeft <= 0 || applyingHint !== null || (pendingCell === null && id !== 'extra-time')}
+                    loading={applyingHint === id}
+                  />
+                ))}
               </div>
             </div>
           )}
@@ -1826,10 +1617,9 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               {LEADERBOARD.map(staticP => {
                 // Replace placeholder addrs with the live wallet addresses for
                 // this match so the recording shows real on-chain identities.
-                const meAddr = publicKey?.toBase58()
-                const oppPk = myMark === 'X' ? playerTwoPubkeyRef.current : playerOnePubkeyRef.current
-                const oppAddr = isVsAI ? null : oppPk?.toBase58() ?? null
-                const fmt = (a: string) => `${a.slice(0, 4)}…${a.slice(-4)}`
+                const meAddr = address
+                const oppAddr = isVsAI ? null : (myMark === 'X' ? playerTwoAddrRef.current : playerOneAddrRef.current)
+                const fmt = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
                 const p = (staticP as { you?: boolean }).you && meAddr
                   ? { ...staticP, addr: fmt(meAddr) }
                   : (staticP as { opponent?: boolean }).opponent && oppAddr
@@ -1845,7 +1635,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                     {p.addr}{(p as { you?: boolean }).you && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 600, color: BLUE, background: '#E5F0FD', padding: '1px 5px', borderRadius: 4, letterSpacing: 0.3 }}>YOU</span>}
                   </span>
                   <span style={{ fontSize: 12, color: MUTED, marginRight: 14, fontVariantNumeric: 'tabular-nums' }}>{p.wins}W</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: GREEN_DARK, fontVariantNumeric: 'tabular-nums' }}>{p.sol}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: GREEN_DARK, fontVariantNumeric: 'tabular-nums' }}>{p.pts}</span>
                 </div>
                 )
               })}
@@ -1855,39 +1645,15 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       </div>
 
       <ConfirmDialog
-        open={hintToConfirm !== null}
-        title={hintToConfirm ? `Buy ${HINT_LABEL[hintToConfirm]}?` : ''}
-        message={
-          hintToConfirm ? (
-            <>
-              <strong>{HINT_LABEL[hintToConfirm]}</strong> — {HINT_DESCRIPTION[hintToConfirm]}
-              <br /><br />
-              Cost: <strong>{currency === 'usdc' ? HINT_PRICE_USDC[hintToConfirm] : HINT_PRICE[hintToConfirm]} {currency.toUpperCase()}</strong>. Paid directly to the platform treasury on-chain.
-              <br /><br />
-              <span style={{ fontSize: 12, color: 'var(--mdd-muted)' }}>
-                One-shot per match — your wallet will prompt to sign.
-              </span>
-            </>
-          ) : ''
-        }
-        confirmLabel="Buy & sign"
-        cancelLabel="Cancel"
-        tone="default"
-        onConfirm={() => hintToConfirm && void executePurchaseHint(hintToConfirm)}
-        onCancel={() => setHintToConfirm(null)}
-      />
-
-      <ConfirmDialog
         open={confirmResign}
         title="Resign this match?"
         message={
           <>
             Your opponent will be declared the winner and you&apos;ll be returned to the lobby.
-            {!isVsAI && stake > 0 && (
+            {!isVsAI && ranked && (
               <>
                 <br /><br />
-                <strong>Stake match ({(stake * 2).toFixed(2)} {currency.toUpperCase()} pot):</strong> resigning sends the pot
-                {' '}({(stake * 2 * 0.975).toFixed(3)} {currency.toUpperCase()} after 2.5% fee) to your opponent on-chain. You forfeit your full stake of {stake} {currency.toUpperCase()}.
+                <strong>Ranked match:</strong> resigning counts as a loss — your opponent gains points and you lose points on the ladder.
               </>
             )}
           </>

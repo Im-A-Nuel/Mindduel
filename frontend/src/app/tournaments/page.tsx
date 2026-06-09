@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useWallet } from '@/hooks/useWallet'
 import { NavBar } from '@/components/layout/NavBar'
 import { useToast } from '@/components/ui/Toast'
 import {
@@ -21,13 +21,13 @@ const GREEN_DARK = '#0A7A2D'
 const BG = 'var(--mdd-bg)'
 
 export default function TournamentsPage() {
-  const { publicKey } = useWallet()
+  const { address } = useWallet()
   const toast = useToast()
   const [tournaments, setTournaments] = useState<TournamentSummary[] | null>(null)
   const [creating, setCreating] = useState(false)
-  const [name, setName]   = useState('Friday Night Cup')
-  const [size, setSize]   = useState<4 | 8>(4)
-  const [stake, setStake] = useState(0.05)
+  const [name, setName]     = useState('Friday Night Cup')
+  const [size, setSize]     = useState<4 | 8>(4)
+  const [ranked, setRanked] = useState(true)
 
   async function refresh() {
     try { setTournaments(await listTournaments()) }
@@ -41,15 +41,14 @@ export default function TournamentsPage() {
   }, [])
 
   async function handleCreate() {
-    if (!publicKey) { toast('Connect wallet first', 'warning'); return }
+    if (!address) { toast('Connect wallet first', 'warning'); return }
     if (!name.trim()) { toast('Tournament name is required', 'warning'); return }
-    if (stake < 0.01) { toast('Min stake is 0.01 SOL', 'warning'); return }
 
     setCreating(true)
     try {
       await createTournament({
-        name: name.trim(), size, stake, currency: 'sol', mode: 'classic',
-        createdBy: publicKey.toBase58(),
+        name: name.trim(), size, ranked, mode: 'classic',
+        createdBy: address,
       })
       toast('Tournament created — waiting for players to join.', 'success')
       await refresh()
@@ -61,9 +60,9 @@ export default function TournamentsPage() {
   }
 
   async function handleJoin(t: TournamentSummary) {
-    if (!publicKey) { toast('Connect wallet first', 'warning'); return }
+    if (!address) { toast('Connect wallet first', 'warning'); return }
     try {
-      const r = await joinTournamentApi(t.tournamentId, publicKey.toBase58())
+      const r = await joinTournamentApi(t.tournamentId, address)
       if (r.started) {
         toast('Bracket full — tournament started!', 'success')
       } else {
@@ -89,7 +88,7 @@ export default function TournamentsPage() {
         >
           <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Phase 4 · Bonus</div>
           <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.8, margin: '0 0 4px' }}>Tournaments</h1>
-          <p style={{ margin: 0, fontSize: 14, color: MUTED }}>Single-elimination brackets · 4 or 8 players</p>
+          <p style={{ margin: 0, fontSize: 14, color: MUTED }}>Single-elimination brackets · 4 or 8 players · Ranked or Casual</p>
         </motion.div>
 
         {/* Create form */}
@@ -110,9 +109,15 @@ export default function TournamentsPage() {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 }}>Stake (SOL)</label>
-              <input type="number" min={0.01} step={0.01} value={stake} onChange={e => setStake(parseFloat(e.target.value) || 0.01)}
-                style={{ display: 'block', marginTop: 4, width: '100%', padding: '9px 12px', borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.08)', fontSize: 13.5, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+              <label style={{ fontSize: 11, fontWeight: 600, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 }}>Type</label>
+              <div style={{ display: 'flex', gap: 4, marginTop: 4, padding: 4, background: 'rgba(0,0,0,0.05)', borderRadius: 10 }}>
+                {([[true, 'Ranked'], [false, 'Casual']] as [boolean, string][]).map(([val, label]) => (
+                  <button key={label} type="button" onClick={() => setRanked(val)}
+                    style={{ appearance: 'none', border: 'none', flex: 1, padding: '6px 0', borderRadius: 8, background: ranked === val ? 'var(--mdd-card)' : 'transparent', color: ranked === val ? INK : MUTED, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', boxShadow: ranked === val ? '0 1px 2px rgba(0,0,0,0.06)' : 'none', transition: 'all 120ms ease' }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
             <button onClick={handleCreate} disabled={creating}
               style={{ appearance: 'none', border: 'none', background: creating ? '#AEAEB2' : BLUE, color: '#fff', padding: '11px 20px', borderRadius: 10, fontSize: 13.5, fontWeight: 600, cursor: creating ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
@@ -137,15 +142,17 @@ export default function TournamentsPage() {
           ) : (
             tournaments.map(t => {
               const full = t.registered >= t.size
-              const myWallet = publicKey?.toBase58()
-              const youCreated = myWallet === t.createdBy
+              const youCreated = address === t.createdBy
               return (
                 <div key={t.tournamentId} style={{ background: 'var(--mdd-card)', borderRadius: 16, padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 700 }}>{t.name}</div>
-                    <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>
-                      {t.size} players · {t.stake} {t.currency.toUpperCase()} stake · {t.mode} mode
-                      {youCreated && <span style={{ color: BLUE, marginLeft: 6 }}>· yours</span>}
+                    <div style={{ fontSize: 12, color: MUTED, marginTop: 2, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.3, background: t.ranked ? '#E5F0FD' : 'rgba(0,0,0,0.05)', color: t.ranked ? BLUE : MUTED }}>
+                        {t.ranked ? 'RANKED' : 'CASUAL'}
+                      </span>
+                      <span>{t.size} players · {t.mode} mode · {t.registered}/{t.size} registered</span>
+                      {youCreated && <span style={{ color: BLUE }}>· yours</span>}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

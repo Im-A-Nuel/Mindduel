@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion, useInView } from 'framer-motion'
 import { WalletButton } from '@/components/wallet/WalletButton'
-import { UsdcFaucetButton } from '@/components/UsdcFaucetButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { fetchLiveStats, type LiveStats } from '@/lib/api'
 
@@ -129,7 +128,7 @@ function VisualSkillMoves() {
         {/* Trivia question card */}
         <rect x="14" y="12" width="196" height="68" rx="13" fill="#081B30" stroke="#1B4080" strokeWidth="1.2"/>
         <text x="28" y="29" fill="#3A6AA0" fontSize="8" fontWeight="700" letterSpacing="2">TRIVIA</text>
-        <text x="28" y="45" fill="#B8D5F8" fontSize="11" fontWeight="600">What is Solana&apos;s consensus?</text>
+        <text x="28" y="45" fill="#B8D5F8" fontSize="11" fontWeight="600">What is Celo&apos;s consensus?</text>
         <rect x="28" y="53" width="116" height="20" rx="6" fill="#03200E" stroke="#16A34A" strokeWidth="1"/>
         <text x="86" y="64" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="9.5" fontWeight="700">✓  Proof of History</text>
         <rect x="150" y="53" width="44" height="20" rx="6" fill="#0D1525" stroke="#1E2A42" strokeWidth="0.5"/>
@@ -181,12 +180,12 @@ function VisualTrustlessEscrow() {
         <rect x="167.5" y="116" width="5" height="9" rx="1.5" fill="#04091C"/>
         {/* Left coin */}
         <circle cx="68" cy="98" r="20" fill="#120830" stroke="#7C3AED" strokeWidth="1.5"/>
-        <text x="68" y="99" textAnchor="middle" dominantBaseline="middle" fill="#A855F7" fontSize="15" fontWeight="700">◎</text>
-        <text x="68" y="128" textAnchor="middle" fill="#4A2A70" fontSize="8.5" fontWeight="600">0.05 SOL</text>
+        <text x="68" y="99" textAnchor="middle" dominantBaseline="middle" fill="#A855F7" fontSize="15" fontWeight="700">★</text>
+        <text x="68" y="128" textAnchor="middle" fill="#4A2A70" fontSize="8.5" fontWeight="600">+25 PTS</text>
         {/* Right coin */}
         <circle cx="272" cy="98" r="20" fill="#120830" stroke="#7C3AED" strokeWidth="1.5"/>
-        <text x="272" y="99" textAnchor="middle" dominantBaseline="middle" fill="#A855F7" fontSize="15" fontWeight="700">◎</text>
-        <text x="272" y="128" textAnchor="middle" fill="#4A2A70" fontSize="8.5" fontWeight="600">0.05 SOL</text>
+        <text x="272" y="99" textAnchor="middle" dominantBaseline="middle" fill="#A855F7" fontSize="15" fontWeight="700">★</text>
+        <text x="272" y="128" textAnchor="middle" fill="#4A2A70" fontSize="8.5" fontWeight="600">−25 PTS</text>
         {/* Flowing dashes toward lock */}
         <line x1="96" y1="102" x2="140" y2="110" stroke="#7C3AED" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.6">
           <animate attributeName="stroke-dashoffset" values="0;-14" dur="1.2s" repeatCount="indefinite"/>
@@ -196,10 +195,10 @@ function VisualTrustlessEscrow() {
         </line>
         {/* PDA label */}
         <rect x="116" y="153" width="108" height="22" rx="7" fill="#0F0525" stroke="#5B21B6" strokeWidth="1"/>
-        <text x="170" y="165" textAnchor="middle" dominantBaseline="middle" fill="#9D5FFF" fontSize="9.5" fontWeight="700">🔐  PROGRAM PDA</text>
+        <text x="170" y="165" textAnchor="middle" dominantBaseline="middle" fill="#9D5FFF" fontSize="9.5" fontWeight="700">🔐  SMART CONTRACT</text>
         {/* Badges */}
         <rect x="12" y="14" width="96" height="21" rx="7" fill="#0A0220" stroke="#4C1D95" strokeWidth="1"/>
-        <text x="60" y="26" textAnchor="middle" dominantBaseline="middle" fill="#7C3AED" fontSize="9" fontWeight="700">◎ NO RUG PULLS</text>
+        <text x="60" y="26" textAnchor="middle" dominantBaseline="middle" fill="#7C3AED" fontSize="9" fontWeight="700">★ NO STAKING</text>
         <rect x="232" y="14" width="96" height="21" rx="7" fill="#0A0220" stroke="#4C1D95" strokeWidth="1"/>
         <text x="280" y="26" textAnchor="middle" dominantBaseline="middle" fill="#7C3AED" fontSize="9" fontWeight="700">TRUSTLESS ✓</text>
       </svg>
@@ -240,7 +239,7 @@ function VisualInstantSettlement() {
         {/* Moving SOL coin */}
         <g>
           <circle cx="200" cy="96" r="21" fill="#071E2A" stroke="#06B6D4" strokeWidth="1.8"/>
-          <text x="200" y="97" textAnchor="middle" dominantBaseline="middle" fill="#06B6D4" fontSize="17" fontWeight="800">◎</text>
+          <text x="200" y="97" textAnchor="middle" dominantBaseline="middle" fill="#06B6D4" fontSize="17" fontWeight="800">★</text>
           <animateTransform attributeName="transform" type="translate" values="-116,0;0,0;0,0;0,0" dur="2.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.45;0.7;1" keySplines="0.25 0 0.75 1;0 0 1 1;0 0 1 1"/>
         </g>
         {/* 400ms badge */}
@@ -254,9 +253,9 @@ function VisualInstantSettlement() {
         <text x="261" y="149" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="9.5" fontWeight="700">✓ SETTLED</text>
         {/* Top chips */}
         <rect x="14" y="16" width="108" height="21" rx="7" fill="#071822" stroke="#0A3040" strokeWidth="1"/>
-        <text x="68" y="28" textAnchor="middle" dominantBaseline="middle" fill="#1C7090" fontSize="9" fontWeight="600">Solana · 65,000 TPS</text>
+        <text x="68" y="28" textAnchor="middle" dominantBaseline="middle" fill="#1C7090" fontSize="9" fontWeight="600">Celo · 1s blocks</text>
         <rect x="218" y="16" width="108" height="21" rx="7" fill="#03200E" stroke="#14532D" strokeWidth="1"/>
-        <text x="272" y="28" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="9" fontWeight="600">+0.095 SOL 🎉</text>
+        <text x="272" y="28" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="9" fontWeight="600">+25 PTS 🎉</text>
       </svg>
     </div>
   )
@@ -332,7 +331,7 @@ function VisualHintSystem() {
         {/* Question card header */}
         <rect x="22" y="10" width="296" height="46" rx="12" fill="#071E14" stroke="#134E38" strokeWidth="1.2"/>
         <text x="170" y="24" textAnchor="middle" fill="#065F46" fontSize="8" fontWeight="700" letterSpacing="1.5">QUESTION #3</text>
-        <text x="170" y="40" textAnchor="middle" fill="#A7F3D0" fontSize="11" fontWeight="600">Which language for Solana programs?</text>
+        <text x="170" y="40" textAnchor="middle" fill="#A7F3D0" fontSize="11" fontWeight="600">Which language for Celo contracts?</text>
         {/* Option A - eliminated */}
         <rect x="22" y="68" width="138" height="32" rx="9" fill="#180A0A" stroke="#4A1A1A" strokeWidth="1" opacity="0.7"/>
         <text x="91" y="85" textAnchor="middle" dominantBaseline="middle" fill="#5A2828" fontSize="11" fontWeight="600">A.  JavaScript</text>
@@ -343,7 +342,7 @@ function VisualHintSystem() {
         <line x1="188" y1="84" x2="310" y2="84" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" opacity="0.75"/>
         {/* Option C - correct (highlighted) */}
         <rect x="22" y="112" width="138" height="32" rx="9" fill="#04200F" stroke="#16A34A" strokeWidth="1.5"/>
-        <text x="91" y="129" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="11" fontWeight="700">C.  Rust ✓</text>
+        <text x="91" y="129" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="11" fontWeight="700">C.  Solidity ✓</text>
         {/* Option D - neutral */}
         <rect x="180" y="112" width="138" height="32" rx="9" fill="#0A1410" stroke="#1A3020" strokeWidth="1"/>
         <text x="249" y="129" textAnchor="middle" dominantBaseline="middle" fill="#2A4030" fontSize="11">D.  C++</text>
@@ -351,7 +350,7 @@ function VisualHintSystem() {
         <rect x="22" y="158" width="108" height="24" rx="8" fill="#041A0E" stroke="#10B981" strokeWidth="1.2">
           <animate attributeName="opacity" values="1;0.55;1" dur="2.6s" repeatCount="indefinite"/>
         </rect>
-        <text x="76" y="171" textAnchor="middle" dominantBaseline="middle" fill="#10B981" fontSize="9.5" fontWeight="700">◎ 0.001 SOL hint</text>
+        <text x="76" y="171" textAnchor="middle" dominantBaseline="middle" fill="#10B981" fontSize="9.5" fontWeight="700">★ FREE hint</text>
         {/* Eliminated badge */}
         <rect x="210" y="158" width="110" height="24" rx="8" fill="#1A0808" stroke="#EF4444" strokeWidth="1"/>
         <text x="265" y="171" textAnchor="middle" dominantBaseline="middle" fill="#F87171" fontSize="9.5" fontWeight="700">✕ × 2 eliminated</text>
@@ -542,9 +541,9 @@ function ModeVisualClassic() {
         <animate attributeName="r" values="16;28;16" dur="2s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
       </circle>
-      {/* SOL wager badge */}
+      {/* Ranked points badge */}
       <rect x="18" y="16" width="90" height="22" rx="7" fill="rgba(0,0,0,0.4)" stroke="#1A3F80" strokeWidth="1"/>
-      <text x="63" y="28" textAnchor="middle" dominantBaseline="middle" fill="#60A5FA" fontSize="9.5" fontWeight="600">◎ 0.05 SOL</text>
+      <text x="63" y="28" textAnchor="middle" dominantBaseline="middle" fill="#60A5FA" fontSize="9.5" fontWeight="600">★ +25 PTS</text>
       {/* VS badge */}
       <rect x="374" y="16" width="88" height="22" rx="7" fill="rgba(0,0,0,0.4)" stroke="#1A3F80" strokeWidth="1"/>
       <text x="418" y="28" textAnchor="middle" dominantBaseline="middle" fill="#60A5FA" fontSize="9.5" fontWeight="600">1v1 DUEL</text>
@@ -788,18 +787,18 @@ export default function LandingPage() {
         >
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'var(--mdd-card)', borderRadius: 999, boxShadow: '0 0 0 0.5px rgba(0,0,0,0.08)', alignSelf: 'flex-start' }}>
             <div style={{ width: 7, height: 7, borderRadius: 4, background: GREEN }} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>Solana · PvP · On-Chain</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>Celo · MiniPay · On-Chain Ranked</span>
           </div>
 
           <div>
             <h1 className="lp-hero-h1" style={{ fontSize: 58, fontWeight: 700, letterSpacing: -2, lineHeight: 1.04, margin: 0 }}>
               Prove Your Mind.<br />
-              <span style={{ color: BLUE }}>Win On-Chain.</span>
+              <span style={{ color: BLUE }}>Climb the Ranks.</span>
             </h1>
           </div>
 
           <p style={{ fontSize: 17, color: MUTED, lineHeight: 1.55, margin: 0, maxWidth: 440 }}>
-            Trivia-gated Tic Tac Toe with real SOL at stake. Answer correctly to move. Think fast. Win bigger.
+            Trivia-gated Tic Tac Toe on Celo. Answer correctly to move. No staking — pure skill. Every win earns on-chain points and climbs the ranked ladder.
           </p>
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -820,16 +819,15 @@ export default function LandingPage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: FAINT }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: GREEN }} />Built on Solana</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: BLUE }} />Zero custody</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: '#AF52DE' }} />Instant settle</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: GREEN }} />Built on Celo</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: BLUE }} />No staking</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: '#AF52DE' }} />Pure skill</div>
           </div>
 
-          {/* Mock USDC faucet — promotional CTA */}
+          {/* Ranked ladder note */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-            <UsdcFaucetButton variant="pill" />
             <span style={{ fontSize: 11.5, color: FAINT, lineHeight: 1.4, maxWidth: 360 }}>
-              Devnet only · Use Mock USDC to try staking without spending real tokens.
+              Free to play · MiniPay-ready · Every ranked win is recorded on-chain as points — no tokens at risk.
             </span>
           </div>
         </motion.div>
@@ -855,9 +853,9 @@ export default function LandingPage() {
             </div>
             <DemoBoard />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, fontSize: 12, color: MUTED, fontWeight: 500 }}>
-              <span>Pot</span>
-              <span style={{ color: GREEN_DARK, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>0.200 SOL</span>
-              <span>Devnet</span>
+              <span>Ranked</span>
+              <span style={{ color: GREEN_DARK, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>+25 pts</span>
+              <span>Celo</span>
             </div>
           </div>
         </motion.div>
@@ -865,11 +863,12 @@ export default function LandingPage() {
 
       {/* ── Stats bar ────────────────────────────────────────────────── */}
       <section style={{ background: 'var(--mdd-card)', borderTop: '0.5px solid rgba(0,0,0,0.06)', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-        <div className="lp-stats" style={{ maxWidth: 1120, margin: '0 auto', padding: '28px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, textAlign: 'center' }}>
+        <div className="lp-stats" style={{ maxWidth: 1120, margin: '0 auto', padding: '28px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, textAlign: 'center' }}>
           {([
-            { label: 'Matches Settled', value: liveStats?.finishedTotal ?? null },
-            { label: 'USDC Wagered (24h)', value: liveStats ? Math.round(liveStats.wageredLast24hUsdc) : null },
-            { label: 'Live Matches', value: liveStats ? liveStats.activeMatches + liveStats.waitingMatches : null },
+            { label: 'Players Ranked', value: liveStats?.playersRanked ?? null },
+            { label: 'Matches Played', value: liveStats?.matchesPlayed ?? null },
+            { label: 'Ranked Matches (24h)', value: liveStats?.rankedLast24h ?? null },
+            { label: 'Active Matches', value: liveStats ? liveStats.activeMatches + liveStats.waitingMatches : null },
           ] as { label: string; value: number | null }[]).map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: i * 0.1 }} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div className="lp-stat-num" style={{ fontSize: 32, fontWeight: 700, letterSpacing: -1, color: INK }}>
@@ -885,14 +884,14 @@ export default function LandingPage() {
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '80px 28px' }}>
         <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: 'center', marginBottom: 48 }}>
           <h2 style={{ fontSize: 34, fontWeight: 700, letterSpacing: -1.2, margin: '0 0 10px' }}>Not Just Another Game</h2>
-          <p style={{ fontSize: 15, color: MUTED, margin: 0 }}>Every mechanic is trustless, skill-based, and provably fair — settled on Solana.</p>
+          <p style={{ fontSize: 15, color: MUTED, margin: 0 }}>Every mechanic is trustless, skill-based, and provably fair — recorded on Celo.</p>
         </motion.div>
         <div className="lp-features" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           <FeatureCard delay={0}    visual={<VisualSkillMoves/>}        icon={<IconTarget/>}   title="Skill-Based Moves"   desc="You can only place a piece if you answer the trivia correctly. Strategy alone isn't enough." />
-          <FeatureCard delay={0.08} visual={<VisualTrustlessEscrow/>}   icon={<IconLock/>}     title="Trustless Escrow"    desc="SOL is locked in a program-controlled PDA. No rug pulls — funds release automatically." />
-          <FeatureCard delay={0.16} visual={<VisualInstantSettlement/>} icon={<IconZap/>}      title="Instant Settlement"  desc="Solana's 400ms finality means winners receive SOL the same moment the game ends." />
+          <FeatureCard delay={0.08} visual={<VisualTrustlessEscrow/>}   icon={<IconLock/>}     title="On-Chain Ranking"    desc="Every ranked result is recorded by a smart contract on Celo. No staking, no custody — just a tamper-proof points ladder." />
+          <FeatureCard delay={0.16} visual={<VisualInstantSettlement/>} icon={<IconZap/>}      title="Instant Finality"    desc="Celo's fast finality means your new points and rank are confirmed on-chain the moment the game ends." />
           <FeatureCard delay={0.24} visual={<VisualAchievementNFTs/>}   icon={<IconMedal/>}    title="Achievement NFTs"    desc="Win streaks mint soulbound badge NFTs to your wallet. Prove dominance on-chain, forever." />
-          <FeatureCard delay={0.32} visual={<VisualHintSystem/>}        icon={<IconBulb/>}     title="Hint System"         desc="Stuck on a question? Spend micro-SOL for hints. Eliminate options, reveal categories." />
+          <FeatureCard delay={0.32} visual={<VisualHintSystem/>}        icon={<IconBulb/>}     title="Free Hint System"    desc="Stuck on a question? Use free hints each match — eliminate options, reveal categories, buy time." />
           <FeatureCard delay={0.40} visual={<VisualDramaScore/>}        icon={<IconBarChart/>} title="Drama Score"         desc="Epic comebacks and nail-biter finishes generate a drama score. High-drama games mint NFTs." />
         </div>
       </section>
@@ -905,7 +904,7 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: BLUE, letterSpacing: 1.2, marginBottom: 12, textTransform: 'uppercase' }}>Step by step</div>
             <h2 style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1.3, margin: '0 0 10px', lineHeight: 1.08 }}>How It Works</h2>
-            <p style={{ fontSize: 15, color: MUTED, margin: '0 0 48px', lineHeight: 1.55 }}>From wallet connection to SOL in your wallet in under 5 minutes.</p>
+            <p style={{ fontSize: 15, color: MUTED, margin: '0 0 48px', lineHeight: 1.55 }}>From wallet connection to a higher rank in under 5 minutes.</p>
 
             {/* Timeline */}
             <div style={{ position: 'relative' }}>
@@ -913,10 +912,10 @@ export default function LandingPage() {
               <div style={{ position: 'absolute', left: 21, top: 44, bottom: 24, width: 1.5, background: 'linear-gradient(to bottom, #C7DFF7 0%, #EAF3FE 100%)', zIndex: 0 }}/>
 
               {[
-                { num: '1', title: 'Connect Your Wallet', desc: 'Phantom or Backpack. No account needed — your wallet is your identity.', active: true },
-                { num: '2', title: 'Set Your Stake',      desc: 'Choose your wager. SOL is locked in escrow the moment the game starts.', active: false },
+                { num: '1', title: 'Connect Your Wallet', desc: 'MiniPay or any Celo wallet. No account needed — your wallet is your identity.', active: true },
+                { num: '2', title: 'Pick Ranked or Casual', desc: 'Choose a mode. Ranked matches move your points; casual is just for fun. No staking, ever.', active: false },
                 { num: '3', title: 'Answer to Move',      desc: 'Each turn, answer a trivia question correctly to place your piece on the board.', active: false },
-                { num: '4', title: 'Win & Collect',       desc: 'First to align 3 wins. Settlement is automatic — SOL lands in your wallet instantly.', active: false },
+                { num: '4', title: 'Win & Climb',         desc: 'First to align 3 wins. Your new points are written on-chain instantly — and your rank updates.', active: false },
               ].map((s, i) => (
                 <motion.div
                   key={s.num}
@@ -961,7 +960,7 @@ export default function LandingPage() {
                   <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#FFBD2E' }}/>
                   <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#28C840' }}/>
                 </div>
-                <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11, color: 'rgba(255,255,255,0.28)', marginLeft: 8, letterSpacing: 0.2 }}>mind_duel.rs · devnet</span>
+                <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11, color: 'rgba(255,255,255,0.28)', marginLeft: 8, letterSpacing: 0.2 }}>MindDuelRanking.sol · celo</span>
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5 }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#28C840', animation: 'liveDotPulse 2s ease-in-out infinite' }}/>
                   <span style={{ fontSize: 10, fontWeight: 600, color: '#28C840', letterSpacing: 0.5 }}>LIVE</span>
@@ -971,10 +970,10 @@ export default function LandingPage() {
               {/* Instructions */}
               <div style={{ padding: '6px 0 6px' }}>
                 {[
-                  { label: 'initialize_game', desc: 'Creates PDA, locks escrow',              color: '#34D399', accent: '#064E3B' },
-                  { label: 'commit_answer',   desc: 'Stores hash(answer + nonce)',             color: '#60A5FA', accent: '#1E3A5F' },
-                  { label: 'reveal_answer',   desc: 'Verifies hash, executes move if correct', color: '#C084FC', accent: '#3B1F5E' },
-                  { label: 'settle_game',     desc: 'Distributes pot, triggers NFT mint',      color: '#FBBF24', accent: '#451A03' },
+                  { label: 'startMatch',    desc: 'Registers a ranked match on-chain',       color: '#34D399', accent: '#064E3B' },
+                  { label: 'commitAnswer',  desc: 'Stores hash(answer + nonce)',             color: '#60A5FA', accent: '#1E3A5F' },
+                  { label: 'revealAnswer',  desc: 'Verifies hash, executes move if correct', color: '#C084FC', accent: '#3B1F5E' },
+                  { label: 'recordResult',  desc: 'Updates points & rank, triggers NFT mint', color: '#FBBF24', accent: '#451A03' },
                 ].map((item, i) => (
                   <motion.div
                     key={item.label}
@@ -1009,7 +1008,7 @@ export default function LandingPage() {
           <p style={{ fontSize: 15, color: MUTED }}>Classic strategy meets dynamic chaos — all settled on-chain.</p>
         </motion.div>
         <div className="lp-modes" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-          <ModeCard visual={<ModeVisualClassic/>}  name="Classic Duel"   desc="Standard 3×3 Tic Tac Toe. Answer trivia to place your piece — first to align 3 wins the pot."    tag="EASY"      tagBg="#E8F7EE" tagColor={GREEN_DARK} available accentColor={BLUE} delay={0} />
+          <ModeCard visual={<ModeVisualClassic/>}  name="Classic Duel"   desc="Standard 3×3 Tic Tac Toe. Answer trivia to place your piece — first to align 3 wins the points."    tag="EASY"      tagBg="#E8F7EE" tagColor={GREEN_DARK} available accentColor={BLUE} delay={0} />
           <ModeCard visual={<ModeVisualShifting/>} name="Shifting Board" desc="Every 3 rounds the board shifts — cells rotate and change position, forcing you to adapt your strategy." tag="MEDIUM"    tagBg="#FFF4E0" tagColor="#8A5A00"    available accentColor={BLUE} delay={0.1} />
           <ModeCard visual={<ModeVisualScaleUp/>}  name="Scale Up"       desc="The board grows as the game progresses: 3×3 opens, earns moves unlock 4×4, then 5×5 — more pieces, more chaos."   tag="HARD"      tagBg="#FDECEB" tagColor="#A81C13"    available accentColor={BLUE} delay={0.2} />
           <ModeCard visual={<ModeVisualBlitz/>}    name="Blitz"          desc="5 seconds to answer per turn. No extensions, no mercy. One wrong move and your opponent owns the board."            tag="INTENSE"   tagBg="#FDECEB" tagColor="#A81C13"    available accentColor={BLUE} delay={0.3} />

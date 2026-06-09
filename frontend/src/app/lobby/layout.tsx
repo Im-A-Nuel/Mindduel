@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title:       'Lobby',
-  description: 'Pick a mode, set your stake, and create or join a duel on Solana devnet.',
+  description: 'Pick a mode and create or join a duel. Play Casual or climb the on-chain Ranked ladder on Celo — no staking.',
   openGraph: {
     title:       'MindDuel Lobby',
-    description: 'Trivia-gated PvP Tic Tac Toe — stake SOL or Mock USDC and play.',
+    description: 'Trivia-gated PvP Tic Tac Toe on Celo — Casual or Ranked, on-chain ranking, no staking.',
   },
 }
 
