@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tanstack/query-core": "^5.59.0",
     "@tanstack/react-query": "^5.59.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.3.0",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "pino-pretty": "^11.0.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.20",
