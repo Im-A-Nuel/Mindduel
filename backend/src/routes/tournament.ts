@@ -11,8 +11,7 @@ import {
 const createSchema = z.object({
   name:      z.string().min(2).max(60),
   size:      z.union([z.literal(4), z.literal(8)]),
-  stake:     z.number().min(0),
-  currency:  z.enum(['sol', 'usdc']).default('sol'),
+  ranked:    z.boolean().default(false),
   mode:      z.enum(['classic', 'shifting', 'scaleup', 'blitz']).default('classic'),
   createdBy: z.string().min(1),
 })

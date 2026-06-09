@@ -1,9 +1,12 @@
-import { pgTable, text, real, integer, bigint, index } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, bigint, index } from 'drizzle-orm/pg-core'
 
 /**
- * MindDuel matches table.
- * Source of truth is on-chain Solana — this DB caches state for fast
- * leaderboard / history queries the frontend needs.
+ * MindDuel matches table (Celo edition).
+ *
+ * There is no staking on Celo — ranked matches are a pure skill ladder. The
+ * authoritative points/ranking live in the MindDuelRanking contract; this DB
+ * caches match metadata for fast lobby / history / leaderboard queries and
+ * records the points deltas + tx hash returned by the on-chain recordMatch.
  */
 export const matches = pgTable('matches', {
   matchId:     text('match_id').primaryKey(),
@@ -11,13 +14,15 @@ export const matches = pgTable('matches', {
   playerOne:   text('player_one').notNull(),
   playerTwo:   text('player_two'),
   mode:        text('mode').notNull(),
-  stake:       real('stake').notNull(),
-  currency:    text('currency').notNull(), // 'sol' | 'usdc'
+  /** 1 = ranked (recorded on-chain), 0 = casual / practice. */
+  ranked:      integer('ranked').notNull().default(0),
   status:      text('status').notNull(),   // 'waiting' | 'active' | 'finished'
-  winner:      text('winner'),             // pubkey of winner, null = draw or unfinished
-  pot:         real('pot'),
-  fee:         real('fee'),
-  onChainSig:  text('on_chain_sig'),       // settle transaction signature
+  winner:      text('winner'),             // address of winner, null = draw or unfinished
+  /** Points the winner gained / loser dropped on-chain (filled at settle). */
+  winnerDelta: integer('winner_delta'),
+  loserDelta:  integer('loser_delta'),
+  /** Celo tx hash of the recordMatch call (ranked only). */
+  txHash:      text('tx_hash'),
   createdAt:   bigint('created_at', { mode: 'number' }).notNull(),
   updatedAt:   bigint('updated_at', { mode: 'number' }).notNull(),
   finishedAt:  bigint('finished_at', { mode: 'number' }),
@@ -32,14 +37,12 @@ export type Match       = typeof matches.$inferSelect
 export type MatchInsert = typeof matches.$inferInsert
 
 /**
- * Matchmaking queue — players waiting for opponent.
- * Persisted so server restart doesn't drop the queue.
+ * Matchmaking queue — players waiting for an opponent.
  */
 export const queue = pgTable('queue', {
   playerId:   text('player_id').primaryKey(),
   mode:       text('mode').notNull(),
-  stake:      real('stake').notNull(),
-  currency:   text('currency').notNull(),
+  ranked:     integer('ranked').notNull().default(0),
   /** JSON array of trivia category strings. NULL/[] = no preference. */
   categories: text('categories'),
   joinedAt:   bigint('joined_at', { mode: 'number' }).notNull(),
@@ -48,15 +51,13 @@ export const queue = pgTable('queue', {
 export type QueueEntry  = typeof queue.$inferSelect
 
 /**
- * Achievement badges minted as NFTs (soulbound — no transfer instruction issued).
+ * Achievement badges (DB-only on Celo — no NFT mint).
  * One row per (player, type) so a badge can only be earned once per wallet.
  */
 export const badges = pgTable('badges', {
   id:        text('id').primaryKey(),
   player:    text('player').notNull(),
-  type:      text('type').notNull(), // 'first_win' | 'streak_3' | 'streak_5' | 'streak_10' | 'whale' | 'flawless'
-  mintAddr:  text('mint_addr'),       // null until on-chain mint succeeds
-  txSig:     text('tx_sig'),
+  type:      text('type').notNull(), // 'first_win' | 'streak_3' | 'streak_5' | 'streak_10' | 'high_rank' | 'flawless'
   earnedAt:  bigint('earned_at', { mode: 'number' }).notNull(),
 }, (table) => ({
   byPlayer: index('idx_badges_player').on(table.player),
@@ -68,17 +69,12 @@ export type BadgeInsert = typeof badges.$inferInsert
 
 /**
  * Tournament — single-elimination bracket of 4 or 8 players.
- *
- * Each tournament owns N matches (linked via tournament_id on the matches
- * table is NOT done — instead we use the bracket table below to track
- * per-tournament match progression so the matches table stays simple).
  */
 export const tournaments = pgTable('tournaments', {
   tournamentId:  text('tournament_id').primaryKey(),
   name:          text('name').notNull(),
   size:          integer('size').notNull(),         // 4 or 8
-  stake:         real('stake').notNull(),
-  currency:      text('currency').notNull(),         // 'sol' | 'usdc'
+  ranked:        integer('ranked').notNull().default(0),
   mode:          text('mode').notNull(),             // 'classic' | etc
   status:        text('status').notNull(),           // 'open' | 'in_progress' | 'finished'
   champion:      text('champion'),                   // wallet of winner once finished
@@ -96,7 +92,6 @@ export type TournamentInsert = typeof tournaments.$inferInsert
 
 /**
  * Tournament participants. One row per (tournament, player) at registration time.
- * `seed` is assigned 1..N when the bracket is generated.
  */
 export const tournamentPlayers = pgTable('tournament_players', {
   tournamentId: text('tournament_id').notNull(),
@@ -112,23 +107,19 @@ export const tournamentPlayers = pgTable('tournament_players', {
 export type TournamentPlayer = typeof tournamentPlayers.$inferSelect
 
 /**
- * Bracket nodes — every match slot in the tournament. round=0 is the first
- * round (quarterfinals or semis depending on size). Higher rounds happen later.
- *
- * `match_id` links to the matches table once the actual game starts. Until
- * both players are determined (winners of feeder slots), match_id is null.
+ * Bracket nodes — every match slot in the tournament.
  */
 export const brackets = pgTable('brackets', {
   bracketId:     text('bracket_id').primaryKey(),
   tournamentId:  text('tournament_id').notNull(),
   round:         integer('round').notNull(),
-  position:      integer('position').notNull(),       // 0..(size/2)-1 in round 0
+  position:      integer('position').notNull(),
   playerOne:     text('player_one'),
   playerTwo:     text('player_two'),
-  matchId:       text('match_id'),                    // matches.match_id or null
-  winner:        text('winner'),                       // wallet or null
-  feederA:       text('feeder_a'),                    // bracketId producing playerOne (round>0)
-  feederB:       text('feeder_b'),                    // bracketId producing playerTwo (round>0)
+  matchId:       text('match_id'),
+  winner:        text('winner'),
+  feederA:       text('feeder_a'),
+  feederB:       text('feeder_b'),
   status:        text('status').notNull(),            // 'pending' | 'ready' | 'live' | 'done'
 }, (table) => ({
   byTour:  index('idx_br_tour').on(table.tournamentId),

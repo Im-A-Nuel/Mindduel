@@ -13,8 +13,7 @@ import {
 const createBodySchema = z.object({
   playerOne: z.string().min(1),
   mode: z.enum(['classic', 'shifting', 'scaleup', 'blitz', 'vs-ai']).default('classic'),
-  stake: z.number().min(0).default(0),
-  currency: z.enum(['sol', 'usdc']).default('sol'),
+  ranked: z.boolean().default(false),
   categories: z.array(z.string()).optional(),
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
 })
@@ -27,8 +26,7 @@ const joinBodySchema = z.object({
 const queueBodySchema = z.object({
   playerId: z.string().min(1),
   mode: z.enum(['classic', 'shifting', 'scaleup', 'blitz']).default('classic'),
-  stake: z.number().min(0).default(0.05),
-  currency: z.enum(['sol', 'usdc']).default('sol'),
+  ranked: z.boolean().default(false),
   categories: z.array(z.string()).optional(),
 })
 
@@ -44,8 +42,8 @@ export async function matchRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Invalid body', details: parsed.error.flatten() })
     }
 
-    const { playerOne, mode, stake, currency, categories, difficulty } = parsed.data
-    const match = await createMatch(playerOne, mode, stake, currency, categories ?? null, difficulty)
+    const { playerOne, mode, ranked, categories, difficulty } = parsed.data
+    const match = await createMatch(playerOne, mode, ranked, categories ?? null, difficulty)
 
     return {
       matchId: match.matchId,
@@ -72,12 +70,8 @@ export async function matchRoutes(app: FastifyInstance) {
       matchId: match.matchId,
       status: match.status,
       mode: match.mode,
-      stake: match.stake,
-      currency: match.currency,
+      ranked: match.ranked,
       playerOne: match.playerOne,
-      // Inherit creator's category selection so the joiner doesn't fall
-      // back to "all categories" (the previous bug: P1 picks Math, P2
-      // joins by code, then P2's local fetch saw Web3/History etc.).
       categories: match.categories ?? [],
       difficulty: match.difficulty,
     }
@@ -102,8 +96,8 @@ export async function matchRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Invalid body', details: parsed.error.flatten() })
     }
 
-    const { playerId, mode, stake, currency, categories } = parsed.data
-    const result = await enqueue(playerId, mode, stake, currency, categories ?? null)
+    const { playerId, mode, ranked, categories } = parsed.data
+    const result = await enqueue(playerId, mode, ranked, categories ?? null)
 
     return {
       ...result,
@@ -127,13 +121,11 @@ export async function matchRoutes(app: FastifyInstance) {
     queueLength: await queueLength(),
   }))
 
-  // GET /match/player/:playerId  — find active match for a player (for matchmaking polling)
+  // GET /match/player/:playerId  — find active match for a player (matchmaking polling)
   app.get('/match/player/:playerId', async (request, reply) => {
     const { playerId } = request.params as { playerId: string }
     const match = await getMatchForPlayer(playerId)
     if (!match) return reply.status(404).send({ error: 'No active match' })
-    // Return categories so the waiting player (P1) can align their question pool
-    // with the merged sharedCategories that were resolved when the match was made.
     return { matchId: match.matchId, status: match.status, categories: match.categories ?? [], difficulty: match.difficulty }
   })
 }

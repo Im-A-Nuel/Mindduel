@@ -12,8 +12,7 @@ export interface TournamentSummary {
   tournamentId: string
   name:         string
   size:         number
-  stake:        number
-  currency:     'sol' | 'usdc'
+  ranked:       boolean
   mode:         string
   status:       'open' | 'in_progress' | 'finished'
   champion:     string | null
@@ -25,8 +24,7 @@ export interface TournamentSummary {
 export async function createTournament(args: {
   name:      string
   size:      4 | 8
-  stake:     number
-  currency:  'sol' | 'usdc'
+  ranked:    boolean
   mode:      string
   createdBy: string
 }): Promise<TournamentSummary> {
@@ -35,8 +33,7 @@ export async function createTournament(args: {
     tournamentId: id,
     name:         args.name,
     size:         args.size,
-    stake:        args.stake,
-    currency:     args.currency,
+    ranked:       args.ranked ? 1 : 0,
     mode:         args.mode,
     status:       'open',
     champion:     null,
@@ -67,8 +64,7 @@ function rowToSummary(row: Tournament, registered: number): TournamentSummary {
     tournamentId: row.tournamentId,
     name:         row.name,
     size:         row.size,
-    stake:        row.stake,
-    currency:     row.currency as 'sol' | 'usdc',
+    ranked:       row.ranked === 1,
     mode:         row.mode,
     status:       row.status as 'open' | 'in_progress' | 'finished',
     champion:     row.champion,
@@ -186,7 +182,7 @@ async function startTournament(id: string): Promise<void> {
   // For each round-0 ready bracket, create the underlying match record so players can join in lobby flow.
   for (const b of allBrackets.filter(x => x.round === 0)) {
     if (b.playerOne && b.playerTwo) {
-      const m = await createMatch(b.playerOne, t.mode, t.stake, t.currency)
+      const m = await createMatch(b.playerOne, t.mode, t.ranked)
       // Auto-set playerTwo since they're already paired
       await db.update(brackets).set({ matchId: m.matchId, status: 'live' }).where(eq(brackets.bracketId, b.bracketId))
       // Mark match as having known opponents (frontend will broadcast/start)
@@ -252,7 +248,7 @@ export async function recordTournamentMatchResult(args: {
   if (updated && updated.playerOne && updated.playerTwo && updated.status === 'pending') {
     const t = await getTournament(b.tournamentId)
     if (t) {
-      const m = await createMatch(updated.playerOne, t.mode, t.stake, t.currency)
+      const m = await createMatch(updated.playerOne, t.mode, t.ranked)
       await db.update(brackets)
         .set({ status: 'live', matchId: m.matchId })
         .where(eq(brackets.bracketId, next.bracketId))
