@@ -50,16 +50,16 @@ style: |
 
 # MindDuel
 
-<div class="tagline">Prove Your Mind. Win On-Chain.</div>
+<div class="tagline">Prove Your Mind. Climb the On-Chain Ladder.</div>
 
-### Trivia-Gated PvP Tic Tac Toe on Solana
+### Trivia-Gated PvP Tic Tac Toe on Celo
 
-Two players. Real SOL on the line. Every move gated by a trivia question.
-The smart contract holds the stakes. Your brain decides who wins.
+Two players. One board. Every move gated by a trivia question.
+No bets, no luck — just a verifiable on-chain skill ranking. The smarter player climbs.
 
 <div class="meta">
-Imanuel · Solo Builder · Indonesia<br/>
-Colosseum Frontier 2026 · 100xDevs Track
+Imanuel · Solo Builder<br/>
+Celo Proof of Ship
 </div>
 
 ---
@@ -67,15 +67,15 @@ Colosseum Frontier 2026 · 100xDevs Track
 ## The Problem → Our Solution
 
 ### ❌ The Problem
-- 90% of on-chain games are **RNG dressed up** — spin, flip, hope
-- Skill-based PvP barely exists on Solana
-- Whales win, smart players don't
-- No reason to come back tomorrow except gambling
+- Most on-chain games are **RNG dressed up** — spin, flip, hope
+- Skill-based PvP barely exists, and where it does it's gated by gambling
+- "Ranked" ladders live in private databases you have to trust
+- No verifiable proof that the better player actually won
 
 ### ✅ Our Solution
-**Knowledge as the gating mechanic.** Lock SOL into a trustless escrow. To place a mark on the board, answer a trivia question correctly under a timer. Three in a row → smart contract pays the winner.
+**Knowledge as the gating mechanic, ranking as the reward.** To place a mark on the board, answer a trivia question correctly under a timer. Three in a row wins — and ranked wins are recorded as a **transparent, on-chain Elo ladder**.
 
-*No admin. No oracle. Pure skill-versus-skill.*
+*No staking. No betting. No trust required — just provable skill.*
 
 ---
 
@@ -83,37 +83,67 @@ Colosseum Frontier 2026 · 100xDevs Track
 
 ### 🎮 Game Flow
 
-1. **Connect** — Phantom / Backpack wallet
-2. **Stake** — Lock SOL/USDC into escrow PDA
-3. **Duel** — Answer trivia → place X or O
-4. **Settle** — Smart contract pays winner on-chain
+1. **Connect** — MiniPay auto-connects; any injected wallet works on desktop
+2. **Match** — Create or join a Ranked match (Casual & vs-AI for practice)
+3. **Duel** — Answer trivia → place X or O, race to three in a row
+4. **Rank** — Winner gains Elo, loser drops — written on-chain via a relayer
 
-### ✅ Already Live on Solana Devnet
+### ✅ Already Live on Celo Mainnet
 - Full PvP flow working end-to-end
 - 5 game modes shipped: *Classic · Shifting Board · Scale Up · Blitz · vs-AI*
-- Sponsored gas — new players need **zero SOL** to start
+- **Gasless for players** — a backend relayer pays CELO gas; players never sign a tx
 
-<span class="cta">▶ mindduel-frontier.vercel.app</span>
+<span class="cta">▶ trivia-gated PvP, live on Celo</span>
 
 ---
 
-## Tech Stack · Business Model
+## On-Chain Skill Ranking
+
+### 🏆 Verifiable Elo, Not a Private Leaderboard
+
+- Smart contract **`MindDuelRanking.sol`** (Foundry) holds every player's rating
+- Integer **Elo** — everyone starts at **1000**, K-factor **32**
+- `recordMatch(winner, loser, draw, matchId)` is **owner-only & idempotent** — no double-counting, no tampering
+- Anyone can read ratings on-chain via viem or Celoscan
+
+### 🥇 Rank Tiers
+
+Bronze → **Silver (1000)** → **Gold (1200)** → **Platinum (1400)** → **Diamond (1600)** → **Master (1850)**
+
+*Ranked = on-chain ladder. Casual & vs-AI never touch the chain.*
+
+---
+
+## Why Celo · Why MiniPay
+
+### 📱 Built for Mobile-First, Real Users
+
+- **MiniPay integration** — auto-connect via `window.ethereum.isMiniPay`, putting MindDuel in front of millions of MiniPay users with zero install friction
+- **Gasless onboarding** — the relayer (contract owner) submits `recordMatch()` and pays CELO gas, so players never need to fund a wallet or approve a transaction
+- **Cheap, fast finality** on Celo mainnet makes per-match on-chain writes practical
+- **Open & verifiable** — every ranked result is auditable on Celoscan
+
+> Built for **Celo Proof of Ship**: a real, shipped product on mainnet.
+
+---
+
+## Tech Stack · Roadmap
 
 ### 🛠 Full Stack, Shipped Solo
 
 | Layer | Technology |
 |---|---|
-| Smart Contract | Anchor + Rust *(escrow, commit-reveal, settle)* |
-| Frontend | Next.js 14 + TypeScript + Tailwind |
-| Backend | Fastify + Zod *(trivia service)* |
-| Real-time | Solana WebSocket RPC |
+| Smart Contract | Solidity + Foundry *(`MindDuelRanking.sol`, integer Elo)* |
+| Chain | Celo mainnet (42220) · wagmi + viem · MiniPay |
+| Frontend | Next.js 14 + TypeScript |
+| Backend | Fastify + relayer *(gasless `recordMatch`)* |
+| Data | Drizzle + Postgres *(badges, history, trivia)* |
+| Real-time | WebSockets *(board & trivia sync)* |
 
-### 💰 Sustainable Unit Economics
-
-- **2.5%** platform fee on every pot
-- **5-tier hint system** — 0.001 to 0.005 SOL per hint
-- **Hint revenue split:** 80% treasury / 20% prize pool
-- **Epic Game NFT** mint — 0.01 SOL
+### 🗺 Roadmap
+- More modes, deeper trivia categories & badges
+- Single-elim **tournaments** (Ranked/Casual, 4 or 8 players, no entry fee)
+- Seasons & leaderboard resets on top of the on-chain ladder
 
 ---
 
@@ -121,22 +151,22 @@ Colosseum Frontier 2026 · 100xDevs Track
 
 ## Why Me · Why Now
 
-> One builder. Full stack. **Working product.**
+> One builder. Full stack. **Working product on mainnet.**
 
-I shipped the **Anchor program**, **Next.js frontend**, **Fastify backend**, **sponsored gas flow**, and **public docs** — solo, in weeks.
+I shipped the **Foundry ranking contract**, **Next.js frontend**, **Fastify relayer (gasless flow)**, **MiniPay integration**, and **public docs** — solo.
 
-Not a team. Not a roadmap. A live game with on-chain escrow you can play right now.
+Not a team. Not just a roadmap. A live game with a verifiable on-chain skill ladder you can play right now.
 
 ---
 
-### 🔗 Try It · Verify It · Stake on Skill
+### 🔗 Try It · Verify It · Climb the Ladder
 
-- 🎮 **App** — mindduel-frontier.vercel.app
-- 💻 **GitHub** — github.com/im-f-nuel/MinDDuel
-- 📖 **Docs** — mindduel.gitbook.io/mindduel-docs
+- 🎮 **Play** — trivia-gated PvP on Celo, MiniPay-ready
+- 💻 **GitHub** — github.com/Im-A-Nuel/Mindduel
+- 🔍 **Verify** — ranked results on Celoscan via `MindDuelRanking.sol`
 
-<div class="cta">"The smarter player wins. Always."</div>
+<div class="cta">"The smarter player wins. Always — and now it's on-chain."</div>
 
 <div class="meta">
-Imanuel · ezranhmry@gmail.com · Colosseum Frontier 2026
+Imanuel · ezranhmry@gmail.com · Celo Proof of Ship
 </div>

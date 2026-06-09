@@ -6,65 +6,79 @@ You can be in your first MindDuel match in under two minutes. Here is the fastes
 
 | | |
 |---|---|
-| Wallet | [Phantom](https://phantom.com) or Backpack browser extension |
-| Network | **Solana Devnet** (the program is deployed on devnet only) |
-| Devnet SOL | A tiny amount — about 0.05 SOL is plenty for a few games |
+| Wallet | [MiniPay](https://www.opera.com/products/minipay) on mobile, or any injected wallet (e.g. MetaMask) on desktop |
+| Network | **Celo Mainnet** (chainId 42220, RPC `https://forno.celo.org`) |
+| Funds | **None.** Nothing is staked, and you never pay gas to be ranked. |
 
-> If you do not have devnet SOL, MindDuel can sponsor your transaction fees automatically. See [Sponsored Gas](../features/sponsored-gas.md). You still need a small balance to actually stake.
+> Inside MiniPay the app **auto-connects** — it detects `window.ethereum.isMiniPay` and wires up your wallet automatically. On desktop, any injected wallet works.
 
-## Step 1 — Switch your wallet to devnet
+## Step 1 — Open the app
 
-In Phantom, open **Settings -> Developer Settings -> Testnet Mode** and choose **Solana Devnet**. Backpack has a similar toggle in the network selector.
+Open the live app at [mindduel-frontier.vercel.app](https://mindduel-frontier.vercel.app/). In MiniPay, open it from the MiniPay browser and it connects on its own.
 
-## Step 2 — Get devnet SOL
+## Step 2 — Connect
 
-Use any of these:
-
-- Run `solana airdrop 2` from the Solana CLI.
-- Visit a public devnet faucet such as [faucet.solana.com](https://faucet.solana.com).
-- Use Phantom's built-in devnet faucet.
-
-You only need ~0.05 SOL for the Casual stake tier.
-
-## Step 3 — Connect
-
-1. Open the live app at [mindduel-frontier.vercel.app](https://mindduel-frontier.vercel.app/).
-2. Click **Connect Wallet** in the top-right.
-3. Approve the connection in your wallet popup.
+1. On desktop, click **Connect Wallet** in the top-right.
+2. Approve the connection in your wallet popup.
+3. There is nothing to fund — connecting is enough to play.
 
 > Backend status check: [mindduel-production.up.railway.app/health](https://mindduel-production.up.railway.app/health) — should return `{ "status": "ok" }`. If it does not, matchmaking and trivia endpoints are temporarily down.
 
-## Step 4 — Jump into a match
+## Step 3 — Jump into a match
 
 The fastest way to play:
 
 1. From the lobby, click **Quick Match**.
-2. Choose mode: **Classic Duel** (the cleanest first experience).
-3. Set stake: **0.01 SOL** (the minimum).
+2. Choose mode: **Classic** (the cleanest first experience).
+3. Choose **Ranked** (recorded on-chain) or **Casual** (just for fun).
 4. Click **Find Opponent**. The matchmaking queue pairs you with another player automatically.
 
-Want to play a friend instead? Click **Create Match**, copy the `MNDL-XXXXXX` join code, and share it. Your friend pastes it into **Join Game**.
+Want to play a friend instead? Click **Create Match**, copy the `MNDL-XXXXXX` join code, and share it. Your friend pastes it into **Join Game**. Just want to practice? Pick **vs-AI**.
 
-## Step 5 — Take your first turn
+## Step 4 — Take your first turn
 
 1. When it is your turn, click any empty cell on the board.
 2. A trivia question appears with a countdown timer. Pick an answer.
-3. Approve the **Commit** transaction in your wallet — this locks `SHA-256(answer || nonce)` on-chain so nobody can see your answer until you reveal.
-4. Approve the **Reveal** transaction — the program verifies the hash and places your mark if you got it right.
+3. The client commits `SHA-256(answer || nonce)` so nobody can see your answer until you reveal — no wallet signature needed.
+4. On reveal, the answer is verified and your mark is placed if you got it right.
 5. If you were wrong, the turn passes. No piece is placed.
 
-## Step 6 — Win and settle
+Stuck on a hard question? Use one of your **3 free hints**. Hints are free — there is no paid hint economy.
 
-Get three in a row. On the result screen, click **Settle Game**. The winner receives `pot x 97.5%` directly to their wallet. The 2.5% platform fee is enforced by the contract — nothing is held off-chain.
+## Step 5 — Win and climb
 
-The settlement transaction is linked from the result screen. Click it to verify on Solana Explorer.
+Get three in a row. If the match was **Ranked**, the result is recorded on-chain automatically: the backend **relayer** (the contract owner) calls `recordMatch()` and pays the CELO gas. Your points and rank tier update — you never sign a transaction or pay anything. **Casual** and **vs-AI** matches are not recorded.
 
 ## What to try next
 
-- Switch to **Shifting Board** mode and watch the entire board rotate every 3 rounds.
-- Open **Hints** and buy *Eliminate 2* (0.002 SOL) to halve a hard question.
-- Browse the **Leaderboard** and **History** tabs to see your stats sync from chain to UI.
+- Switch to **Shifting Board** mode and watch the entire board rotate.
+- Try **Scale Up** and watch the board grow from 3x3 to 5x5.
+- Browse the **Leaderboard** and **History** tabs to see your on-chain rank sync from chain to UI.
+
+## Run it locally
+
+MindDuel is a monorepo. Use **Node 18–22**.
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Deploy the ranking contract
+#    Foundry, run in WSL — see contracts/DEPLOY.md for the full steps.
+
+# 3. Backend
+cp backend/.env.example backend/.env
+#    Set DATABASE_URL, RANKING_CONTRACT_ADDRESS, and RELAYER_PRIVATE_KEY in backend/.env
+npm run db:push -w backend
+npm run backend
+
+# 4. Frontend
+cp frontend/.env.example frontend/.env.local
+npm run frontend
+```
+
+See `contracts/DEPLOY.md` for deploying `MindDuelRanking.sol` with Foundry. The `RELAYER_PRIVATE_KEY` belongs to the contract owner — the account that submits ranked results and pays the gas.
 
 ## Builder
 
-MindDuel is built by **Im-A-Nuel** ([@im-f-nuel](https://github.com/im-f-nuel)). Source code: [github.com/im-f-nuel/MinDDuel](https://github.com/im-f-nuel/MinDDuel).
+MindDuel is built by **Im-A-Nuel** ([@Im-A-Nuel](https://github.com/Im-A-Nuel)). Source code: [github.com/Im-A-Nuel/Mindduel](https://github.com/Im-A-Nuel/Mindduel).

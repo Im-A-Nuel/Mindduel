@@ -1,110 +1,66 @@
-# Program Addresses
+# Contract Addresses
 
-Everything you need to verify MindDuel on-chain — plus the live deployment URLs.
+Everything you need to verify MindDuel on-chain on Celo, plus the live deployment URLs.
 
-## Live deployment
-
-| | |
-|---|---|
-| **Frontend (Vercel)** | [https://mindduel-frontier.vercel.app/](https://mindduel-frontier.vercel.app/) |
-| **Backend (Railway)** | `https://mindduel-production.up.railway.app` |
-| **Backend health** | [/health](https://mindduel-production.up.railway.app/health) |
-| **GitHub** | [github.com/im-f-nuel/MinDDuel](https://github.com/im-f-nuel/MinDDuel) |
-
-## Core program
+## Network
 
 | | |
 |---|---|
-| **Program ID** | `8XZTXNux374128LFJSVhp5XSNyYMPNZpfw4vyjWmSJkN` |
-| **Network** | Solana Devnet |
-| **Framework** | Anchor 0.30 (Rust) |
-| **Explorer** | [solana.com explorer (devnet)](https://explorer.solana.com/address/8XZTXNux374128LFJSVhp5XSNyYMPNZpfw4vyjWmSJkN?cluster=devnet) |
+| **Chain** | Celo mainnet |
+| **Chain ID** | `42220` |
+| **RPC** | `https://forno.celo.org` |
+| **Explorer** | [Celoscan](https://celoscan.io) |
 
-```bash
-solana program show 8XZTXNux374128LFJSVhp5XSNyYMPNZpfw4vyjWmSJkN --url devnet
-```
+## MindDuelRanking
 
-## Treasury wallet
+The single on-chain contract: the points & ranking ledger. No staking, no escrow, no treasury — it stores per-player Elo points only. Owned by the backend relayer, which is the only address that can record results.
 
-The address that receives the 2.5% match fee and 80% of every hint fee. Hardcoded as a compile-time constant in the program — no instruction can redirect to a different address.
+| | |
+|---|---|
+| **Contract** | `MindDuelRanking` |
+| **Address** | `0x…` *(set after deploy)* |
+| **Network** | Celo mainnet (chainId `42220`) |
+| **Framework** | Foundry (solc `0.8.24`) |
+| **Explorer** | `https://celoscan.io/address/<addr>` |
 
-```
-CPoofbZho4bJmSAyVJxfeMK9CoZpXpDYftctghwUJX86
-```
+> Replace `<addr>` / `0x…` with the deployed address. Example link format:
+> `https://celoscan.io/address/0x0000000000000000000000000000000000000000`
 
-## PDAs
+## Configuration
 
-All program-derived addresses use deterministic seeds. Any client can compute them.
+After deploying, wire the address into both workspaces:
 
-| Account | Seeds | Notes |
+| Variable | Where | Purpose |
 |---|---|---|
-| `GameAccount` | `["game", player_one.pubkey]` | One active game per wallet at a time |
-| `Escrow` (SOL) | `["escrow", game.pubkey]` | Program is the only signing authority |
-| `Escrow` (USDC) | ATA of escrow PDA | `getAssociatedTokenAddressSync(usdcMint, escrowPda, true)` |
-| `HintLedger` | `["hint", game.pubkey, player.pubkey]` | `init_if_needed` on first hint purchase |
+| `RANKING_CONTRACT_ADDRESS` | backend | Contract the relayer writes to / reads |
+| `RELAYER_PRIVATE_KEY` | backend | Contract owner key (pays CELO gas) |
+| `CELO_RPC_URL` | backend | Defaults to `https://forno.celo.org` |
+| `NEXT_PUBLIC_RANKING_CONTRACT_ADDRESS` | frontend | Read-only contract reads |
+| `NEXT_PUBLIC_CELO_RPC_URL` | frontend | Celo RPC for the public client |
 
-### Computing PDAs in TypeScript
+If the backend address / relayer key are unset (local dev), the app runs DB-only with no on-chain settlement.
 
-```typescript
-import { PublicKey } from '@solana/web3.js'
+## Verifying on-chain
 
-const PROGRAM_ID = new PublicKey('8XZTXNux374128LFJSVhp5XSNyYMPNZpfw4vyjWmSJkN')
-
-const [gamePda] = PublicKey.findProgramAddressSync(
-  [Buffer.from('game'), playerOne.toBuffer()],
-  PROGRAM_ID,
-)
-
-const [escrowPda] = PublicKey.findProgramAddressSync(
-  [Buffer.from('escrow'), gamePda.toBuffer()],
-  PROGRAM_ID,
-)
-
-const [hintLedgerPda] = PublicKey.findProgramAddressSync(
-  [Buffer.from('hint'), gamePda.toBuffer(), player.toBuffer()],
-  PROGRAM_ID,
-)
-```
-
-### Computing PDAs in Rust
-
-```rust
-let (game_pda, _) = Pubkey::find_program_address(
-    &[b"game", player_one.as_ref()],
-    &PROGRAM_ID,
-);
-
-let (escrow_pda, _) = Pubkey::find_program_address(
-    &[b"escrow", game_pda.as_ref()],
-    &PROGRAM_ID,
-);
-
-let (hint_ledger_pda, _) = Pubkey::find_program_address(
-    &[b"hint", game_pda.as_ref(), player.as_ref()],
-    &PROGRAM_ID,
-);
-```
-
-## Mock USDC mint (devnet)
-
-The USDC variants use a devnet mock SPL mint. The exact mint address is set by the deployer at devnet setup and surfaced through `NEXT_PUBLIC_MOCK_USDC_MINT` (frontend) and `MOCK_USDC_MINT` (backend). On the live demo deployment, this mint is dispensed via `POST /api/faucet` (100 USDC per wallet per 24 hours).
-
-## Verification commands
+Read the contract directly with `cast` (Foundry, run via WSL):
 
 ```bash
-# View a settlement transaction
-solana confirm -v <TX_SIGNATURE> --url devnet
+# A player's record (points, wins, losses, draws, lastPlayed, exists)
+cast call <addr> "getPlayer(address)" <player> --rpc-url https://forno.celo.org
 
-# View the deployed program
-solana program show 8XZTXNux374128LFJSVhp5XSNyYMPNZpfw4vyjWmSJkN --url devnet
+# Number of ranked players
+cast call <addr> "playerCount()" --rpc-url https://forno.celo.org
 
-# Inspect a specific GameAccount
-solana account <GAME_PDA> --url devnet
+# Paginated roster for the leaderboard
+cast call <addr> "getPlayers(uint256,uint256)" 0 50 --rpc-url https://forno.celo.org
 ```
 
-## Repository
+Or browse the contract, its transactions, and `MatchRecorded` events on Celoscan at `https://celoscan.io/address/<addr>`.
+
+## Deployment URLs
 
 | | |
 |---|---|
-| **GitHub** | [github.com/im-f-nuel/MinDDuel](https://github.com/im-f-nuel/MinDDuel) |
-| **Builder** | Im-A-Nuel ([@im-f-nuel](https://github.com/im-f-nuel)) |
+| **Frontend** | *(set after deploy — e.g. Vercel)* |
+| **Backend** | *(set after deploy)* |
+| **Backend health** | `/health` |

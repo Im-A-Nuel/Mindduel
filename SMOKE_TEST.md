@@ -1,28 +1,29 @@
-# MindDuel — Smoke Test Checklist (Devnet)
+# MindDuel — Smoke Test Checklist (Celo mainnet)
 
-End-to-end manual test before recording the demo. Tick each box. If a step
+End-to-end manual QA before recording the demo. Tick each box. If a step
 fails, stop and note the symptom — the **Troubleshooting** table at the bottom
 maps common failures to fixes.
 
-Program (devnet): `8XZTXNux374128LFJSVhp5XSNyYMPNZpfw4vyjWmSJkN`
-Treasury / Oracle: `CPoofbZho4bJmSAyVJxfeMK9CoZpXpDYftctghwUJX86`
+Chain: **Celo mainnet** (chainId `42220`)
+Contract: `MindDuelRanking.sol` (Foundry) — integer Elo, start `1000`, K=`32`
+Ranked writes happen via a **backend relayer** (the contract owner) that calls
+`recordMatch(winner, loser, draw, matchId)` and pays CELO gas. **Players never
+sign a tx or pay gas.**
 
 ---
 
-## 0. Pre-flight (config verified 2026-05-30 ✓ — just confirm nothing changed)
-
-Actual config on this machine:
+## 0. Pre-flight (confirm config)
 
 - [ ] `frontend/.env.local`:
-  - `NEXT_PUBLIC_RPC_URL` = QuickNode devnet endpoint (✓ devnet, not the rate-limited public RPC)
+  - Celo mainnet RPC configured (chainId `42220`)
+  - `MindDuelRanking` contract address set (matches the deployed contract)
   - `NEXT_PUBLIC_BACKEND_URL` / `NEXT_PUBLIC_API_URL` = `http://localhost:3001`
   - `NEXT_PUBLIC_WS_URL` = `ws://localhost:3001`
-  - `NEXT_PUBLIC_MOCK_USDC_MINT` = `GcANNzhJDpToS3QeCqw1oAGhdcFU8qPnpfex3e1EFU4B`
-  - (Program ID & treasury are hardcoded in `frontend/src/lib/constants.ts` = `8XZTXNux…` / `CPoof…` — no env needed)
-- [ ] `backend/.env`: `DATABASE_URL` set (Neon) ✓, `ORACLE_KEYPAIR_PATH=.keys/payer.json` ✓, `PORT` (default 3001)
-- [ ] `backend/.keys/payer.json` is the `CPoof…` key (oracle signs results with it)
-
-> Note: backend `SPONSOR_KEYPAIR_JSON` is a *different* wallet (`Ej5nWfwN…`) that only pays fees. The **oracle** is pinned to `payer.json` (= `CPoof`) so `settle_with_proof` accepts the signatures. Verified resolve → MATCH ✓.
+- [ ] `backend/.env`:
+  - `DATABASE_URL` set (Postgres)
+  - Relayer/owner private key set (the **contract owner** — only the owner can call `recordMatch`)
+  - `PORT` (default 3001)
+- [ ] The relayer wallet holds a little **CELO** for gas (it pays for every ranked write)
 
 ---
 
@@ -36,8 +37,7 @@ Open **two terminals**.
   npm run dev
   ```
   - [ ] Logs show `Server listening … :3001`
-  - [ ] Logs show `[oracle] Oracle key matches on-chain ORACLE_PUBKEY.`
-        ⚠️ If instead you see `… != on-chain ORACLE_PUBKEY … will REJECT`, fix `ORACLE_KEYPAIR_PATH` before continuing.
+  - [ ] No relayer/owner key errors on boot
 
 - [ ] **Terminal B — frontend:** (from repo root: `npm run frontend`)
   ```bash
@@ -47,82 +47,96 @@ Open **two terminals**.
   - [ ] Opens on `http://localhost:3000` with no compile errors
 
 - [ ] **Quick health pings** (third terminal or browser):
-  - [ ] `http://localhost:3001/health` → `{"status":"ok",…}`
-  - [ ] `http://localhost:3001/api/sponsor/pubkey` → returns a `pubkey`
-  - [ ] `http://localhost:3001/api/oracle/pubkey` → returns `CPoofbZho4bJmSAyVJxfeMK9CoZpXpDYftctghwUJX86`
+  - [ ] `GET http://localhost:3001/health` → `{"status":"ok",…}`
+  - [ ] `GET http://localhost:3001/api/stats` → returns aggregate stats JSON
+  - [ ] `GET http://localhost:3001/api/leaderboard` → returns ranked players with points/rank
 
 ---
 
 ## 2. Wallet setup (two players)
 
 You need **two wallets** — easiest is two browser profiles (or one normal + one
-incognito), each with Phantom/Backpack.
+incognito) with an injected wallet each. On mobile, MiniPay auto-connects.
 
-- [ ] Both wallets set to **Devnet** (Phantom → Settings → Developer Settings → Testnet Mode → Devnet)
-- [ ] **Wallet A** (creator) has ≥ 0.2 SOL devnet
-- [ ] **Wallet B** (joiner) has ≥ 0.2 SOL devnet
-- [ ] (Both can be topped up at https://faucet.solana.com — set to Devnet)
-
-> Stake used below is small (e.g. 0.05 SOL) so two faucet drops are plenty.
+- [ ] **MiniPay auto-connect:** open the app inside MiniPay → wallet connects
+      automatically (no connect button needed). The `useMiniPay` hook detects
+      `window.ethereum.isMiniPay`.
+- [ ] **Desktop:** any injected wallet connects on `/lobby`
+- [ ] Both wallets are on **Celo mainnet** (chainId `42220`)
+- [ ] Players do **NOT** need any CELO — ranked writes are gasless (relayer pays)
 
 ---
 
-## 3. Core flow — Classic Duel, SOL stake (the money path)
+## 3. Core flow — Ranked Classic match (the headline path)
 
 This is the headline demo. Do it end-to-end.
 
 ### Create (Wallet A)
 - [ ] Connect Wallet A on `/lobby`
-- [ ] Choose **Classic**, play type **Staked**, currency **SOL**, stake **0.05**
-- [ ] Click **Create Game** → approve the Phantom prompt (this is `initialize_game` locking the stake)
-- [ ] A **join code** modal appears (e.g. `MNDL-XXXXXX`) — copy it
-- [ ] Wallet A balance dropped by ~0.05 SOL + tiny fee (or 0 fee if sponsored)
+- [ ] Choose **Classic**, mode **Ranked**
+- [ ] Click **Create Game** — **no wallet popup, no gas** (this is a ranked match, not a transaction)
+- [ ] A **join code** modal appears — copy it
+- [ ] Note Wallet A's current points/rank (from profile or leaderboard)
 
 ### Join (Wallet B)
 - [ ] In the second profile, connect Wallet B on `/lobby`
-- [ ] Enter the join code → **Join** → approve prompt (`join_game` locking B's stake)
+- [ ] Enter the join code → **Join**
 - [ ] Both players auto-route to `/game/<matchId>`
 
 ### Play
-- [ ] Trivia question appears; both can answer to take a cell
+- [ ] Trivia question appears; answer correctly to claim a cell
 - [ ] Board updates in real time on **both** screens (WebSocket sync)
+- [ ] **Free hints:** request hints and confirm they are **capped at 3 per match** — the 4th request is blocked/disabled
 - [ ] Play until **Wallet A wins** (line of 3) — keep it decisive, not a draw
 
-### Settle (the new oracle path) — watch the WINNER's screen
-- [ ] Winner (A) sees a success toast: **"Pot claimed on-chain ✓"**
-  - This is `settle_with_proof`: backend oracle signs the result, the winner's
-    client submits it sponsored (no extra wallet popup).
-- [ ] Winner's SOL balance increased by ~**0.0975 SOL** (pot 0.10 − 2.5% fee)
-- [ ] Loser (B) sees the game end cleanly (their resign, if any, just no-ops)
+### Finish & record (watch the result screen)
+- [ ] On game end, frontend hits `POST http://localhost:3001/api/match/finish`
+      with `{ winner, loser, draw, matchId }`
+- [ ] Backend relayer submits `recordMatch(winner, loser, draw, matchId)` on-chain (pays CELO gas)
+- [ ] Result screen shows:
+  - [ ] **Points delta** for both players (e.g. winner +Δ, loser −Δ)
+  - [ ] Updated **rank / tier** (Bronze / Silver / Gold / Platinum / Diamond / Master)
+  - [ ] A **Celoscan transaction link** for the `recordMatch` tx
+- [ ] Click the Celoscan link → tx is **confirmed** on Celo mainnet
 
-### Verify on-chain (optional but great for the video)
-- [ ] Open the settle tx on https://explorer.solana.com/?cluster=devnet (paste the sig from console, or look up the winner wallet's recent txs)
-- [ ] Treasury `CPoof…` received the 2.5% fee
-- [ ] Game PDA account is **closed** (rent refunded to player_one)
+### Verify on-chain
+- [ ] Read `getPlayer(<walletA>)` to confirm Wallet A's new Elo went **up**:
+  - Via **Celoscan**: open the `MindDuelRanking` contract → *Read Contract* → `getPlayer` → paste Wallet A address
+  - Or via **cast**:
+    ```bash
+    cast call <MindDuelRanking_address> "getPlayer(address)" <walletA> --rpc-url https://forno.celo.org
+    ```
+- [ ] `getPlayer(<walletB>)` shows Wallet B's Elo went **down**
+- [ ] **Idempotency:** the same `matchId` cannot be recorded twice — re-finishing
+      the same match does **not** change points again (contract is idempotent)
 
 ---
 
-## 4. Secondary checks (do at least the first two)
+## 4. Leaderboard, history & profile
+
+- [ ] `GET /api/leaderboard` (and the leaderboard page) reflects the new on-chain points/rank for A and B
+- [ ] **History** page shows the finished ranked match with points & rank change
+- [ ] **Profile** page shows current points, rank/tier, and badges (badges are DB-only)
+
+---
+
+## 5. Negative checks — Casual & vs-AI are NOT recorded
+
+These must **never** write to chain or change Elo.
+
+- [ ] **Casual match:** create + play a **Casual** match to a win → **no** `recordMatch` tx,
+      **no** Celoscan link, points/rank **unchanged** for both players
+- [ ] **vs-AI (practice):** play a vs-AI match to a win → **no** on-chain write, points/rank **unchanged**
+- [ ] Confirm `/api/leaderboard` and `getPlayer` are unchanged after the casual / vs-AI games
+
+---
+
+## 6. Secondary checks
 
 - [ ] **Browser console is clean** during the whole match (no red errors)
-- [ ] **Multi-game / nonce:** with the SAME Wallet A, create a *second* match
-      (new code) while the first is done — it should succeed (previously one
-      wallet could only have one game). This proves the nonce-PDA change.
-- [ ] **Resign fallback:** start a fresh match, and instead of playing to a win,
-      have the **loser** click **Resign/Leave** → opponent receives the pot.
-- [ ] **Cancel/refund:** create a match, then cancel before anyone joins →
-      stake refunded to creator, wallet free to create again.
-- [ ] **Leaderboard / History** pages reflect the finished match.
-
----
-
-## 5. (Optional) USDC stake flow
-
-USDC settles via **resign / 24h-timeout** (no `settle_with_proof` for USDC yet).
-
-- [ ] Get mock USDC from the in-app faucet (or `/api/faucet`)
-- [ ] Create + join a USDC-staked match
-- [ ] Play to a win → loser resigns → winner receives USDC pot − fee
+- [ ] **MiniPay path:** repeat section 3 inside MiniPay and confirm auto-connect + gasless finish
+- [ ] **Multiple modes:** spot-check Shifting Board / Scale Up / Blitz still create & play
+- [ ] **(Optional) Tournaments:** create a single-elim tournament (Ranked or Casual, 4 or 8 players, **no entry fee**) and confirm bracket flow
 
 ---
 
@@ -130,20 +144,21 @@ USDC settles via **resign / 24h-timeout** (no `settle_with_proof` for USDC yet).
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| Backend log: `oracle key … != on-chain ORACLE_PUBKEY` | `ORACLE_KEYPAIR_PATH` wrong / points to sponsor key | Set `ORACLE_KEYPAIR_PATH=.keys/payer.json` (the `CPoof` key); restart backend |
-| `/api/oracle/pubkey` ≠ `CPoof…` | same as above | same fix |
-| Create/Join: "transaction reverted during simulation" | Program not deployed / stale, or wrong cluster | Confirm Phantom on **Devnet**; program already upgraded (slot deploy done) |
-| "Pot claimed on-chain" never appears, no error | Winner's `reportMatchFinish` didn't land before oracle call, or backend down | Loser's resign or 24h timeout still settles; check backend is up |
-| `settle_with_proof` fails with `OracleProofMismatch` | matchId→nonce mismatch FE vs BE | both use FNV-1a `nonceForMatch`; ensure FE and BE on same commit |
-| Backend won't start | `DATABASE_URL` empty/unreachable | Set a valid Neon/Postgres URL in `backend/.env` |
-| Wallet shows mainnet balance / 0 devnet | Wallet not on Devnet | Phantom → Developer Settings → Devnet |
-| USDC actions fail | `NEXT_PUBLIC_MOCK_USDC_MINT` mismatch or no USDC | Use in-app faucet first; verify mint in `.env.local` |
+| Result screen shows no Celoscan link / `recordMatch` never lands | Relayer not the contract owner, or out of gas | Ensure backend key = **contract owner**; fund relayer with CELO; check `/api/match/finish` logs |
+| `recordMatch` tx reverts: not owner | Backend signing key isn't the deployed contract's owner | Set the relayer key to the owner key; restart backend |
+| Points didn't change after a 2nd finish | Idempotency working as intended | Expected — same `matchId` can only be recorded once |
+| Casual / vs-AI changed points | Match incorrectly flagged Ranked | Confirm mode = Casual / vs-AI; only Ranked calls `/api/match/finish` |
+| `getPlayer` returns 1000 for an active player | Reading wrong contract/chain, or match never recorded | Verify contract address & RPC (`forno.celo.org`, chainId 42220); confirm finish tx landed |
+| Hints exceed 3 in a match | Hint cap not enforced | Hints are free but capped at **3/match**; verify the limit in the hint handler |
+| Wallet won't connect | Not on Celo mainnet / no injected wallet | Switch wallet to Celo (42220); on mobile use MiniPay (auto-connect) |
+| Backend won't start | `DATABASE_URL` empty/unreachable | Set a valid Postgres URL in `backend/.env` |
+| `/api/leaderboard` empty | No ranked matches recorded yet | Play & finish at least one Ranked match |
 
 ---
 
 ## Done = ready to record
 
 Minimum green bar for the demo video:
-- ✅ Section 1 (services up, oracle key matches)
-- ✅ Section 3 (create → join → play → **winner paid via oracle settle**)
-- ✅ Section 4 first two boxes (clean console + multi-game)
+- ✅ Section 1 (services up, `/health` + `/api/stats` + `/api/leaderboard` respond)
+- ✅ Section 3 (create → join → play → **finish shows points delta + rank + Celoscan link**, verified via `getPlayer`)
+- ✅ Section 5 (Casual & vs-AI confirmed **not** recorded)

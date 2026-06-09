@@ -14,10 +14,10 @@
 
 * [Game Modes](features/game-modes.md)
 * [Trivia Engine](features/trivia-engine.md)
-* [Hint Economy](features/hint-economy.md)
+* [Free Hints](features/hint-economy.md)
 * [Tournaments](features/tournaments.md)
-* [Leaderboard and Badges](features/leaderboard-and-badges.md)
-* [Sponsored Gas](features/sponsored-gas.md)
+* [Leaderboard and Ranks](features/leaderboard-and-badges.md)
+* [Gasless Ranking](features/sponsored-gas.md)
 
 ## Technical
 
@@ -28,5 +28,5 @@
 
 ## Resources
 
-* [Program Addresses](resources/program-addresses.md)
+* [Contract Addresses](resources/program-addresses.md)
 * [Roadmap](resources/roadmap.md)

@@ -11,7 +11,7 @@ Questions are served by a stateless Fastify backend at `GET /api/trivia/question
 | Category | Coverage |
 |---|---|
 | **General Knowledge** | Broad trivia across topics |
-| **Crypto & Web3** | Blockchain, DeFi, NFTs, Solana ecosystem |
+| **Crypto & Web3** | Blockchain, DeFi, NFTs, Celo ecosystem |
 | **Science** | Physics, biology, chemistry |
 | **History** | World history, major events |
 | **Math** | Arithmetic, algebra, logic puzzles |
@@ -27,18 +27,17 @@ Players can filter by one or more categories via query params: `?categories=Cryp
 | Medium | 20 seconds |
 | Hard | 15 seconds |
 
-The timer is a UX cue, not a chain rule. Even after the visual timer hits zero, you can still submit; the on-chain timeout (24h Classic, 300s Blitz) is what actually enforces lateness.
+The timer is a UX cue that drives the live turn flow. In Blitz mode the answer window tightens to 5 seconds.
 
 ## Commit-reveal flow
 
-The whole point of the trivia engine is that **the backend never learns which answer you picked**, and the chain verifies the answer without trusting the backend.
+The whole point of the trivia engine is that **the backend never leaks the answer to the opposing player**, and answers are verified against a commitment the player made before seeing the result.
 
 ```mermaid
 sequenceDiagram
     actor P as Player
     participant FE as Frontend
     participant BE as Backend
-    participant CH as Solana
 
     FE->>BE: GET /api/trivia/question
     BE-->>FE: { sessionId, question, options[] }
@@ -47,23 +46,20 @@ sequenceDiagram
     P->>FE: Pick answer
     FE->>FE: nonce = crypto.getRandomValues(32 bytes)
     FE->>FE: hash = SHA-256([answer_index, ...nonce])
-    FE->>CH: commit_answer(hash, cell_index)
+    FE->>BE: commit (hash)
 
-    FE->>BE: POST /api/trivia/reveal { sessionId, answerIndex }
+    FE->>BE: POST /api/trivia/reveal { sessionId, answerIndex, nonce }
+    BE->>BE: Recompute SHA-256, must equal committed hash
     BE-->>FE: { correct: true/false, correctIndex }
-
-    FE->>CH: reveal_answer(answer_index, nonce)
-    CH->>CH: Recompute SHA-256, must equal committed hash
-    CH->>CH: Place mark if correct
 ```
 
-The backend's `reveal` response is purely informational — the frontend uses it to decide whether to reveal with the real answer or with `255` (explicit "wrong"). The chain does not consult the backend; it only checks that whatever you reveal hashes to what you committed.
+The commit-reveal step uses a SHA-256 hash so a player cannot change their answer after committing. The backend recomputes the hash on reveal: whatever you reveal must hash to what you committed.
 
 ### Wrong-answer convention
 
-If the backend says `correct: false`, the frontend calls `reveal_answer` with `answer_index = 255`. The program treats `255` as "explicitly wrong":
+If the reveal resolves to `correct: false`, it is treated as an explicit miss:
 
-- Hash still has to verify (so you cannot fake a wrong-answer reveal without having committed).
+- The hash still has to verify (so you cannot fake a wrong-answer reveal without having committed).
 - No piece is placed.
 - Turn switches to opponent.
 
@@ -75,9 +71,13 @@ This keeps the turn flow clean even after a miss.
 |---|---|
 | Session created on `GET /api/trivia/question` | 10 minutes |
 | Session invalidated on first `POST /api/trivia/reveal` | One-shot |
-| Hint peeks (`/api/trivia/peek`) | One use per peek type per session |
+| Hint peeks (`/api/trivia/peek`) | Up to 3 free hints per match |
 
-Sessions are kept in-memory. If the backend restarts mid-match, players start a new session on the next turn — no on-chain effect.
+Sessions are kept in-memory. If the backend restarts mid-match, players start a new session on the next turn.
+
+## Live sync
+
+Matches are synchronized in real time over **WebSocket**. Both players see board state, turn changes, and reveal results live as they happen — there is no polling delay between moves.
 
 ## API surface
 
@@ -85,7 +85,7 @@ Sessions are kept in-memory. If the backend restarts mid-match, players start a 
 |---|---|
 | `GET /api/trivia/question` | Fetch a random question (no correct index) and create a session |
 | `POST /api/trivia/reveal` | Reveal whether the player's answer was correct |
-| `GET /api/trivia/peek` | Hint-driven partial reveal (`eliminate2`, `first-letter`) |
+| `GET /api/trivia/peek` | Free-hint partial reveal (`eliminate2`, `first-letter`) |
 | `GET /api/trivia/categories` | List categories with question counts |
 | `GET /api/trivia/stats` | Question bank statistics by category and difficulty |
 
@@ -93,6 +93,6 @@ See [Backend API](../technical/backend-api.md) for full request/response schemas
 
 ## Why this matters
 
-A naive design would have the chain ask a server "is answer 2 correct?" That bakes in trust in the server. MindDuel inverts the relationship: the chain verifies a hash that the player constructed locally. The server only ever serves questions and confirms results to the player's UI — never to the chain.
+The commit-reveal design means a player locks in their answer before learning whether it was right, and the answer is verified against that commitment rather than being changeable after the fact. The server serves questions and confirms results to the player's UI; the SHA-256 commitment keeps the answer honest.
 
-That is the difference between "trustless game" and "game that uses a blockchain."
+That is the difference between "trivia gate you can game" and "trivia gate that actually tests you."

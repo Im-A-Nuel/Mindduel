@@ -1,159 +1,117 @@
-# Smart Contracts
+# Smart Contract
+
+MindDuel has a single contract: `MindDuelRanking.sol`. It is an **on-chain points & ranking ledger** — there is no staking, betting, or escrow. Ranked matches are a pure skill ladder: winning raises your points, losing lowers them.
 
 | | |
 |---|---|
-| **Program ID** | `8XZTXNux374128LFJSVhp5XSNyYMPNZpfw4vyjWmSJkN` |
-| **Network** | Solana Devnet |
-| **Framework** | Anchor 0.30 (Rust) |
-| **Instructions** | 15 total (9 SOL + 6 USDC variants) |
-| **Treasury** | `CPoofbZho4bJmSAyVJxfeMK9CoZpXpDYftctghwUJX86` (compile-time constant) |
+| **Contract** | `MindDuelRanking` |
+| **Source** | `contracts/src/MindDuelRanking.sol` |
+| **Network** | Celo mainnet (chainId `42220`) |
+| **RPC** | `https://forno.celo.org` |
+| **Framework** | Foundry (solc `0.8.24`) |
+| **Owner** | Backend relayer — the only address that can record results |
 
-The program is the single custodian of player funds and the only authority that can write game state. Funds can only leave escrow via `settle_game`, `cancel_match`, or `resign_game` (and their USDC counterparts).
+The contract is owner-gated: only the relayer (`backend/src/lib/chain.ts`) can call `recordMatch`, and it pays the CELO gas. Players never sign a transaction to be ranked. Results are idempotent per `matchId`, so a retried submission can never double-count.
 
-## Account schemas
+## Trust model
 
-### GameAccount
+A trusted backend relayer (the contract `owner`) submits the authoritative result of each ranked PvP match via `recordMatch` and pays the Celo gas. Players just connect a wallet (e.g. MiniPay) and play. The frontend only **reads** the contract for points and rank.
 
-PDA seeds: `["game", player_one.pubkey]`. ~196 bytes.
+## Player schema
 
-| Field | Type | Notes |
-|---|---|---|
-| `player_one` | `Pubkey` | Creator, plays as X |
-| `player_two` | `Pubkey` | Joiner, plays as O |
-| `status` | `GameStatus` | `WaitingForPlayer` / `Active` / `Finished` / `Cancelled` |
-| `mode` | `GameMode` | `Classic` / `ShiftingBoard` / `ScaleUp` / `Blitz` |
-| `board` | `[CellState; 25]` | Flat 5x5; only `board_size^2` cells active |
-| `board_size` | `u8` | `3`, `4`, or `5` |
-| `current_turn` | `Pubkey` | Whose move it is |
-| `stake_per_player` | `u64` | Lamports (SOL) or base units (USDC) |
-| `pot_lamports` | `u64` | Total in escrow |
-| `committed_hash` | `[u8; 32]` | Pending commit; zeroed between turns |
-| `committed_cell` | `u8` | Target cell of pending commit |
-| `last_action_ts` | `i64` | Unix timestamp |
-| `round` | `u8` | Increments each turn |
-| `drama_score` | `u8` | +5 per turn, capped at 100; >= 80 = Epic Game |
-| `bump`, `escrow_bump` | `u8` | PDA bumps |
-| `currency` | `Currency` | `Sol` or `MockUsdc` |
-
-### HintLedger
-
-PDA seeds: `["hint", game.pubkey, player.pubkey]`. ~74 bytes. `init_if_needed`.
-
-| Field | Type | Notes |
-|---|---|---|
-| `game` | `Pubkey` | |
-| `player` | `Pubkey` | |
-| `used_hints` | `u8` | Bitmask: bit 0 EliminateTwo, bit 1 CategoryReveal, bit 2 ExtraTime, bit 3 FirstLetter, bit 4 Skip |
-| `bump` | `u8` | |
-
-## Instructions
-
-| Instruction | Purpose | PDA seeds touched |
-|---|---|---|
-| `initialize_game` | Create SOL match, lock player_one's stake in escrow | `["game", player_one]`, `["escrow", game]` |
-| `join_game` | Player two joins SOL match, locks matching stake | `["game", ...]`, `["escrow", ...]` |
-| `commit_answer` | Store `SHA-256(answer || nonce)` and target cell on-chain | `["game", ...]` |
-| `reveal_answer` | Verify hash, place mark, apply mode mutation, switch turn | `["game", ...]` |
-| `claim_hint` | Buy SOL hint; 80% to treasury, 20% to escrow; bitmask in hint_ledger | `["hint", game, player]`, `["escrow", ...]` |
-| `settle_game` | Distribute SOL pot after win / draw / timeout; close GameAccount | `["game", ...]`, `["escrow", ...]` |
-| `timeout_turn` | Any signer can switch turn after `last_action_ts + timeout` | `["game", ...]` |
-| `cancel_match` | Refund SOL stake while in `WaitingForPlayer` | `["game", ...]`, `["escrow", ...]` |
-| `resign_game` | Concede active SOL game; opponent receives `pot - fee` | `["game", ...]`, `["escrow", ...]` |
-| `initialize_game_usdc` | USDC variant: creates escrow ATA, transfers from player_one ATA | ATA of `["escrow", game]` |
-| `join_game_usdc` | USDC variant: transfers stake from player_two ATA | escrow ATA |
-| `claim_hint_usdc` | USDC variant of `claim_hint` | hint_ledger + escrow ATA |
-| `settle_game_usdc` | USDC variant of `settle_game` | escrow ATA |
-| `cancel_match_usdc` | USDC variant of `cancel_match` | escrow ATA |
-| `resign_game_usdc` | USDC variant of `resign_game` | escrow ATA |
-
-## Critical instruction details
-
-### `commit_answer` constraints
-
-- `game.status == Active`
-- `game.current_turn == player.key()`
-- `game.committed_hash == [0u8; 32]` (no existing commit)
-- `cell_index < board_size^2` and target cell is `Empty`
-
-### `reveal_answer` flow
-
-1. Verify `SHA-256([answer_index, ...nonce]) == committed_hash`.
-2. Zero out `committed_hash` (replay protection).
-3. If `answer_index != 255` and not Blitz-timed-out: place X or O at `committed_cell`.
-4. Apply mode mutation:
-   - `ShiftingBoard`: rotate board every 3rd round in direction `Clock::get()?.slot % 4`.
-   - `ScaleUp`: grow to 4x4 at `round >= 4`, to 5x5 at `round >= 9`.
-5. Switch `current_turn`, increment `round` and `drama_score`, update `last_action_ts`.
-6. Emit `AnswerRevealed` event.
-
-`answer_index = 255` is the explicit "wrong" sentinel — hash still verified, no piece placed.
-
-### `settle_game` requires one of
-
-| Condition | Description |
-|---|---|
-| Winner found | `determine_winner` returns Some |
-| Board full | All `board_size^2` cells non-empty |
-| Turn timed out | `now - last_action_ts >= timeout` (24h Classic, 300s Blitz) |
-
-Otherwise fails with `MindDuelError::GameStillActive`. Stops a losing player from settling early to grab a draw split.
-
-## Constants reference
-
-```rust
-PLATFORM_FEE_BPS             = 250        // 2.5%
-BPS_DENOMINATOR              = 10_000
-HINT_TREASURY_BPS            = 8_000      // 80%
-HINT_PRIZE_BPS               = 2_000      // 20%
-TURN_TIMEOUT_SECS            = 86_400     // 24 hours
-BLITZ_TIMEOUT_SECS           = 300        // 5 minutes
-EPIC_DRAMA_THRESHOLD         = 80
-
-HINT_ELIMINATE_TWO_LAMPORTS  = 2_000_000  // 0.002 SOL
-HINT_CATEGORY_LAMPORTS       = 1_000_000  // 0.001 SOL
-HINT_EXTRA_TIME_LAMPORTS     = 3_000_000  // 0.003 SOL
-HINT_FIRST_LETTER_LAMPORTS   = 1_000_000  // 0.001 SOL
-HINT_SKIP_LAMPORTS           = 5_000_000  // 0.005 SOL
-
-GAME_SEED    = b"game"
-HINT_SEED    = b"hint"
-ESCROW_SEED  = b"escrow"
+```solidity
+struct Player {
+    uint256 points;     // current Elo rating; START (1000) until first match
+    uint64  wins;
+    uint64  losses;
+    uint64  draws;
+    uint64  lastPlayed; // unix seconds of most recent recorded match
+    bool    exists;
+}
 ```
 
-## Error codes
+Storage:
 
-| Code | Name | Meaning |
+| Field | Type | Notes |
 |---|---|---|
-| 6000 | `InvalidGameState` | Game is not in expected state for this instruction |
-| 6001 | `NotYourTurn` | Caller is not `current_turn` |
-| 6002 | `HashMismatch` | Reveal hash != committed hash |
-| 6003 | `InvalidCellIndex` | Cell index out of bounds for board size |
-| 6004 | `CellOccupied` | Target cell already occupied |
-| 6005 | `NoCommitFound` | Reveal called without prior commit |
-| 6006 | `CommitAlreadyExists` | Commit called while one is pending |
-| 6007 | `TurnNotTimedOut` | Timeout window not yet reached |
-| 6008 | `InsufficientFunds` | Not enough SOL for selected hint |
-| 6009 | `HintAlreadyUsed` | Hint type already purchased this game |
-| 6010 | `StakeTooLow` | Below minimum 0.01 SOL |
-| 6011 | `GameAlreadyFull` | Player two already joined |
-| 6012 | `GameStillActive` | Settle called too early |
-| 6013 | `Unauthorized` | Wrong signer or wrong treasury address |
-| 6014 | `Overflow` | Arithmetic overflow in fee or distribution math |
+| `owner` | `address` | The relayer; only it can `recordMatch` / `transferOwnership` |
+| `players` | `mapping(address => Player)` | Per-player rating record |
+| `roster` | `address[]` | Every player that has ever been recorded (for pagination) |
+| `settled` | `mapping(bytes32 => bool)` | `matchId => recorded?` — idempotency guard |
+
+## Functions
+
+| Function | Access | Purpose |
+|---|---|---|
+| `recordMatch(address winner, address loser, bool draw, bytes32 matchId)` | `onlyOwner` | Record a ranked PvP result; idempotent per `matchId` |
+| `getPlayer(address who)` | view | Return the full `Player` struct for an address |
+| `playerCount()` | view | Number of players in the roster |
+| `getPlayers(uint256 start, uint256 count)` | view | Paginated roster read — parallel arrays of addresses and `Player` structs, for building the leaderboard off-chain |
+| `transferOwnership(address newOwner)` | `onlyOwner` | Hand the relayer role to a new owner |
+
+## `recordMatch` behaviour
+
+```solidity
+function recordMatch(address winner, address loser, bool draw, bytes32 matchId) external onlyOwner;
+```
+
+1. Reverts on a zero address (`ZeroAddress`) or `winner == loser` (`SamePlayer`).
+2. Reverts if `settled[matchId]` is already true (`AlreadySettled`) — this is the idempotency guard. Otherwise marks it settled.
+3. Registers any new player via `_ensure` — sets `exists = true`, seeds `points = START` (1000), pushes to `roster`, emits `PlayerRegistered`.
+4. Applies integer Elo (see below). For a draw, both `winner` and `loser` are simply "player A" and "player B".
+5. Updates `lastPlayed` for both players to `block.timestamp`.
+6. Emits `MatchRecorded(matchId, winner, loser, draw, winnerPoints, loserPoints)`.
+
+The relayer computes `matchId` as `keccak256` of the match id string before submitting.
+
+## Rating math (integer Elo)
+
+The contract implements a self-contained, zero-sum integer Elo. No floating point — the expected-score logistic is evaluated against a fixed-point lookup table scaled by `1e6`.
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `START` | `1000` | Starting rating on a player's first recorded match |
+| `K` | `32` | K-factor — the maximum points that can move in one match |
+| `SCALE` | `1_000_000` | Internal fixed-point scale for the logistic |
+
+- **Win/loss:** the winner gains `K * (1 - E_winner)`; the loser drops the exact same amount. Zero-sum.
+- **Draw:** a symmetric adjustment of `K * (0.5 - E_A)` toward the expected score of 0.5.
+- **Floor:** points can never go below `0` — any drop larger than the current balance floors at zero.
+- `E_self = 1 / (1 + 10^((opp - self) / 400))`, with `10^(d/400)` from a 9-point table over `|d| ∈ [0, 400]` (step 50) with linear interpolation; `|d|` is clamped at 400.
 
 ## Events
 
 | Event | Fields | Emitted by |
 |---|---|---|
-| `GameCreated` | `game, player_one, stake_amount, mode` | `initialize_game` |
-| `AnswerRevealed` | `game, player, cell_index, correct` | `reveal_answer` |
-| `GameSettled` | `game, winner_mark (Option<bool>), pot, fee` | `settle_game` |
+| `MatchRecorded` | `matchId, winner, loser, draw, winnerPoints, loserPoints` | `recordMatch` |
+| `PlayerRegistered` | `player` | first time an address is recorded |
+| `OwnershipTransferred` | `previousOwner, newOwner` | constructor, `transferOwnership` |
 
-`winner_mark`: `Some(true)` = X won, `Some(false)` = O won, `None` = draw.
+## Errors
+
+| Error | Meaning |
+|---|---|
+| `NotOwner` | Caller is not the contract owner (relayer) |
+| `ZeroAddress` | `winner`, `loser`, or new owner is the zero address |
+| `SamePlayer` | `winner == loser` |
+| `AlreadySettled` | `matchId` has already been recorded (idempotent replay) |
+
+## Deployment
+
+Built and deployed with Foundry (run via WSL):
+
+```bash
+forge build
+forge test
+forge script script/Deploy.s.sol --rpc-url https://forno.celo.org --broadcast
+```
+
+The constructor takes an `_owner` (defaults to the deployer if zero) — set this to the relayer address so the backend can record matches. After deploy, set `RANKING_CONTRACT_ADDRESS` for the backend and `NEXT_PUBLIC_RANKING_CONTRACT_ADDRESS` for the frontend. See [Contract Addresses](../resources/program-addresses.md).
 
 ## Security model (summary)
 
-- **Hardcoded treasury.** `TREASURY_PUBKEY` is a compile-time `pubkey!` constant. Every fee-paying instruction has `constraint = treasury.key() == TREASURY_PUBKEY`.
-- **Replay protection.** `committed_hash` is zeroed at the start of `reveal_answer`, so the same `(answer, nonce)` pair cannot be reused on subsequent turns.
-- **Turn enforcement.** Both `commit_answer` and `reveal_answer` require `current_turn == player.key()`.
-- **Early-settle prevention.** `settle_game` requires a real terminal condition.
-- **One active game per wallet.** `GameAccount` PDA seeded with `player_one` — `init` fails if it already exists.
+- **Owner-only writes.** Only the relayer can call `recordMatch`. Compromising the backend cannot drain funds — there are none; the worst case is corrupted rankings.
+- **Idempotency.** `settled[matchId]` ensures each match is counted exactly once, even on retries from multiple clients.
+- **No custody.** The contract never holds value. It stores points only.
+- **Points floor.** Ratings are floored at 0, so no underflow is possible.
+- **Pure reads for clients.** The frontend reads `getPlayer` / `getPlayers` directly and never needs a signer.

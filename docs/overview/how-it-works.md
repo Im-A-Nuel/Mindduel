@@ -1,28 +1,18 @@
 # How It Works
 
-A complete MindDuel match has three phases: **stake**, **play**, **settle**. Here is what happens at each step, end to end.
+A complete MindDuel match has three phases: **match up**, **play**, **rank**. Here is what happens at each step, end to end.
 
-## 1. Stake
+## 1. Match up
 
 ### Player one creates a match
 
-Player one calls `initialize_game` (or `initialize_game_usdc`) with their stake amount and chosen mode (`Classic`, `ShiftingBoard`, `ScaleUp`, `Blitz`). This:
-
-- Creates a `GameAccount` PDA seeded by `["game", player_one]`.
-- Transfers the stake into the escrow PDA seeded by `["escrow", game]`.
-- Sets `game.status = WaitingForPlayer`.
-
-The frontend exposes this as **Create Match** -> generates a `MNDL-XXXXXX` join code.
+Player one picks a mode (**Classic**, **Shifting Board**, **Scale Up**, **Blitz**, or **vs-AI** practice) and whether the match is **Ranked** or **Casual**. The frontend exposes this as **Create Match** and generates a `MNDL-XXXXXX` join code. There is nothing to stake — players just connect a wallet and play.
 
 ### Player two joins
 
-Player two calls `join_game` (or `join_game_usdc`). The program:
+Player two either takes a slot from matchmaking (**Quick Match**) or pastes the `MNDL-XXXXXX` join code into **Join Game**. Once both players are in, the match goes active and player one moves first.
 
-- Verifies `player_two != player_one`.
-- Transfers a matching stake into escrow.
-- Sets `game.status = Active` and `pot = stake_per_player x 2`.
-
-`current_turn` starts as `player_one`.
+> Only **Ranked** PvP matches are recorded on-chain. **Casual** and **vs-AI** are just for fun and never touch the ranking contract.
 
 ## 2. Play (one turn at a time)
 
@@ -31,7 +21,6 @@ sequenceDiagram
     actor P as Player
     participant FE as Frontend
     participant BE as Backend
-    participant CH as Solana
 
     P->>FE: Click empty cell
     FE->>BE: GET /api/trivia/question
@@ -39,66 +28,59 @@ sequenceDiagram
 
     P->>FE: Pick answer
     FE->>FE: nonce = random 32 bytes
-    FE->>FE: hash = SHA-256([answer, ...nonce])
-    FE->>CH: commit_answer(hash, cell_index)
-    CH-->>FE: confirmed
+    FE->>FE: hash = SHA-256(answer || nonce)
+    FE->>BE: commit(hash, cellIndex)
 
-    FE->>BE: POST /api/trivia/reveal { sessionId, answerIndex }
-    BE-->>FE: { correct, correctIndex }
-
-    FE->>CH: reveal_answer(answer_index, nonce)
-    CH->>CH: verify SHA-256 matches commit
-    CH->>CH: place mark if correct (else answer_index = 255)
-    CH->>CH: apply mode mutation (shift / grow)
-    CH->>CH: switch current_turn
+    FE->>BE: POST /api/trivia/reveal { sessionId, answerIndex, nonce }
+    BE->>BE: verify SHA-256 matches commit
+    BE->>BE: place mark if correct
+    BE->>BE: apply mode mutation (shift / grow)
+    BE->>BE: switch current turn
+    BE-->>FE: { correct, correctIndex, newState }
 ```
 
-Key things the program does inside `reveal_answer`:
+Key things that happen on reveal:
 
-1. Recompute `SHA-256([answer_index, ...nonce])` and require it equals `committed_hash`.
-2. Zero out `committed_hash` immediately (kills replay attacks).
-3. If `answer_index != 255` and not Blitz-timed-out: place `X` or `O` at `committed_cell`.
+1. Recompute `SHA-256(answer || nonce)` and require it equals the committed hash.
+2. Discard the commitment immediately (kills replay attacks).
+3. If the answer was correct: place `X` or `O` at the committed cell.
 4. Apply mode mutation:
-   - **ShiftingBoard:** every 3rd round, rotate the board. Direction = `Clock::get()?.slot % 4`.
-   - **ScaleUp:** grow to 4x4 at round >= 4, then 5x5 at round >= 9.
-5. Switch `current_turn`, increment `round`, increment `drama_score` (+5, capped at 100).
+   - **Shifting Board:** every few rounds, rotate the board.
+   - **Scale Up:** grow from 3x3 to 4x4, then to 5x5 as correct answers accumulate.
+5. Switch the current turn and advance the round.
 
-If the answer was wrong, the frontend submits `answer_index = 255` — an explicit "I missed." The hash still has to verify, but no piece is placed.
+If the answer was wrong, the turn simply passes — the commit still has to verify, but no piece is placed.
 
-## 3. Settle
+You can also spend up to **3 free hints** per match to help with a hard question. Hints are free; there is no paid hint economy. See [Free Hints](../features/hint-economy.md).
 
-A game can end in three ways:
+## 3. Rank
 
-| Trigger | Detected by |
+A game ends when someone gets three in a row, the board fills with no winner (draw), or a turn times out. When a **Ranked** PvP match ends, the result is recorded on-chain:
+
+1. The backend identifies the winner and loser (or a draw).
+2. The **relayer** (the contract owner) calls `recordMatch(winner, loser, draw, matchId)` and pays the CELO gas.
+3. The contract updates both players' points using zero-sum Elo (K=32, start 1000, floored at 0), bumps their W/L/D, and recomputes their rank tier.
+4. The call is idempotent per `matchId`, so the same result is never counted twice.
+
+Players never sign anything and never pay gas. **Casual** and **vs-AI** matches skip this step entirely.
+
+| Outcome | Effect on rank |
 |---|---|
-| Three in a row | `determine_winner` scans the active board area. |
-| Board full with no winner | All `board_size^2` cells filled — draw. |
-| Turn timed out | `now - last_action_ts >= timeout` (24h Classic, 300s Blitz). |
-
-Anyone can call `settle_game` once one of those is true. The program:
-
-1. Calculates `fee = pot x 2.5%`.
-2. Sends `fee` to the hardcoded treasury.
-3. Sends `pot - fee` to the winner (or splits 50/50 on draw).
-4. Sets `game.status = Finished`.
-5. Closes the `GameAccount`, refunding rent to `player_one`.
-
-If neither player is willing to settle, the alternatives are:
-
-- `timeout_turn` — any signer can force a turn switch after the inactivity window.
-- `resign_game` — either player concedes, opponent gets `pot - fee`.
-- `cancel_match` — only valid in `WaitingForPlayer` status, full refund.
+| Win (Ranked) | Winner's points rise, loser's fall by the same amount. |
+| Draw (Ranked) | Both players' points move toward each other. |
+| Casual / vs-AI | No change — nothing is recorded. |
 
 ## What is happening off-chain
 
-The backend handles only the things that do not need trust:
+The backend handles the live game and everything that does not need to be on-chain:
 
-- Serves trivia questions (the chain never sees the question text).
-- Generates `sessionId` and stores `(questionId, correctIndex)` in memory for 10 minutes.
+- Serves trivia questions (the question text is never written on-chain).
+- Generates `sessionId` and stores `(questionId, correctIndex)` briefly to verify reveals.
+- Runs the board, turn order, mode mutations, and win/draw detection.
 - Mirrors finished match results into Postgres for the leaderboard and history pages.
 - Relays WebSocket messages between clients in the same room.
-- Optionally sponsors transaction fees (see [Sponsored Gas](../features/sponsored-gas.md)).
+- Runs the relayer that submits ranked results on-chain and pays the gas (see [Gasless Ranking](../features/sponsored-gas.md)).
 
-If the backend disappears mid-match, you can still call `reveal_answer`, `settle_game`, `resign_game`, or `timeout_turn` directly — your funds are not stuck.
+The on-chain ranking contract is the single source of truth for the competitive ladder. Anyone can read it directly with `getPlayer`, `playerCount`, and the paginated `getPlayers`.
 
 For a deeper dive into the contract, see [Smart Contracts](../technical/smart-contracts.md). For the full system map, see [Architecture](../technical/architecture.md).

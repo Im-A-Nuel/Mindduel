@@ -1,10 +1,30 @@
 # Leaderboard and Badges
 
-MindDuel mirrors finished match results into a Postgres database (Neon, via Drizzle ORM) for fast leaderboard and history queries. The chain is still the source of truth — the database is a read-only mirror that gets reconciled after each settled match.
+MindDuel ranks players by their on-chain points from the `MindDuelRanking` contract on Celo mainnet. The contract is the source of truth; the backend reads it via viem and keeps a Postgres mirror (Neon, via Drizzle ORM) for fast queries, with a DB fallback if the chain read fails.
+
+## Ranking system
+
+Ranked matches feed an integer Elo ladder enforced by `MindDuelRanking.sol`:
+
+- Every player starts at **1000** points.
+- Each ranked result is **zero-sum** with **K = 32**: the points the winner gains equal the points the loser drops.
+- Points are **floored at 0** — you can never go negative.
+- The contract tracks **wins / losses / draws** per player alongside the point total.
+
+### Rank tiers
+
+| Tier | Points |
+|---|---|
+| Bronze | 0 |
+| Silver | 1000 |
+| Gold | 1200 |
+| Platinum | 1400 |
+| Diamond | 1600 |
+| Master | 1850 |
 
 ## Leaderboard
 
-Available via `GET /api/leaderboard`. Players are ranked by win count.
+Available via `GET /api/leaderboard`. Players are ranked by **on-chain points**, with a database fallback if the on-chain read is unavailable.
 
 ### Query parameters
 
@@ -21,25 +41,26 @@ Available via `GET /api/leaderboard`. Players are ranked by win count.
   "entries": [
     {
       "rank": 1,
-      "address": "7ZQmH5aBcDe...",
+      "address": "0xAbC...",
+      "points": 1685,
+      "tier": "Diamond",
       "wins": 42,
       "matches": 55,
       "losses": 13,
-      "solEarned": 12.75,
-      "usdcEarned": 0,
+      "draws": 0,
       "winRate": 0.764
     }
   ]
 }
 ```
 
-Entries with non-Solana addresses (e.g. `"AI"` for vs-ai practice matches) are filtered out — only real wallets appear.
+Practice (`vs-ai`) results never reach the ranking contract, so they never appear on the leaderboard — only ranked matches between real wallets count.
 
 ## Match history
 
-`GET /api/history/:player` returns the most recent matches for a wallet, including stake, mode, currency, winner, pot, fee, and the on-chain settlement signature.
+`GET /api/history/:player` returns the most recent matches for a wallet, including mode, opponent, result (win/loss/draw), and the points change.
 
-This is the data behind the **History** tab in the frontend. Every row links to the Solana Explorer for verification.
+This is the data behind the **History** tab in the frontend.
 
 ## Live stats
 
@@ -48,56 +69,50 @@ This is the data behind the **History** tab in the frontend. Every row links to 
 - `totalMatches`
 - `activeMatches`
 - `totalPlayers`
-- `totalVolumeSol`
-- `totalVolumeUsdc`
 
 These power the lobby's "live ticker."
 
 ## Badges
 
-After a settled match, the frontend calls `POST /api/match/finish` with the on-chain settlement signature. The backend evaluates badge conditions and stores any earned badges in `badges` table, tied to the winner's wallet.
+Badges are awarded after a ranked match and stored in the `badges` table tied to the player's wallet. Badges are **DB-only** — they are records in the database, not minted tokens.
 
 `GET /api/badges/:player` returns the player's badge collection:
 
 ```json
 {
-  "player": "7ZQmH5...",
+  "player": "0xAbC...",
   "count": 3,
   "badges": [
     {
       "id": 1,
-      "type": "first_blood",
+      "type": "first_win",
       "name": "First Blood",
-      "symbol": "MNDL-FB",
       "description": "Won your first MindDuel match",
-      "image": "https://...",
-      "mintAddr": "NFTMintAddr...",
-      "txSig": "MintTxSig...",
-      "earnedAt": 1746000000000,
-      "status": "minted"
+      "earnedAt": 1746000000000
     }
   ]
 }
 ```
 
-`status` is `"minted"` when an on-chain mint address is populated, otherwise `"pending"`.
+### Badge types
 
-Badge type metadata lives in `backend/src/lib/badges.ts`. Examples include `first_blood`, `high_roller`, and the Epic Game soulbound NFT (see below).
+| Type | Name | Condition |
+|---|---|---|
+| `first_win` | First Blood | Won your first MindDuel match |
+| `streak_3` | Triple Threat | Won 3 ranked matches in a row |
+| `streak_5` | Pentakill | Won 5 ranked matches in a row |
+| `streak_10` | Decimator | Won 10 ranked matches in a row |
+| `high_rank` | Gold Rank | Reached 1200 points (Gold tier) |
+| `flawless` | Flawless | 100% accuracy over 5+ questions in a match |
 
-## Epic Game NFT
-
-Every match accumulates a `drama_score` on-chain — `+5` per turn, capped at `100`. When `drama_score >= 80` (the `EPIC_DRAMA_THRESHOLD` constant), the match qualifies as an "Epic Game."
-
-The winner of an Epic Game becomes eligible for a **soulbound NFT badge** minted via Metaplex Umi to their wallet. Soulbound = non-transferable. You cannot buy or trade an Epic Game badge — you can only earn one by playing a sufficiently dramatic match.
-
-The drama score is on-chain and cannot be fabricated; the mint is gated by reading the on-chain `drama_score` field. Epic Game NFT minting is V1.1 (in progress) — see [Roadmap](../resources/roadmap.md).
+Badge type metadata lives in `backend/src/lib/badges.ts`.
 
 ## Database schema (high level)
 
 | Table | Purpose |
 |---|---|
-| `matches` | One row per finished match: players, stake, currency, winner, pot, fee, settlement signature, timestamps |
-| `badges` | One row per earned badge: type, owner, optional mint address and tx signature |
+| `matches` | One row per finished match: players, mode, winner, result, point changes, timestamps |
+| `badges` | One row per earned badge: type, owner, earned timestamp |
 | `tournaments` | Tournament metadata + bracket state |
 
-Defined in `backend/src/lib/schema.ts`, accessed via Drizzle ORM. The backend never writes player funds — only metadata.
+Defined in `backend/src/lib/schema.ts`, accessed via Drizzle ORM. The on-chain `MindDuelRanking` contract remains the authority for points; the database mirrors it for display.

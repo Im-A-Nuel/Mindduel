@@ -1,33 +1,12 @@
 # Real-time Sync
 
-Real-time UI in MindDuel runs on **two parallel channels**, each with its own role:
+Live gameplay in MindDuel is driven by a single backend WebSocket channel. The two players (and any spectators) join a per-match room and exchange board updates with low latency. Ranked settlement is a separate, one-shot step that happens on the chain **after** the game ends — it is not part of the realtime loop.
 
 | Channel | Source | Role |
 |---|---|---|
-| Solana RPC `accountSubscribe` | `useGameState` hook | Authoritative on-chain state — board, status, current_turn, drama_score |
-| Backend WebSocket `/ws/:matchId` | `useWebSocket` hook | Low-latency UX events — board flashes, viewer counts, animations |
+| Backend WebSocket `/ws/:matchId` | per-match room | Real-time board state, turn handoff, spectator counts, animations |
 
-The chain is the source of truth. The WebSocket relay is a UX accelerator that gives the opponent's screen something to animate before the next chain confirmation lands.
-
-## Solana account subscription
-
-The frontend opens an RPC WebSocket and calls `accountSubscribe` on the `GameAccount` PDA. Every time the account is mutated (commit, reveal, hint, settle), the subscription fires and the frontend re-decodes the account.
-
-```typescript
-connection.onAccountChange(gameAccountPda, (accountInfo) => {
-  const game = program.coder.accounts.decode('GameAccount', accountInfo.data)
-  setGameState(game)
-})
-```
-
-This is what drives:
-
-- The board mark appearing after a successful reveal.
-- The "your turn" indicator switching.
-- The drama score / round counter updating.
-- The settle button enabling when terminal conditions are met.
-
-If the backend is offline, the game still updates correctly off this channel alone.
+The trivia answer flow uses a server-side commit-reveal (SHA-256) so an answer is never exposed before the player commits. Once a match ends, the backend relayer records the ranked result on Celo via `recordMatch` — see [Backend API](./backend-api.md) and [Smart Contracts](./smart-contracts.md).
 
 ## Backend WebSocket protocol
 
@@ -37,20 +16,22 @@ If the backend is offline, the game still updates correctly off this channel alo
 
 ```javascript
 // Player
-const ws = new WebSocket('wss://api.mindduel.app/ws/AB12CD')
+const ws = new WebSocket('wss://<backend-host>/ws/AB12CD')
 
 // Spectator (read-only)
-const ws = new WebSocket('wss://api.mindduel.app/ws/AB12CD?role=spectator')
+const ws = new WebSocket('wss://<backend-host>/ws/AB12CD?role=spectator')
 ```
 
 ### Server -> client messages
 
 | `type` | Payload | When |
 |---|---|---|
-| `state` | `{ match }` | Sent immediately on connect — full match metadata snapshot |
+| `state` | `{ match }` incl. `playerOne` / `playerTwo` addresses | Sent immediately on connect — full match snapshot; each client derives its own mark (X/O) from these addresses |
 | `board_updated` | `{ board, currentPlayer, winLine, correct }` | Broadcast after any player reports a successful reveal |
-| `viewer_count` | `{ count }` | Sent on connect and whenever a spectator joins or leaves |
+| `viewer_count` | `{ count }` | On connect and whenever a spectator joins or leaves |
 | `ping` | `{ t }` | Heartbeat — client must reply with `{ type: "pong" }` |
+
+The `state` message carries the `playerOne` and `playerTwo` wallet addresses so each connected client can work out whether it is X or O without trusting any extra input.
 
 ### Client -> server messages
 
@@ -61,35 +42,23 @@ const ws = new WebSocket('wss://api.mindduel.app/ws/AB12CD?role=spectator')
 
 Spectator outbound messages are silently dropped.
 
-## Connection limits
+## Heartbeat & late-join replay
 
-| Limit | Value | Why |
-|---|---|---|
-| Max payload | 4 KB | Prevent abuse |
-| Rate limit | 60 messages per 30 seconds per connection | Genuine play uses ~1 msg per 2s |
-| Idle timeout | 90 seconds | Force-disconnect ghost connections |
-| Heartbeat | Server `ping` every 30 seconds | Detects dead clients |
+- **Heartbeat.** The server sends `ping` periodically; clients must reply `pong`. Dead connections are dropped.
+- **Late-join replay.** When a new client joins a room that already has activity, the server replays the cached `state` / last `board_updated` immediately, so a spectator arriving mid-match sees the current board without waiting for the next move.
+- The room entry is deleted when the last socket disconnects.
 
-Larger messages are dropped. Excessive senders are throttled.
+## Commit-reveal (anti-cheat)
 
-## Late-join replay
+Trivia answers use a server-side commit-reveal scheme based on SHA-256:
 
-When a new client joins a room that already has activity, the server replays the **last cached `board_updated`** event immediately. So a spectator who arrives mid-match sees the current board without having to wait for the next move.
+1. `GET /api/trivia/question` returns the question and options but **not** the correct index, and opens a session.
+2. The player submits their answer to `POST /api/trivia/reveal`.
+3. The server verifies against the committed hash and returns whether it was correct.
 
-The room entry is deleted when the last socket disconnects.
-
-## Why two channels
-
-This design is intentional:
-
-- **Solana subscription** = authoritative, slightly higher latency (one slot ~ 400ms).
-- **WebSocket relay** = best-effort, low latency, used for UX polish and spectator counts.
-
-If the WebSocket layer is down, the game still works — the chain subscription alone drives correct state. If the chain subscription is slow, the WebSocket gives the UI something to render in the meantime.
-
-The frontend reconciles both: when a `board_updated` from WebSocket and a chain account update disagree, the chain wins. The WebSocket is never trusted for win/draw/turn state.
+This prevents a client from learning the answer before committing. It is the same scheme as before — only the on-chain settlement step has changed (now a single relayer `recordMatch` after the game, instead of per-turn on-chain commits).
 
 ## Source
 
 - Backend: `backend/src/routes/ws.ts`
-- Frontend: `frontend/src/hooks/useGameState.ts` (chain subscription) and the WebSocket client used by the game room page.
+- Frontend: the WebSocket client used by the game room page (`/game/[matchId]`)

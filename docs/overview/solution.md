@@ -1,59 +1,73 @@
 # Solution
 
-MindDuel is **trivia-gated PvP Tic Tac Toe on Solana**. Two players stake real SOL or USDC, then race to claim cells on a board. Every move requires a correct trivia answer. Wrong answer? The turn passes. Knowledge plus board strategy decides the winner.
+MindDuel is **trivia-gated PvP Tic Tac Toe on Celo**. Two players race to claim cells on a board, and every move requires a correct trivia answer. Wrong answer? The turn passes. Knowledge plus board strategy decides the winner. **No staking, no betting, no tokens wagered** — ranked matches are a pure skill ladder.
 
-The smart contract is the entire backend for anything that matters:
+There are two paths through a match:
 
-- It holds the escrow.
-- It validates every move.
-- It verifies the commit-reveal hash.
-- It distributes the pot at settlement.
+- **Ranked PvP** — the result is recorded on-chain and changes both players' ranks.
+- **Casual and vs-AI** — just for fun. Nothing is recorded.
 
 ## The four pillars
 
-### 1. Trustless escrow
+### 1. On-chain skill ladder (no money at risk)
 
-Both players stake into a program-derived address (PDA). Funds can only leave through `settle_game`, `cancel_match`, or `resign_game` (and their USDC variants). Nobody — not the platform, not the developers, not the opponent — has a key that can move escrow funds outside those instructions.
+Ranked results are written to `MindDuelRanking.sol`, a Solidity contract deployed with Foundry on Celo mainnet. It stores each player's points (integer Elo, starting at 1000, K=32, zero-sum, floored at 0), their W/L/D record, and their rank tier. Winning a ranked match raises your points and lowers your opponent's by the same amount; draws nudge both toward each other. Nothing is staked, and nothing is paid out — the only thing on the line is your rank.
 
-### 2. Commit-reveal anti-cheat (no oracle needed)
+Rank tiers by points:
+
+| Tier | Points |
+|---|---|
+| Bronze | 0+ |
+| Silver | 1000+ |
+| Gold | 1200+ |
+| Platinum | 1400+ |
+| Diamond | 1600+ |
+| Master | 1850+ |
+
+### 2. Gasless for players
+
+Players never sign a ranking transaction or hold any CELO. When a ranked match ends, a backend **relayer** — which is the contract owner — calls `recordMatch(winner, loser, draw, matchId)` and pays the CELO gas itself. The call is owner-only and idempotent per `matchId`, so the same result can never be double-counted. Players just connect a wallet and play.
+
+### 3. Commit-reveal anti-cheat (no oracle needed)
 
 The classic problem with on-chain trivia: how do you check the answer without a trusted server telling the chain "yes, that was correct"? Most games use a centralized oracle. MindDuel does not.
 
 The flow:
 
 1. The player picks an answer locally.
-2. The client computes `SHA-256([answer_index, ...32-byte nonce])` and submits it on-chain via `commit_answer`.
-3. After the commit confirms, the player calls `reveal_answer` with the raw answer and nonce.
-4. The program recomputes the hash with `solana_program::hash::hash` and checks it matches the commitment.
+2. The client computes `SHA-256(answer || nonce)` (a random 32-byte nonce) and commits it.
+3. After the commit confirms, the player reveals the raw answer and nonce.
+4. The game verifies that the hash matches the original commitment.
 
-The trivia backend never learns which answer the player picked, and has zero influence on whether a piece gets placed. The chain is the verifier.
+The trivia backend never learns which answer the player picked, and has zero influence on whether a piece gets placed. The commitment is the verifier.
 
-### 3. Three live game modes
+### 4. Live game modes
 
 | Mode | Twist |
 |---|---|
-| **Classic Duel** | Standard 3x3. Pure baseline. |
-| **Shifting Board** | Every 3 rounds, the entire board rotates. Direction is `Clock::get()?.slot % 4` — deterministic from chain state. |
+| **Classic** | Standard 3x3. Pure baseline. |
+| **Shifting Board** | Every few rounds, the entire board rotates. |
 | **Scale Up** | Board grows 3x3 -> 4x4 -> 5x5 as correct answers accumulate. Same win condition (3 in a row) at every size. |
+| **Blitz** | Fast per-turn timer. |
+| **vs-AI** | Practice against the computer. |
 
-Two more are planned: [**Blitz**](../features/game-modes.md) (5-minute on-chain timer per turn) and **Ultimate TTT** (9x9 meta-grid). See the [Roadmap](../resources/roadmap.md).
+See the [Roadmap](../resources/roadmap.md) for what is planned next.
 
-### 4. On-chain hint micro-economy
+### Bonus: free hints
 
-Five purchasable hints, each priced 0.001-0.005 SOL. Every hint splits 80% to the platform treasury and 20% back into the active match's pot — so spending hints actually grows the prize you are competing for. Each hint type can only be bought once per player per game (enforced by a bitmask on a `HintLedger` PDA).
-
-See [Hint Economy](../features/hint-economy.md) for the full price list.
+Hints are **free**, capped at 3 per match. There is no paid hint economy. See [Free Hints](../features/hint-economy.md).
 
 ## What is on-chain vs off-chain
 
 | Concern | Where it lives |
 |---|---|
-| Player funds | Escrow PDA (on-chain) |
-| Board state, turn, current commitment | GameAccount PDA (on-chain) |
-| Hint usage tracking | HintLedger PDA (on-chain) |
-| Win/draw/timeout detection | Anchor program (on-chain) |
+| Ranked points, W/L/D, rank tier | `MindDuelRanking.sol` (on-chain, Celo) |
+| Board state, turn, current commitment | Backend + clients (off-chain) |
+| Hint usage tracking | Match state (off-chain) |
+| Win/draw detection | Game logic (off-chain) |
 | Trivia question pool | Backend (off-chain, stateless) |
 | Match metadata for leaderboard / history | Postgres (off-chain mirror) |
 | Real-time UI sync | WebSocket relay (off-chain transport) |
+| Ranking transactions | Relayer pays gas, writes on-chain |
 
-If the backend disappears, in-progress games still settle correctly on-chain. The backend is a convenience layer — never a trust assumption.
+The on-chain layer is the single source of truth for the competitive ladder. Everything else is the convenience layer that runs the live game.
