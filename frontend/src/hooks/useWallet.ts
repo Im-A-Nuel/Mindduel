@@ -7,8 +7,7 @@ import { injected } from 'wagmi/connectors'
  * Thin wallet facade over wagmi used across the app. Exposes the connected
  * Celo address as a lowercased hex string plus connect/disconnect helpers.
  *
- * Replaces the old Solana `useWallet()` — pages should use `address` (string)
- * wherever they previously used `publicKey.toBase58()`.
+ * Pages use `address` (a lowercased 0x string) as the player identifier.
  */
 export function useWallet() {
   const { address, isConnected, isConnecting } = useAccount()

@@ -34,19 +34,19 @@ export const QUESTIONS: Question[] = [
   { id: 'gk12', question: 'Which country has the most natural lakes?', options: ['Russia', 'USA', 'Canada', 'Brazil'], correctIndex: 2, category: 'General Knowledge', difficulty: 'hard', timeLimit: 20 },
 
   // ── Crypto & Web3 ──────────────────────────────────────────────────
-  { id: 'cw01', question: 'Which consensus mechanism does Solana use to order transactions?', options: ['Proof of Work', 'Proof of Stake', 'Proof of History', 'DPoS'], correctIndex: 2, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
-  { id: 'cw02', question: "What is Solana's high-performance virtual machine called?", options: ['EVM', 'SVM', 'Wasm Runtime', 'LLVM'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
+  { id: 'cw01', question: 'Celo is an EVM-compatible Layer-1 (now Ethereum L2) optimized for what?', options: ['High-frequency trading', 'Mobile-first payments', 'Privacy mixing', 'Gaming NFTs'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
+  { id: 'cw02', question: 'Which TypeScript toolkit do most EVM/Celo dApps use to read & write contracts?', options: ['web3.js', 'viem / wagmi', 'web3.py', 'ethers-rs'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
   { id: 'cw03', question: 'What does "TPS" stand for in blockchain?', options: ['Token Processing Speed', 'Transactions Per Second', 'Total Protocol Scale', 'Trust Proof System'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'easy', timeLimit: 15 },
-  { id: 'cw04', question: 'What is a Program Derived Address (PDA) on Solana?', options: ['A wallet owned by a program', 'An address with no private key, derived from seeds', 'A temporary pending address', 'An address for NFT metadata'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
-  { id: 'cw05', question: 'Which framework is used to write Solana programs in Rust?', options: ['Hardhat', 'Truffle', 'Anchor', 'Foundry'], correctIndex: 2, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
-  { id: 'cw06', question: 'What is the smallest unit of SOL?', options: ['Wei', 'Satoshi', 'Lamport', 'Gwei'], correctIndex: 2, category: 'Crypto & Web3', difficulty: 'easy', timeLimit: 15 },
+  { id: 'cw04', question: 'On an EVM chain like Celo, where does a contract keep its persistent data?', options: ['Calldata', 'Storage', 'Memory', 'The stack'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
+  { id: 'cw05', question: 'Which framework compiles & tests Solidity contracts (used by MindDuel)?', options: ['Remix', 'Foundry', 'Brownie', 'Cargo'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
+  { id: 'cw06', question: 'What is the smallest unit of ETH/CELO?', options: ['Satoshi', 'Wei', 'Lamport', 'Cent'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'easy', timeLimit: 15 },
   { id: 'cw07', question: 'In what year was the Bitcoin whitepaper published?', options: ['2006', '2007', '2008', '2009'], correctIndex: 2, category: 'Crypto & Web3', difficulty: 'easy', timeLimit: 20 },
-  { id: 'cw08', question: 'Which year was Solana mainnet launched?', options: ['2018', '2019', '2020', '2021'], correctIndex: 2, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
-  { id: 'cw09', question: 'What programming language is used to write native Solana programs?', options: ['Go', 'Rust', 'C++', 'TypeScript'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'easy', timeLimit: 15 },
+  { id: 'cw08', question: 'In 2024, Celo transitioned to become what kind of chain?', options: ['A standalone app-chain', 'An Ethereum Layer-2', 'A Cosmos zone', 'A Bitcoin sidechain'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
+  { id: 'cw09', question: 'Smart contracts on Celo are written primarily in which language?', options: ['Go', 'Solidity', 'Rust', 'Python'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'easy', timeLimit: 15 },
   { id: 'cw10', question: 'What does NFT stand for?', options: ['New Financial Token', 'Non-Fungible Token', 'Network File Transfer', 'Native Finance Tracker'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'easy', timeLimit: 15 },
   { id: 'cw11', question: 'What is the name of Ethereum\'s transition from PoW to PoS?', options: ['The Shift', 'The Merge', 'The Fork', 'The Bridge'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
   { id: 'cw12', question: 'What does DeFi stand for?', options: ['Decentralized Finance', 'Digital Finance', 'Distributed Framework', 'Defined Fees'], correctIndex: 0, category: 'Crypto & Web3', difficulty: 'easy', timeLimit: 15 },
-  { id: 'cw13', question: 'Which Solana standard is used for fungible tokens (like USDC)?', options: ['ERC-20', 'SPL Token', 'BEP-20', 'Metaplex Token'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
+  { id: 'cw13', question: 'Which token standard defines fungible tokens on EVM chains?', options: ['BEP-20', 'ERC-20', 'TRC-10', 'ERC-777'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
 
   // ── Science ────────────────────────────────────────────────────────
   { id: 'sc01', question: 'Which planet is known as the Red Planet?', options: ['Venus', 'Jupiter', 'Mars', 'Saturn'], correctIndex: 2, category: 'Science', difficulty: 'easy', timeLimit: 15 },
@@ -123,15 +123,15 @@ export const QUESTIONS: Question[] = [
   { id: 'gk23', question: 'Which country has 11 official languages?', options: ['India', 'Switzerland', 'South Africa', 'Singapore'], correctIndex: 2, category: 'General Knowledge', difficulty: 'hard', timeLimit: 25 },
 
   // Crypto & Web3 — medium + hard top-up
-  { id: 'cw14', question: 'What does a "blockhash" provide in a Solana transaction?', options: ['Encryption', 'Recent-ness / replay protection', 'Validator selection', 'Fee calculation'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
-  { id: 'cw15', question: 'Which standard wallet library do most Solana dApps integrate?', options: ['WalletConnect', '@solana/wallet-adapter', 'MetaMask SDK', 'Web3Modal'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
+  { id: 'cw14', question: 'What does the "nonce" on an EVM transaction prevent?', options: ['Encryption', 'Replay / out-of-order execution', 'Validator selection', 'Gas refunds'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
+  { id: 'cw15', question: 'Which in-app wallet on Celo injects window.ethereum for dApps?', options: ['Coinbase Wallet', 'MiniPay', 'Rainbow', 'Frame'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
   { id: 'cw16', question: 'What does a "gasless" / sponsored transaction mean?', options: ['No instructions run', 'A third party pays the fee', 'Fees are burned', 'It skips the mempool'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'medium', timeLimit: 20 },
-  { id: 'cw17', question: 'On Solana, what is "rent" paid for?', options: ['Validator electricity', 'Keeping account data alive in state', 'Network bandwidth', 'NFT royalties'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
-  { id: 'cw18', question: 'In Anchor, which macro defines the instruction-handlers module?', options: ['#[account]', '#[program]', '#[derive(Accounts)]', '#[error_code]'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
-  { id: 'cw19', question: 'An SPL Associated Token Account (ATA) is deterministically derived from?', options: ['Owner + mint', 'Owner + nonce', 'Mint + slot', 'Owner only'], correctIndex: 0, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
-  { id: 'cw20', question: 'Roughly how long is a single Solana slot targeted to be?', options: ['100 ms', '400 ms', '2 s', '12 s'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
-  { id: 'cw21', question: 'Which program owns all SPL token accounts on Solana?', options: ['System Program', 'Token Program', 'Stake Program', 'Vote Program'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
-  { id: 'cw22', question: 'What cryptographic curve does Solana use for account keypairs?', options: ['secp256k1', 'ed25519', 'P-256', 'BLS12-381'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
+  { id: 'cw17', question: 'On EVM chains, what are you paying for with "gas"?', options: ['Validator electricity', 'Computation & storage of your tx', 'Network bandwidth only', 'NFT royalties'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
+  { id: 'cw18', question: 'In Solidity, which construct restricts a function (e.g. onlyOwner)?', options: ['payable', 'modifier', 'virtual', 'fallback'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
+  { id: 'cw19', question: 'An ERC-20 "approve" lets a spender do what?', options: ['Mint new tokens', 'Transfer up to an allowance on your behalf', 'Burn your tokens', 'Freeze the contract'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
+  { id: 'cw20', question: '1 gwei equals how much ETH/CELO?', options: ['10^-9', '10^-18', '10^-6', '10^3'], correctIndex: 0, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
+  { id: 'cw21', question: 'Which standard defines non-fungible tokens on EVM chains?', options: ['ERC-20', 'ERC-721', 'BEP-721', 'TRC-721'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
+  { id: 'cw22', question: 'Which signature scheme do Ethereum/Celo accounts use?', options: ['ed25519', 'ECDSA (secp256k1)', 'BLS12-381', 'RSA'], correctIndex: 1, category: 'Crypto & Web3', difficulty: 'hard', timeLimit: 25 },
 
   // Science — medium + hard top-up (had ZERO hard before)
   { id: 'sc13', question: 'What is the SI symbol for the speed-of-light constant?', options: ['c', 'g', 'h', 'k'], correctIndex: 0, category: 'Science', difficulty: 'medium', timeLimit: 20 },

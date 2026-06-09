@@ -55,9 +55,9 @@ export function NavBar({ active }: { active: NavActive }) {
 
           {/* Right: network badge (desktop only) + wallet */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-            <div className="nav-devnet" style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 11px', background: 'var(--mdd-card)', borderRadius: 999, boxShadow: '0 0 0 0.5px rgba(0,0,0,0.08)' }}>
+            <div className="nav-network" style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 11px', background: 'var(--mdd-card)', borderRadius: 999, boxShadow: '0 0 0 0.5px rgba(0,0,0,0.08)' }}>
               <div style={{ width: 7, height: 7, borderRadius: 4, background: GREEN }} />
-              <span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}>Solana Devnet</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}>Celo Mainnet</span>
             </div>
             <ThemeToggle />
             <WalletButton />

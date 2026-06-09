@@ -87,7 +87,7 @@ export function WalletButton({ className }: WalletButtonProps) {
         <div style={{ width: 18, height: 18, borderRadius: 9, background: 'linear-gradient(135deg, #FCFF52, #35D07F)', flexShrink: 0 }} />
         <span className="wallet-addr" style={{ fontVariantNumeric: 'tabular-nums' }}>{shortAddr(address)}</span>
         <span className="wallet-addr-short" style={{ display: 'none', fontVariantNumeric: 'tabular-nums', fontSize: 11 }}>{address.slice(0, 6)}</span>
-        <span className="wallet-devnet-badge" style={{ fontSize: 9, fontWeight: 700, color: '#35D07F', background: 'rgba(53,208,127,0.16)', padding: '2px 6px', borderRadius: 6, letterSpacing: 0.4, flexShrink: 0 }}>CELO</span>
+        <span className="wallet-network-badge" style={{ fontSize: 9, fontWeight: 700, color: '#35D07F', background: 'rgba(53,208,127,0.16)', padding: '2px 6px', borderRadius: 6, letterSpacing: 0.4, flexShrink: 0 }}>CELO</span>
         <svg style={{ width: 12, height: 12, transform: showMenu ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease', opacity: 0.7, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>

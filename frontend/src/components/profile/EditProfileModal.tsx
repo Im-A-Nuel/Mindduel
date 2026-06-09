@@ -167,7 +167,7 @@ export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }
                   type="text"
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value.slice(0, NAME_MAX))}
-                  placeholder="e.g. SolanaPhantom"
+                  placeholder="e.g. CeloChampion"
                   maxLength={NAME_MAX}
                   style={inputStyle}
                   onFocus={e => (e.target.style.borderColor = BLUE)}

@@ -16,7 +16,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { EXTRA_TIME_HINT_SECONDS, FREE_HINTS_PER_MATCH } from '@/lib/constants'
 import { TRIVIA_BANK } from '@/lib/trivia-bank'
 
-// Hint identifiers (formerly imported from the deleted anchor-client module).
+// Hint identifiers.
 type HintId = 'eliminate2' | 'category' | 'extra-time' | 'first-letter' | 'skip'
 
 // ── Design tokens ────────────────────────────────────────────────────

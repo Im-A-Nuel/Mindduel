@@ -99,11 +99,11 @@ body {
   /* Extra bottom space so content isn't hidden behind tab bar */
   .has-bottom-tab { padding-bottom: 88px !important; }
 
-  /* Nav — hide links & devnet badge on mobile */
+  /* Nav — hide links & network badge on mobile */
   .nav-links           { display: none !important; }
-  .nav-devnet          { display: none !important; }
+  .nav-network          { display: none !important; }
   /* Also hide the DEVNET badge inside the wallet chip on mobile */
-  .wallet-devnet-badge { display: none !important; }
+  .wallet-network-badge { display: none !important; }
 
   /* Prevent navbar from overflowing on narrow screens */
   .glass-nav { overflow: hidden; }
@@ -564,27 +564,9 @@ html[data-theme="dark"] [style*="background: white"] {
   /* keep BLUE active accent */
 }
 
-/* Preserve gradient buttons (BLUE, GREEN, USDC, SOL gradients) — they
+/* Preserve gradient buttons (BLUE, GREEN, CELO gradients) — they
    already have explicit gradient backgrounds that don't match our generic
    #fff/F5F5F7 selectors. Nothing to do here. */
-
-/* Wallet adapter modal (third-party Phantom popup) — give it dark surface */
-[data-theme="dark"] .wallet-adapter-modal-wrapper,
-[data-theme="dark"] .wallet-adapter-modal-container,
-[data-theme="dark"] .wallet-adapter-modal {
-  background: var(--mdd-card-elevated) !important;
-  color: var(--mdd-ink) !important;
-}
-[data-theme="dark"] .wallet-adapter-modal-list-more {
-  color: var(--mdd-muted) !important;
-}
-[data-theme="dark"] .wallet-adapter-button {
-  background: var(--mdd-bg-soft) !important;
-  color: var(--mdd-ink) !important;
-}
-[data-theme="dark"] .wallet-adapter-button:not([disabled]):hover {
-  background: var(--mdd-card-alt) !important;
-}
 
 /* Tailwind utility classes that hardcode colors — override in dark theme */
 [data-theme="dark"] .bg-white { background-color: var(--mdd-card) !important; }
@@ -921,7 +903,7 @@ html[data-theme="dark"] [style*="background: white"] {
 
 /* ── Leaderboard table mobile ─────────────────────────────────────────── */
 @media (max-width: 767px) {
-  /* Hide non-essential columns; remaining 4 (#, Player, Wins, SOL) fit on mobile */
+  /* Hide non-essential columns; remaining 4 (#, Player, Wins, Points) fit on mobile */
   .lb-col-winrate { display: none !important; }
   .lb-col-streak  { display: none !important; }
 

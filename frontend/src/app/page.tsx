@@ -130,7 +130,7 @@ function VisualSkillMoves() {
         <text x="28" y="29" fill="#3A6AA0" fontSize="8" fontWeight="700" letterSpacing="2">TRIVIA</text>
         <text x="28" y="45" fill="#B8D5F8" fontSize="11" fontWeight="600">What is Celo&apos;s consensus?</text>
         <rect x="28" y="53" width="116" height="20" rx="6" fill="#03200E" stroke="#16A34A" strokeWidth="1"/>
-        <text x="86" y="64" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="9.5" fontWeight="700">✓  Proof of History</text>
+        <text x="86" y="64" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="9.5" fontWeight="700">✓  Proof of Stake</text>
         <rect x="150" y="53" width="44" height="20" rx="6" fill="#0D1525" stroke="#1E2A42" strokeWidth="0.5"/>
         <text x="172" y="64" textAnchor="middle" dominantBaseline="middle" fill="#2E3D55" fontSize="9">PoW</text>
         {/* CORRECT badge */}
