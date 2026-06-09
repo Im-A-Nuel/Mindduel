@@ -19,8 +19,10 @@ and they go down.
 ## Celo Proof of Ship checklist
 - ✅ **MiniPay integration** — `frontend/src/hooks/useMiniPay.ts` auto-connects
   the injected connector when running inside MiniPay (`window.ethereum.isMiniPay`).
-- ✅ **Smart contract on Celo mainnet** — `contracts/MindDuelRanking.sol`
-  (Foundry). See `contracts/DEPLOY.md`.
+- ✅ **Smart contract on Celo mainnet** — `MindDuelRanking.sol` (Foundry),
+  deployed & verified at
+  [`0xA3CDA78226dF18Acc99AbeAd8d89Cf352d17F02c`](https://celoscan.io/address/0xa3cda78226df18acc99abead8d89cf352d17f02c).
+  See `contracts/DEPLOY.md`.
 - ✅ Shipped, working app (frontend + backend + contract).
 
 ## Monorepo layout
