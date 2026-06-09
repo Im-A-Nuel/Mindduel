@@ -1,0 +1,976 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+:root {
+  --bg-base:     #F5F5F7;
+  --bg-surface:  #ffffff;
+  --ink:         #1D1D1F;
+  --ink-muted:   #6E6E73;
+  --ink-faint:   #AEAEB2;
+  --primary:     #0071E3;
+  --primary-light: #E5F0FD;
+  --success:     #34C759;
+  --success-dark: #0A7A2D;
+  --success-light: #E8F7EE;
+  --danger:      #FF3B30;
+  --danger-dark: #A81C13;
+  --danger-light: #FDECEB;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--ink);
+  font-family: var(--font-inter), 'Inter', -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+* { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.12) transparent; }
+
+::selection { background: rgba(0,113,227,0.16); color: #1D1D1F; }
+
+@layer utilities {
+  /* Apple-style frosted nav */
+  .glass-nav {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+  }
+
+  /* White card */
+  .card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05);
+  }
+
+  /* Mode card selected ring */
+  .mode-card-selected {
+    border: 2px solid #0071E3 !important;
+    box-shadow: 0 6px 18px rgba(0,113,227,0.16), 0 0 0 0.5px rgba(0,113,227,0.3) !important;
+  }
+
+  /* tabular nums shorthand */
+  .nums { font-variant-numeric: tabular-nums; }
+}
+
+/* ── Bottom tab bar (mobile only) ─────────────────────────────── */
+.bottom-tab-bar {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 72px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border-top: 0.5px solid rgba(0,0,0,0.08);
+  z-index: 50;
+  align-items: flex-start;
+  justify-content: space-around;
+  padding-top: 8px;
+}
+
+/* ── Responsive helpers ───────────────────────────────────────── */
+@media (max-width: 767px) {
+  .bottom-tab-bar { display: flex; }
+
+  /* Extra bottom space so content isn't hidden behind tab bar */
+  .has-bottom-tab { padding-bottom: 88px !important; }
+
+  /* Nav — hide links & devnet badge on mobile */
+  .nav-links           { display: none !important; }
+  .nav-devnet          { display: none !important; }
+  /* Also hide the DEVNET badge inside the wallet chip on mobile */
+  .wallet-devnet-badge { display: none !important; }
+
+  /* Prevent navbar from overflowing on narrow screens */
+  .glass-nav { overflow: hidden; }
+
+  /* Wallet chip — compact on mobile */
+  .wallet-chip { padding: 8px 10px !important; gap: 6px !important; font-size: 12.5px !important; }
+
+  /* Landing nav — tighter padding & gap on mobile */
+  .lp-nav-inner { padding: 0 14px !important; gap: 8px !important; }
+  .lp-nav-right { gap: 8px !important; }
+  .lp-play-now button { padding: 8px 14px !important; font-size: 12.5px !important; }
+
+  /* Page content — tighter padding on mobile */
+  .page-content {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 24px !important;
+  }
+
+  /* Two-column layouts → single column */
+  .page-cols {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  .page-cols > * {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Hide desktop-only right panels on mobile */
+  .desktop-only { display: none !important; }
+
+  /* Stat cards: 2 columns on mobile (handles both 4-card and 5-card grids) */
+  .stat-grid-4 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .stat-grid-4 > * { flex: unset !important; min-width: 0 !important; }
+  /* 5th card (USDC Earned) spans full width on the second row */
+  .stat-grid-4 > *:nth-child(5):last-child { grid-column: 1 / -1; }
+
+  /* Table: allow horizontal scroll */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Full-width on mobile */
+  .mobile-full {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-shrink: unset !important;
+  }
+
+  /* Edit Profile modal — tighter padding on mobile */
+  .edit-profile-modal { padding: 18px !important; }
+
+  /* Tournament bracket: show swipe hint on mobile */
+  .bracket-swipe-hint { display: inline-flex !important; }
+
+  /* Keyboard shortcuts FAB — hide on mobile (no keyboard, plus collides with tab bar) */
+  .kbd-fab { display: none !important; }
+
+  /* Footer mobile — tighter padding, stack columns full-width */
+  .footer-inner { padding: 18px 16px !important; gap: 10px !important; }
+  .footer-inner > * { width: 100%; }
+
+  /* Footer is hidden on inner pages on mobile (landing page is the only
+     place we show it on phones — bottom tab bar handles navigation elsewhere) */
+  .footer-hide-mobile { display: none !important; }
+
+  /* Game page header — drop secondary labels on phone so primary controls fit */
+  .game-nav-brand   { display: none !important; }
+  .game-nav-share   { padding: 6px 10px !important; font-size: 11.5px !important; }
+  .game-resign-label { display: none !important; }
+  .game-nav-viewers { padding: 5px 8px !important; font-size: 11px !important; }
+}
+
+@media (max-width: 419px) {
+  .game-nav-mode { display: none !important; }
+}
+
+/* Ultra narrow — drop Play Now button entirely so navbar fits cleanly */
+@media (max-width: 380px) {
+  .lp-play-now { display: none !important; }
+}
+
+@media (max-width: 419px) {
+  .edit-profile-modal { padding: 14px !important; border-radius: 18px !important; }
+}
+
+/* Very narrow screens — hide full label, show short label only */
+@media (max-width: 419px) {
+  .wallet-addr       { display: none !important; }
+  .wallet-addr-short { display: inline !important; }
+  .wallet-chip       { padding: 8px 12px !important; }
+}
+
+@media (min-width: 768px) {
+  .mobile-only { display: none !important; }
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+.mode-scroll::-webkit-scrollbar { display: none; }
+.mode-scroll { scrollbar-width: none; }
+
+@keyframes liveDotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes mddSkeleton {
+  0%   { background-position:   0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position:   0% 50%; }
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   THEME TOKENS — light default; dark via [data-theme="dark"] on <html>.
+   Tokens follow Apple's layered-surface principle: bg < card < card-alt,
+   each ~6% lighter than the previous. Border alpha kept low for subtlety.
+   ──────────────────────────────────────────────────────────────────────── */
+:root {
+  --mdd-bg:            #F5F5F7;
+  --mdd-bg-soft:       #FAFAFA;
+  --mdd-card:          #FFFFFF;
+  --mdd-card-alt:      #FAFAFA;
+  --mdd-card-elevated: #FFFFFF;
+  --mdd-ink:           #1D1D1F;
+  --mdd-muted:         #6E6E73;
+  --mdd-faint:         #AEAEB2;
+  /* Always-dark surface: brand logo squares, primary INK CTA buttons.
+     Stays dark in BOTH themes (just shifts shade for contrast). */
+  --mdd-dark-surface:  #1D1D1F;
+  --mdd-border:        rgba(0,0,0,0.06);
+  --mdd-border-strong: rgba(0,0,0,0.10);
+  --mdd-input:         #F5F5F7;
+  --mdd-shadow-card:   0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05);
+  --mdd-shadow-elev:   0 4px 16px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.05);
+}
+
+[data-theme="dark"] {
+  --mdd-bg:            #0D0D1A;   /* base — matches CLAUDE.md spec */
+  --mdd-bg-soft:       #121224;
+  --mdd-card:          #16162F;   /* one step up — Apple-flat layered */
+  --mdd-card-alt:      #1B1B38;
+  --mdd-card-elevated: #1F1F40;   /* modals / hover */
+  --mdd-ink:           #F1F5F9;
+  --mdd-muted:         #94A3B8;
+  --mdd-faint:         #64748B;
+  /* Slightly lighter than card so always-dark buttons stand out in dark theme */
+  --mdd-dark-surface:  #2A2A45;
+  --mdd-border:        rgba(255,255,255,0.06);
+  --mdd-border-strong: rgba(255,255,255,0.12);
+  --mdd-input:         #1E1E3F;
+  --mdd-shadow-card:   0 1px 3px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.05);
+  --mdd-shadow-elev:   0 12px 32px rgba(0,0,0,0.55), 0 0 0 0.5px rgba(255,255,255,0.06);
+  color-scheme: dark;
+}
+
+/* Smooth theme switch — apply only to the body and explicit surfaces so we
+   don't accidentally override Framer Motion's transform/opacity timings. */
+html, body {
+  transition: background-color 220ms ease, color 220ms ease;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   DARK MODE OVERRIDES — target the inline-style hex values used throughout
+   the app via CSS attribute selectors. We keep brand accent colors (BLUE,
+   GREEN, RED, currency purple/blue) intact so visual identity survives.
+   ──────────────────────────────────────────────────────────────────────── */
+html[data-theme="dark"],
+html[data-theme="dark"] body {
+  background: var(--mdd-bg) !important;
+  background-color: var(--mdd-bg) !important;
+  color: var(--mdd-ink) !important;
+}
+
+/* Page outer wrappers — match any inline style mentioning #F5F5F7 */
+html[data-theme="dark"] [style*="#F5F5F7"],
+html[data-theme="dark"] [style*="#F5F8FF"],
+html[data-theme="dark"] [style*="#FAFAFB"] {
+  background-color: var(--mdd-bg) !important;
+}
+html[data-theme="dark"] [style*="background:#F5F5F7"],
+html[data-theme="dark"] [style*="background: #F5F5F7"],
+html[data-theme="dark"] [style*="background:#F5F8FF"],
+html[data-theme="dark"] [style*="background: #F5F8FF"] {
+  background: var(--mdd-bg) !important;
+  background-color: var(--mdd-bg) !important;
+}
+
+/* White card surfaces (the most common pattern) */
+html[data-theme="dark"] [style*="background:#fff"],
+html[data-theme="dark"] [style*="background: #fff"],
+html[data-theme="dark"] [style*="background:#FFF"],
+html[data-theme="dark"] [style*="background: #FFF"],
+html[data-theme="dark"] [style*="background:#FFFFFF"],
+html[data-theme="dark"] [style*="background: #FFFFFF"],
+html[data-theme="dark"] [style*="background:white"],
+html[data-theme="dark"] [style*="background: white"] {
+  background: var(--mdd-card) !important;
+  background-color: var(--mdd-card) !important;
+}
+
+/* Alt-row backgrounds (FAFAFA in tables) */
+[data-theme="dark"] [style*="background:#FAFAFA"],
+[data-theme="dark"] [style*="background: #FAFAFA"] {
+  background: var(--mdd-card-alt) !important;
+}
+
+/* Input pill backgrounds */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: var(--mdd-input) !important;
+  color: var(--mdd-ink) !important;
+  border-color: var(--mdd-border-strong) !important;
+}
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder { color: var(--mdd-faint) !important; }
+
+/* Ink text */
+[data-theme="dark"] [style*="color:#1D1D1F"],
+[data-theme="dark"] [style*="color: #1D1D1F"] {
+  color: var(--mdd-ink) !important;
+}
+
+/* Muted text */
+[data-theme="dark"] [style*="color:#6E6E73"],
+[data-theme="dark"] [style*="color: #6E6E73"] {
+  color: var(--mdd-muted) !important;
+}
+
+/* Faint text */
+[data-theme="dark"] [style*="color:#AEAEB2"],
+[data-theme="dark"] [style*="color: #AEAEB2"],
+[data-theme="dark"] [style*="color:#8E8E93"],
+[data-theme="dark"] [style*="color: #8E8E93"] {
+  color: var(--mdd-faint) !important;
+}
+
+/* Borders that hardcode rgba(0,0,0,X) get replaced with light-on-dark */
+[data-theme="dark"] [style*="border:1.5px solid rgba(0,0,0,0.10)"],
+[data-theme="dark"] [style*="border: 1.5px solid rgba(0,0,0,0.10)"],
+[data-theme="dark"] [style*="border:1.5px solid rgba(0,0,0,0.08)"],
+[data-theme="dark"] [style*="border: 1.5px solid rgba(0,0,0,0.08)"],
+[data-theme="dark"] [style*="border-bottom:0.5px solid rgba(0,0,0,0.06)"],
+[data-theme="dark"] [style*="border-top:0.5px solid rgba(0,0,0,0.06)"] {
+  border-color: var(--mdd-border-strong) !important;
+}
+
+/* Glass nav (Apple-style frosted) */
+[data-theme="dark"] .glass-nav {
+  background: rgba(20, 20, 43, 0.72) !important;
+  border-bottom-color: rgba(255,255,255,0.06) !important;
+}
+
+/* Footer */
+[data-theme="dark"] footer {
+  background: var(--mdd-card) !important;
+  border-top-color: rgba(255,255,255,0.06) !important;
+}
+
+/* Bottom tab bar */
+[data-theme="dark"] .bottom-tab-bar {
+  background: rgba(20, 20, 43, 0.85) !important;
+  border-top-color: rgba(255,255,255,0.08) !important;
+}
+
+/* Soft pastel pill backgrounds — keep contextual color but dim the bg */
+[data-theme="dark"] [style*="background:#E5F0FD"],
+[data-theme="dark"] [style*="background: #E5F0FD"] {
+  background: rgba(0,113,227,0.15) !important;
+}
+[data-theme="dark"] [style*="background:#E8F7EE"],
+[data-theme="dark"] [style*="background: #E8F7EE"] {
+  background: rgba(52,199,89,0.15) !important;
+}
+[data-theme="dark"] [style*="background:#FDECEB"],
+[data-theme="dark"] [style*="background: #FDECEB"] {
+  background: rgba(255,59,48,0.15) !important;
+}
+[data-theme="dark"] [style*="background:#FFF4E0"],
+[data-theme="dark"] [style*="background: #FFF4E0"] {
+  background: rgba(245,158,11,0.16) !important;
+}
+[data-theme="dark"] [style*="background:#F1EBFE"],
+[data-theme="dark"] [style*="background: #F1EBFE"] {
+  background: rgba(153,69,255,0.18) !important;
+}
+
+/* Box shadows on cards: soften white-on-white drops to dark-on-dark */
+[data-theme="dark"] [style*="box-shadow:0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)"],
+[data-theme="dark"] [style*="boxShadow:0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)"] {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.06) !important;
+}
+
+/* Loading state script-injected colors don't match attribute selectors —
+   handle via element-type rules. */
+[data-theme="dark"] kbd {
+  background: var(--mdd-input) !important;
+  color: var(--mdd-ink) !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+/* Skeleton rows look fine in dark with their own gradient — but lighten base */
+[data-theme="dark"] [style*="linear-gradient(90deg, #ECECEE"] {
+  background: linear-gradient(90deg, #1E1E3F 0%, #2A2A4E 50%, #1E1E3F 100%) !important;
+}
+
+/* Devnet pill on landing — keep the live dot but lighten label */
+[data-theme="dark"] [style*="color:#0A7A2D"],
+[data-theme="dark"] [style*="color: #0A7A2D"] { color: #34C759 !important; }
+[data-theme="dark"] [style*="color:#A81C13"],
+[data-theme="dark"] [style*="color: #A81C13"] { color: #FF6B6B !important; }
+[data-theme="dark"] [style*="color:#7A5A00"],
+[data-theme="dark"] [style*="color: #7A5A00"] { color: #F5DC8A !important; }
+[data-theme="dark"] [style*="color:#0050A0"],
+[data-theme="dark"] [style*="color: #0050A0"] { color: #6CB2FF !important; }
+
+/* Footer brand block — black bg becomes lighter so logo dot is visible */
+[data-theme="dark"] [style*="background:#1D1D1F"],
+[data-theme="dark"] [style*="background: #1D1D1F"] {
+  background: #2A2A45 !important;
+}
+
+/* Hero stats border */
+[data-theme="dark"] [style*="borderTop: '0.5px solid rgba(0,0,0,0.06)'"],
+[data-theme="dark"] [style*="border-top: 0.5px solid rgba(0,0,0,0.06)"] {
+  border-top-color: rgba(255,255,255,0.08) !important;
+}
+
+/* ─── Additional dark mode patterns ─────────────────────────────────── */
+
+/* All rgba(0,0,0,X) borders (any direction) become light-on-dark */
+[data-theme="dark"] [style*="rgba(0,0,0,0.04)"],
+[data-theme="dark"] [style*="rgba(0,0,0,0.05)"],
+[data-theme="dark"] [style*="rgba(0,0,0,0.06)"],
+[data-theme="dark"] [style*="rgba(0,0,0,0.07)"],
+[data-theme="dark"] [style*="rgba(0,0,0,0.08)"],
+[data-theme="dark"] [style*="rgba(0,0,0,0.10)"] {
+  /* Override inherent borders — only safe when these patterns are borders;
+     box-shadows below get their own overrides. Use a generic light tint. */
+  border-color: var(--mdd-border) !important;
+}
+
+/* Shadow refinements — dark cards need stronger drop, no white halo */
+[data-theme="dark"] [style*="box-shadow:0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)"],
+[data-theme="dark"] [style*="boxShadow:0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)"],
+[data-theme="dark"] [style*="box-shadow: 0 1px 3px rgba(0,0,0,0.04)"],
+[data-theme="dark"] [style*="boxShadow: 0 1px 3px rgba(0,0,0,0.04)"] {
+  box-shadow: var(--mdd-shadow-card) !important;
+}
+[data-theme="dark"] [style*="0 4px 16px rgba(0,0,0"],
+[data-theme="dark"] [style*="0 8px 32px rgba(0,0,0"],
+[data-theme="dark"] [style*="0 20px 60px rgba(0,0,0"],
+[data-theme="dark"] [style*="0 24px 60px rgba(0,0,0"] {
+  box-shadow: var(--mdd-shadow-elev) !important;
+}
+
+/* Dashed borders inside DemoBoard — soften */
+[data-theme="dark"] [style*="dashed #D1D1D6"],
+[data-theme="dark"] [style*="border:1.5px dashed #D1D1D6"] {
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+/* Tag/label backgrounds with soft brand tints stay tinted, but darker bg */
+[data-theme="dark"] [style*="background:#FFE5E2"],
+[data-theme="dark"] [style*="background: #FFE5E2"] {
+  background: rgba(255, 59, 48, 0.18) !important;
+}
+[data-theme="dark"] [style*="background:#EEF5FF"],
+[data-theme="dark"] [style*="background: #EEF5FF"],
+[data-theme="dark"] [style*="background:#EEF4FF"],
+[data-theme="dark"] [style*="background: #EEF4FF"],
+[data-theme="dark"] [style*="background:#F5F9FF"],
+[data-theme="dark"] [style*="background: #F5F9FF"] {
+  background: rgba(0, 113, 227, 0.18) !important;
+}
+[data-theme="dark"] [style*="background:#EDE9FE"],
+[data-theme="dark"] [style*="background: #EDE9FE"] {
+  background: rgba(124, 58, 237, 0.20) !important;
+}
+[data-theme="dark"] [style*="background:#F2F2F7"],
+[data-theme="dark"] [style*="background: #F2F2F7"] {
+  background: var(--mdd-bg-soft) !important;
+}
+[data-theme="dark"] [style*="background:#E5E5EA"],
+[data-theme="dark"] [style*="background: #E5E5EA"] {
+  background: var(--mdd-border-strong) !important;
+}
+
+/* Mode card visuals are dark gradients already — leave them. But the
+   description block under mode cards uses #fff (handled), and the tag
+   pill pastels (handled). */
+
+/* Logo black square (#1D1D1F bg) → lighter slate so the colored dot pops */
+[data-theme="dark"] [style*="background:#1D1D1F"],
+[data-theme="dark"] [style*="background: #1D1D1F"] {
+  background: #2A2A45 !important;
+}
+[data-theme="dark"] [style*="background:#000"],
+[data-theme="dark"] [style*="background: #000"] {
+  background: #2A2A45 !important;
+}
+
+/* Wallet chip stays dark in both themes — explicit override to keep it
+   visually distinctive (it's already a black pill). Use a lighter shade
+   in dark mode so the gradient avatar stays visible. */
+[data-theme="dark"] .wallet-chip {
+  background: #2A2A45 !important;
+  color: #fff !important;
+}
+
+/* Faucet pill gradient brightens up nicely in dark; do nothing. */
+
+/* Modal & ConfirmDialog — make sure the inner card uses elevated surface */
+[data-theme="dark"] [role="dialog"],
+[data-theme="dark"] [role="alertdialog"] {
+  background: var(--mdd-card-elevated) !important;
+}
+
+/* Modal backdrop — slightly stronger to feel like depth in dark */
+[data-theme="dark"] [style*="rgba(0,0,0,0.45)"] {
+  background-color: rgba(0,0,0,0.65) !important;
+}
+
+/* Toast colored backgrounds — already handled by theme tokens via the
+   ToastProvider component. (uses Tailwind dark via bg-bg-elevated, fine.) */
+
+/* Skeleton: in dark, base color shifts to elevated surface so animation
+   blends in instead of glowing white. */
+[data-theme="dark"] [style*="linear-gradient(90deg, #ECECEE"] {
+  background: linear-gradient(90deg, #1B1B38 0%, #2A2A4E 50%, #1B1B38 100%) !important;
+  background-size: 300% 100% !important;
+}
+
+/* Game board cells — keep their distinct colors but adjust empty state */
+[data-theme="dark"] [style*="background:#FAFAFA"],
+[data-theme="dark"] [style*="background: #FAFAFA"] {
+  background: var(--mdd-card-alt) !important;
+}
+
+/* Trivia card option button (white card with shadow) — already handled */
+
+/* Result page confetti pieces — keep brand colors */
+
+/* Bottom tab active indicator — use ink color which becomes light */
+[data-theme="dark"] .bottom-tab-bar [style*="color:#0071E3"] {
+  /* keep BLUE active accent */
+}
+
+/* Preserve gradient buttons (BLUE, GREEN, USDC, SOL gradients) — they
+   already have explicit gradient backgrounds that don't match our generic
+   #fff/F5F5F7 selectors. Nothing to do here. */
+
+/* Wallet adapter modal (third-party Phantom popup) — give it dark surface */
+[data-theme="dark"] .wallet-adapter-modal-wrapper,
+[data-theme="dark"] .wallet-adapter-modal-container,
+[data-theme="dark"] .wallet-adapter-modal {
+  background: var(--mdd-card-elevated) !important;
+  color: var(--mdd-ink) !important;
+}
+[data-theme="dark"] .wallet-adapter-modal-list-more {
+  color: var(--mdd-muted) !important;
+}
+[data-theme="dark"] .wallet-adapter-button {
+  background: var(--mdd-bg-soft) !important;
+  color: var(--mdd-ink) !important;
+}
+[data-theme="dark"] .wallet-adapter-button:not([disabled]):hover {
+  background: var(--mdd-card-alt) !important;
+}
+
+/* Tailwind utility classes that hardcode colors — override in dark theme */
+[data-theme="dark"] .bg-white { background-color: var(--mdd-card) !important; }
+[data-theme="dark"] .bg-bg-base { background: var(--mdd-bg) !important; }
+[data-theme="dark"] .bg-bg-surface { background: var(--mdd-card) !important; }
+[data-theme="dark"] .bg-bg-elevated { background: var(--mdd-card-elevated) !important; }
+[data-theme="dark"] .text-white { color: #ffffff !important; }   /* keep CTAs white */
+[data-theme="dark"] .text-ink { color: var(--mdd-ink) !important; }
+[data-theme="dark"] .text-text-muted { color: var(--mdd-muted) !important; }
+[data-theme="dark"] .text-text-primary { color: var(--mdd-ink) !important; }
+[data-theme="dark"] .text-text-faint { color: var(--mdd-faint) !important; }
+[data-theme="dark"] .text-ink-muted { color: var(--mdd-muted) !important; }
+[data-theme="dark"] .text-ink-faint { color: var(--mdd-faint) !important; }
+[data-theme="dark"] .border-bg-elevated { border-color: var(--mdd-border-strong) !important; }
+
+/* Edit Profile modal "X" close button (uses #F5F5F7 bg) */
+[data-theme="dark"] [aria-label="Close"][style*="background"] {
+  background: var(--mdd-bg-soft) !important;
+}
+
+/* Network status banners are tied to red/green; keep as-is. */
+
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+/* ── Targeted glass: leaderboard podium cards ────────────────────── */
+.lb-podium-card {
+  backdrop-filter: blur(20px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.8) !important;
+  box-shadow:
+    0 8px 28px rgba(0,0,0,0.07),
+    0 1px 0 rgba(255,255,255,0.9) inset !important;
+  transition: box-shadow 240ms ease, transform 240ms ease !important;
+}
+.lb-podium-card:hover { transform: translateY(-2px) !important; }
+.lb-podium-card.is-first {
+  box-shadow:
+    0 12px 36px rgba(0,113,227,0.14),
+    0 1px 0 rgba(255,255,255,0.95) inset !important;
+}
+[data-theme="dark"] .lb-podium-card {
+  backdrop-filter: blur(24px) saturate(2.0) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(2.0) !important;
+  box-shadow:
+    0 8px 28px rgba(0,0,0,0.40),
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 0 48px rgba(99,60,220,0.08) !important;
+}
+[data-theme="dark"] .lb-podium-card.is-first {
+  box-shadow:
+    0 12px 36px rgba(0,113,227,0.22),
+    0 1px 0 rgba(255,255,255,0.10) inset !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GLASS DESIGN SYSTEM — Apple-style morphism
+   Smooth, layered frosted surfaces with inner highlights & ambient glow.
+   Light: bright frost  |  Dark: deep indigo glass with violet ambient.
+═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Shared shimmer animation ──────────────────────────────────────── */
+@keyframes glass-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes glass-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1;   }
+}
+@keyframes float-orb {
+  0%, 100% { transform: translateY(0px) scale(1);    opacity: 0.55; }
+  50%       { transform: translateY(-18px) scale(1.06); opacity: 0.80; }
+}
+
+/* ── Ambient background orbs (dark mode only) ─────────────────────── */
+.glass-orb-field {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.glass-orb-field::before {
+  content: '';
+  position: absolute;
+  top: -15%; left: -12%;
+  width: 55vw; height: 55vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,113,227,0.065) 0%, transparent 68%);
+  animation: float-orb 9s ease-in-out infinite;
+}
+.glass-orb-field::after {
+  content: '';
+  position: absolute;
+  bottom: -18%; right: -10%;
+  width: 48vw; height: 48vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 68%);
+  animation: float-orb 12s ease-in-out infinite reverse;
+}
+
+/* ── Core glass surface ───────────────────────────────────────────── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(1.9);
+  -webkit-backdrop-filter: blur(24px) saturate(1.9);
+  border: 0.5px solid rgba(255, 255, 255, 0.90);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -0.5px 0 rgba(0, 0, 0, 0.04) inset;
+  border-radius: 20px;
+  transition: box-shadow 250ms ease, transform 250ms ease, border-color 250ms ease;
+}
+.glass-panel:hover {
+  box-shadow:
+    0 14px 44px rgba(0, 0, 0, 0.10),
+    0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 -0.5px 0 rgba(0, 0, 0, 0.03) inset;
+  transform: translateY(-1.5px);
+}
+
+/* ── Elevated glass (modals, dropdowns, hero cards) ───────────────── */
+.glass-elevated {
+  background: rgba(255, 255, 255, 0.80);
+  backdrop-filter: blur(36px) saturate(2.1);
+  -webkit-backdrop-filter: blur(36px) saturate(2.1);
+  border: 0.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.12),
+    0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 -0.5px 0 rgba(0, 0, 0, 0.04) inset;
+  border-radius: 24px;
+}
+
+/* ── Tinted glass — accent color ─────────────────────────────────── */
+.glass-blue {
+  background: rgba(0, 113, 227, 0.06);
+  backdrop-filter: blur(16px) saturate(1.6);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  border: 0.5px solid rgba(0, 113, 227, 0.20);
+  box-shadow:
+    0 8px 24px rgba(0, 113, 227, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.80) inset;
+}
+.glass-violet {
+  background: rgba(124, 58, 237, 0.07);
+  backdrop-filter: blur(16px) saturate(1.6);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  border: 0.5px solid rgba(124, 58, 237, 0.22);
+  box-shadow:
+    0 8px 24px rgba(124, 58, 237, 0.10),
+    0 1px 0 rgba(255, 255, 255, 0.80) inset;
+}
+
+/* ── Inline chip glass ────────────────────────────────────────────── */
+.glass-chip {
+  background: rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(12px) saturate(1.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  border: 0.5px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06), inset 0 0.5px 0 rgba(255,255,255,0.9);
+  transition: box-shadow 180ms ease, background 180ms ease;
+}
+.glass-chip:hover {
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.09), inset 0 0.5px 0 rgba(255,255,255,1);
+}
+
+/* ── Shimmer overlay (add to glass-panel for hero areas) ─────────── */
+.glass-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.glass-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    108deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 65%
+  );
+  background-size: 220% 100%;
+  animation: glass-shimmer 4.5s linear infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Enhanced glass-nav ───────────────────────────────────────────── */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(28px) saturate(2.0) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(2.0) !important;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.07) !important;
+  box-shadow:
+    0 0.5px 0 rgba(255, 255, 255, 0.9) inset,
+    0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ── Enhanced bottom-tab-bar ─────────────────────────────────────── */
+.bottom-tab-bar {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(28px) saturate(2.0) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(2.0) !important;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ── Enhanced wallet chip ────────────────────────────────────────── */
+.wallet-chip {
+  backdrop-filter: blur(12px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.5) !important;
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.10),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.15) !important;
+  transition: box-shadow 200ms ease, transform 150ms ease !important;
+}
+.wallet-chip:hover {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.14),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+/* ══ DARK MODE overrides ════════════════════════════════════════════ */
+
+[data-theme="dark"] .glass-panel {
+  background: rgba(16, 14, 40, 0.58);
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.40),
+    0 0 0 0.5px rgba(255, 255, 255, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.09) inset,
+    0 0 60px rgba(99, 60, 220, 0.07);
+}
+[data-theme="dark"] .glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.11);
+  box-shadow:
+    0 14px 44px rgba(0, 0, 0, 0.50),
+    0 0 0 0.5px rgba(255, 255, 255, 0.09),
+    0 1px 0 rgba(255, 255, 255, 0.11) inset,
+    0 0 80px rgba(99, 60, 220, 0.12);
+  transform: translateY(-1.5px);
+}
+[data-theme="dark"] .glass-elevated {
+  background: rgba(30, 30, 46, 0.82);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.50),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .glass-blue {
+  background: rgba(0, 113, 227, 0.12);
+  border-color: rgba(0, 113, 227, 0.28);
+  box-shadow:
+    0 8px 24px rgba(0, 113, 227, 0.18),
+    0 1px 0 rgba(255, 255, 255, 0.07) inset;
+}
+[data-theme="dark"] .glass-violet {
+  background: rgba(124, 58, 237, 0.14);
+  border-color: rgba(124, 58, 237, 0.30);
+  box-shadow:
+    0 8px 24px rgba(124, 58, 237, 0.20),
+    0 1px 0 rgba(255, 255, 255, 0.07) inset;
+}
+[data-theme="dark"] .glass-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.36), inset 0 0.5px 0 rgba(255,255,255,0.08);
+}
+[data-theme="dark"] .glass-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.44), inset 0 0.5px 0 rgba(255,255,255,0.10);
+}
+[data-theme="dark"] .glass-shimmer::after {
+  background: linear-gradient(
+    108deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.04) 50%,
+    transparent 65%
+  );
+}
+[data-theme="dark"] .glass-nav {
+  background: rgba(12, 10, 30, 0.72) !important;
+  backdrop-filter: blur(28px) saturate(2.0) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(2.0) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+  box-shadow:
+    0 0.5px 0 rgba(255, 255, 255, 0.06) inset,
+    0 4px 24px rgba(0, 0, 0, 0.36) !important;
+}
+[data-theme="dark"] .bottom-tab-bar {
+  background: rgba(12, 10, 30, 0.82) !important;
+  border-top-color: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.40) !important;
+}
+[data-theme="dark"] .wallet-chip {
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.40),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.10) !important;
+}
+[data-theme="dark"] .wallet-chip:hover {
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.50),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.13) !important;
+}
+
+/* ── Game page layout ─────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .game-layout {
+    flex-direction: column !important;
+    overflow: auto !important;
+    padding-bottom: 80px;
+  }
+  .game-board-panel {
+    flex: none !important;
+    width: 100% !important;
+    padding: 20px 16px 12px !important;
+    border-right: none !important;
+    border-bottom: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .game-right-panel {
+    flex: none !important;
+    width: 100% !important;
+    padding: 16px !important;
+    overflow: visible !important;
+  }
+}
+
+/* ── Leaderboard table mobile ─────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Hide non-essential columns; remaining 4 (#, Player, Wins, SOL) fit on mobile */
+  .lb-col-winrate { display: none !important; }
+  .lb-col-streak  { display: none !important; }
+
+  /* Tighter padding */
+  .lb-table-row { padding-left: 14px !important; padding-right: 14px !important; }
+
+  /* Podium — smaller padding & font on mobile */
+  .lb-podium      { gap: 8px !important; }
+  .lb-podium-card { padding: 14px 8px 16px !important; }
+  .lb-podium-card .ident-3 { display: none; }
+}
+
+/* Very narrow — stack 2nd/3rd row, 1st on top? Keep horizontal but compact further */
+@media (max-width: 419px) {
+  .lb-podium-card { padding: 12px 6px 14px !important; gap: 6px !important; }
+}
+
+/* ── Result page lose CTAs mobile ─────────────────────────────────────── */
+@media (max-width: 767px) {
+  .result-ctas-lose {
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  .result-back-btn-lose {
+    display: block !important;
+    width: 100% !important;
+  }
+  .result-back-btn-lose button {
+    border: none !important;
+    background: transparent !important;
+    color: #0071E3 !important;
+    width: 100% !important;
+    padding: 12px 0 !important;
+  }
+}
+
+/* ── Landing page responsive ───────────────────────────────────────── */
+@media (max-width: 767px) {
+  .lp-hero {
+    grid-template-columns: 1fr !important;
+    padding: 40px 20px 36px !important;
+    gap: 32px !important;
+  }
+  .lp-hero-h1 { font-size: 38px !important; letter-spacing: -1.2px !important; }
+  .lp-hero-demo { order: -1; }
+  .lp-stats { grid-template-columns: repeat(3, 1fr) !important; padding: 16px 12px !important; gap: 8px !important; }
+  .lp-stats .lp-stat-num { font-size: 22px !important; }
+  .lp-stats .lp-stat-lbl { font-size: 10px !important; }
+  .lp-features { grid-template-columns: 1fr !important; }
+  .lp-how { grid-template-columns: 1fr !important; padding: 40px 20px !important; gap: 32px !important; }
+  .lp-modes { grid-template-columns: repeat(2, 1fr) !important; }
+}

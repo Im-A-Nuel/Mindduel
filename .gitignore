@@ -1,0 +1,103 @@
+# ── Node.js / npm workspaces ─────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# ── Next.js ───────────────────────────────────────────────────────────
+.next/
+out/
+dist/
+build/
+frontend/.next/
+frontend/out/
+
+# ── TypeScript ────────────────────────────────────────────────────────
+*.tsbuildinfo
+frontend/next-env.d.ts
+
+# ── Hardhat / Solidity build artifacts ───────────────────────────────
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+contracts/deployments/*.local.json
+
+# ── Environment variables ─────────────────────────────────────────────
+# NEVER commit .env files — they may contain RPC keys, API keys, secrets,
+# database connection strings, mint authority private keys, etc.
+.env
+.env.*
+!.env.example
+!.env.template
+!.env.sample
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# ── Solana wallet / keypair files ─────────────────────────────────────
+# Committing these exposes your private key and will drain your wallet
+id.json
+wallet.json
+deploy-keypair.json
+*-keypair.json
+*.keypair.json
+test-wallet.json
+.test-wallet.json
+*.private.json
+backend/.keys/
+**/.keys/
+
+# ── Anchor IDL ────────────────────────────────────────────────────────
+# IDL disimpan di idl/ (bukan target/idl/ agar tidak ter-ignore)
+# target/ sudah di-ignore seluruhnya di atas
+
+# ── IDE / Editor ──────────────────────────────────────────────────────
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Logs ──────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Test / Coverage ───────────────────────────────────────────────────
+coverage/
+.coverage/
+
+# ── Local database / persistence ──────────────────────────────────────
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+backend/data/
+
+# ── Backup / temp files ───────────────────────────────────────────────
+*.bak
+*.tmp
+*.orig
+
+# ── Drizzle migrations cache (keep schema source, ignore generated meta) ─
+backend/drizzle/meta/
+
+# ── Misc ──────────────────────────────────────────────────────────────
+.cache/
+
+# ── Docs: internal-only files (not synced to GitBook) ────────────────
+# DEMO_SCRIPT.md is the hackathon video script — kept locally, not public.
+# Anything in docs/_internal/ is treated the same way.
+docs/DEMO_SCRIPT.md
+docs/_internal/
