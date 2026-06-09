@@ -135,7 +135,7 @@ export function WalletButton({ className }: WalletButtonProps) {
                     CELO
                   </span>
                   <span style={{ fontSize: 14, fontWeight: 700, color: INK, fontVariantNumeric: 'tabular-nums' }}>
-                    {bal ? Number(bal.formatted).toFixed(4) : '—'}
+                    {bal ? Number(bal.formatted).toFixed(4) : '-'}
                   </span>
                 </div>
               </div>

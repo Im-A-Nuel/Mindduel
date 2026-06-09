@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { RANKING_CONTRACT_ADDRESS, CELO_EXPLORER } from '@/lib/constants'
 
 /**
- * Routes where the footer is hidden — full-screen / immersive surfaces
+ * Routes where the footer is hidden - full-screen / immersive surfaces
  * (live match, spectator view, result splash) shouldn't have a footer
  * pushing content up. Match by prefix so dynamic segments are covered.
  */

@@ -90,19 +90,19 @@ class SoundEngine {
     setTimeout(() => this.tone(262, 0.40, 'sine', 0.08), 280)
   }
 
-  /** Played when a hint purchase confirms — celebratory shimmer cue. */
+  /** Played when a hint purchase confirms - celebratory shimmer cue. */
   hint() {
     this.tone(880, 0.08, 'sine', 0.10)
     setTimeout(() => this.tone(1175, 0.10, 'sine', 0.10), 70)
     setTimeout(() => this.tone(1568, 0.14, 'sine', 0.08), 150)
   }
 
-  /** Short urgent tick — fired each second of the final 5s of trivia timer. */
+  /** Short urgent tick - fired each second of the final 5s of trivia timer. */
   tick() {
     this.tone(1100, 0.04, 'square', 0.08)
   }
 
-  /** Neutral draw cue — three flat notes. */
+  /** Neutral draw cue - three flat notes. */
   draw() {
     this.tone(440, 0.18, 'triangle', 0.10)
     setTimeout(() => this.tone(440, 0.18, 'triangle', 0.10), 170)

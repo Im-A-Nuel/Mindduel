@@ -6,7 +6,7 @@ import { CELO_RPC_URL, RANKING_CONTRACT_ADDRESS, START_POINTS, tierForPoints } f
  * Read-only access to the MindDuelRanking contract on Celo.
  *
  * Writes (recordMatch) are submitted by the backend relayer that owns the
- * contract — the frontend never sends transactions to be ranked. Here we only
+ * contract - the frontend never sends transactions to be ranked. Here we only
  * read points/rank for profiles and the leaderboard.
  */
 

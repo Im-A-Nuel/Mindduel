@@ -246,7 +246,7 @@ function VisualInstantSettlement() {
         <rect x="120" y="130" width="100" height="34" rx="11" fill="#04141E" stroke="#06B6D4" strokeWidth="1.5"/>
         <text x="170" y="142" textAnchor="middle" fill="#4A8A98" fontSize="8" fontWeight="600" letterSpacing="1">FINALITY</text>
         <text x="170" y="157" textAnchor="middle" fill="#22D3EE" fontSize="14" fontWeight="800">400ms FAST</text>
-        {/* Settled pill — blinks in after coin arrives */}
+        {/* Settled pill - blinks in after coin arrives */}
         <rect x="220" y="138" width="82" height="20" rx="7" fill="#03200E" stroke="#16A34A" strokeWidth="1">
           <animate attributeName="opacity" values="0;0;1;1;0" dur="2.2s" repeatCount="indefinite" keyTimes="0;0.5;0.55;0.95;1"/>
         </rect>
@@ -378,7 +378,7 @@ function VisualDramaScore() {
         <rect width="340" height="192" fill="url(#v6g)" filter="url(#v6f)"/>
         {/* Gauge track */}
         <path d="M 76 160 A 94 94 0 0 1 264 160" stroke="#160808" strokeWidth="18" fill="none" strokeLinecap="round"/>
-        {/* Gauge fill — 9.8/10 (arc length ~295, show ~289) */}
+        {/* Gauge fill - 9.8/10 (arc length ~295, show ~289) */}
         <path d="M 76 160 A 94 94 0 0 1 264 160" stroke="url(#v6arc)" strokeWidth="14" fill="none" strokeLinecap="round" strokeDasharray="295" strokeDashoffset="7"/>
         {/* Tick marks */}
         {Array.from({length:11},(_,i)=>{
@@ -395,7 +395,7 @@ function VisualDramaScore() {
         {/* Score display */}
         <text x="170" y="128" textAnchor="middle" fill="#EF4444" fontSize="34" fontWeight="800" letterSpacing="-1.5">9.8</text>
         <text x="170" y="146" textAnchor="middle" fill="#6A2020" fontSize="9" fontWeight="600">/ 10 DRAMA</text>
-        {/* Flames at gauge ends — SVG flame paths */}
+        {/* Flames at gauge ends - SVG flame paths */}
         <g opacity="0.5" transform="translate(49,150)">
           <path d="M11 21c-4.5 0-8-3-8-7 0-3.5 2.5-5.8 4.5-7 0 2.2 1.2 3 1.2 3C9 8 10 5.5 10 3c2.5 1.8 6 4.8 6 8.5 0 1-.2 2-.7 2.8.7-.9 1.2-2 1.2-3.3 0 0 1.3 1.3 1.3 4 0 3.5-3.2 6-6.8 6z" fill="#EF4444"/>
         </g>
@@ -722,7 +722,7 @@ function ModeCard({ visual, name, desc, tag, tagBg, tagColor, available, accentC
         )}
       </div>
 
-      {/* Content — column flex so the CTA pins to the bottom regardless of description length */}
+      {/* Content - column flex so the CTA pins to the bottom regardless of description length */}
       <div style={{ padding: '18px 20px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: INK, margin: 0, letterSpacing: -0.3 }}>{name}</h3>
@@ -737,7 +737,7 @@ function ModeCard({ visual, name, desc, tag, tagBg, tagColor, available, accentC
             </div>
           </Link>
         ) : (
-          <div style={{ fontSize: 12, color: FAINT, fontWeight: 500, marginTop: 'auto', paddingTop: 16 }}>In development — drops soon</div>
+          <div style={{ fontSize: 12, color: FAINT, fontWeight: 500, marginTop: 'auto', paddingTop: 16 }}>In development - drops soon</div>
         )}
       </div>
     </motion.div>
@@ -760,14 +760,14 @@ export default function LandingPage() {
         <div className="lp-nav-inner" style={{ maxWidth: 1120, margin: '0 auto', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <MindDuelLogo size={22} />
           <div className="lp-nav-right" style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-            {/* Links — hidden on mobile */}
+            {/* Links - hidden on mobile */}
             <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               <a href="#how" style={{ fontSize: 13, fontWeight: 500, color: MUTED, textDecoration: 'none' }}>How It Works</a>
               <a href="#modes" style={{ fontSize: 13, fontWeight: 500, color: MUTED, textDecoration: 'none' }}>Game Modes</a>
             </div>
             <ThemeToggle />
             <WalletButton />
-            {/* Play Now — always visible */}
+            {/* Play Now - always visible */}
             <Link href="/lobby" className="lp-play-now">
               <button style={{ appearance: 'none', border: 'none', background: BLUE, color: '#fff', padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 2px 8px rgba(0,113,227,0.22)', whiteSpace: 'nowrap' }}>
                 Play Now
@@ -798,7 +798,7 @@ export default function LandingPage() {
           </div>
 
           <p style={{ fontSize: 17, color: MUTED, lineHeight: 1.55, margin: 0, maxWidth: 440 }}>
-            Trivia-gated Tic Tac Toe on Celo. Answer correctly to move. No staking — pure skill. Every win earns on-chain points and climbs the ranked ladder.
+            Trivia-gated Tic Tac Toe on Celo. Answer correctly to move. No staking - pure skill. Every win earns on-chain points and climbs the ranked ladder.
           </p>
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -827,12 +827,12 @@ export default function LandingPage() {
           {/* Ranked ladder note */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
             <span style={{ fontSize: 11.5, color: FAINT, lineHeight: 1.4, maxWidth: 360 }}>
-              Free to play · MiniPay-ready · Every ranked win is recorded on-chain as points — no tokens at risk.
+              Free to play · MiniPay-ready · Every ranked win is recorded on-chain as points - no tokens at risk.
             </span>
           </div>
         </motion.div>
 
-        {/* Demo board — hidden on mobile */}
+        {/* Demo board - hidden on mobile */}
         <motion.div
           className="lp-hero-demo"
           initial={{ opacity: 0, scale: 0.92 }}
@@ -872,7 +872,7 @@ export default function LandingPage() {
           ] as { label: string; value: number | null }[]).map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: i * 0.1 }} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div className="lp-stat-num" style={{ fontSize: 32, fontWeight: 700, letterSpacing: -1, color: INK }}>
-                {s.value === null ? <span style={{ color: MUTED }}>—</span> : <Counter to={s.value} />}
+                {s.value === null ? <span style={{ color: MUTED }}>-</span> : <Counter to={s.value} />}
               </div>
               <div className="lp-stat-lbl" style={{ fontSize: 12, color: MUTED, fontWeight: 500 }}>{s.label}</div>
             </motion.div>
@@ -884,14 +884,14 @@ export default function LandingPage() {
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '80px 28px' }}>
         <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: 'center', marginBottom: 48 }}>
           <h2 style={{ fontSize: 34, fontWeight: 700, letterSpacing: -1.2, margin: '0 0 10px' }}>Not Just Another Game</h2>
-          <p style={{ fontSize: 15, color: MUTED, margin: 0 }}>Every mechanic is trustless, skill-based, and provably fair — recorded on Celo.</p>
+          <p style={{ fontSize: 15, color: MUTED, margin: 0 }}>Every mechanic is trustless, skill-based, and provably fair - recorded on Celo.</p>
         </motion.div>
         <div className="lp-features" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           <FeatureCard delay={0}    visual={<VisualSkillMoves/>}        icon={<IconTarget/>}   title="Skill-Based Moves"   desc="You can only place a piece if you answer the trivia correctly. Strategy alone isn't enough." />
-          <FeatureCard delay={0.08} visual={<VisualTrustlessEscrow/>}   icon={<IconLock/>}     title="On-Chain Ranking"    desc="Every ranked result is recorded by a smart contract on Celo. No staking, no custody — just a tamper-proof points ladder." />
+          <FeatureCard delay={0.08} visual={<VisualTrustlessEscrow/>}   icon={<IconLock/>}     title="On-Chain Ranking"    desc="Every ranked result is recorded by a smart contract on Celo. No staking, no custody - just a tamper-proof points ladder." />
           <FeatureCard delay={0.16} visual={<VisualInstantSettlement/>} icon={<IconZap/>}      title="Instant Finality"    desc="Celo's fast finality means your new points and rank are confirmed on-chain the moment the game ends." />
           <FeatureCard delay={0.24} visual={<VisualAchievementNFTs/>}   icon={<IconMedal/>}    title="Achievement NFTs"    desc="Win streaks mint soulbound badge NFTs to your wallet. Prove dominance on-chain, forever." />
-          <FeatureCard delay={0.32} visual={<VisualHintSystem/>}        icon={<IconBulb/>}     title="Free Hint System"    desc="Stuck on a question? Use free hints each match — eliminate options, reveal categories, buy time." />
+          <FeatureCard delay={0.32} visual={<VisualHintSystem/>}        icon={<IconBulb/>}     title="Free Hint System"    desc="Stuck on a question? Use free hints each match - eliminate options, reveal categories, buy time." />
           <FeatureCard delay={0.40} visual={<VisualDramaScore/>}        icon={<IconBarChart/>} title="Drama Score"         desc="Epic comebacks and nail-biter finishes generate a drama score. High-drama games mint NFTs." />
         </div>
       </section>
@@ -912,10 +912,10 @@ export default function LandingPage() {
               <div style={{ position: 'absolute', left: 21, top: 44, bottom: 24, width: 1.5, background: 'linear-gradient(to bottom, #C7DFF7 0%, #EAF3FE 100%)', zIndex: 0 }}/>
 
               {[
-                { num: '1', title: 'Connect Your Wallet', desc: 'MiniPay or any Celo wallet. No account needed — your wallet is your identity.', active: true },
+                { num: '1', title: 'Connect Your Wallet', desc: 'MiniPay or any Celo wallet. No account needed - your wallet is your identity.', active: true },
                 { num: '2', title: 'Pick Ranked or Casual', desc: 'Choose a mode. Ranked matches move your points; casual is just for fun. No staking, ever.', active: false },
                 { num: '3', title: 'Answer to Move',      desc: 'Each turn, answer a trivia question correctly to place your piece on the board.', active: false },
-                { num: '4', title: 'Win & Climb',         desc: 'First to align 3 wins. Your new points are written on-chain instantly — and your rank updates.', active: false },
+                { num: '4', title: 'Win & Climb',         desc: 'First to align 3 wins. Your new points are written on-chain instantly - and your rank updates.', active: false },
               ].map((s, i) => (
                 <motion.div
                   key={s.num}
@@ -1005,12 +1005,12 @@ export default function LandingPage() {
         <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: 'center', marginBottom: 52 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: BLUE, letterSpacing: 1.2, marginBottom: 12, textTransform: 'uppercase' }}>Multiplayer</div>
           <h2 style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1.3, margin: '0 0 10px' }}>Game Modes</h2>
-          <p style={{ fontSize: 15, color: MUTED }}>Classic strategy meets dynamic chaos — all settled on-chain.</p>
+          <p style={{ fontSize: 15, color: MUTED }}>Classic strategy meets dynamic chaos - all settled on-chain.</p>
         </motion.div>
         <div className="lp-modes" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-          <ModeCard visual={<ModeVisualClassic/>}  name="Classic Duel"   desc="Standard 3×3 Tic Tac Toe. Answer trivia to place your piece — first to align 3 wins the points."    tag="EASY"      tagBg="#E8F7EE" tagColor={GREEN_DARK} available accentColor={BLUE} delay={0} />
-          <ModeCard visual={<ModeVisualShifting/>} name="Shifting Board" desc="Every 3 rounds the board shifts — cells rotate and change position, forcing you to adapt your strategy." tag="MEDIUM"    tagBg="#FFF4E0" tagColor="#8A5A00"    available accentColor={BLUE} delay={0.1} />
-          <ModeCard visual={<ModeVisualScaleUp/>}  name="Scale Up"       desc="The board grows as the game progresses: 3×3 opens, earns moves unlock 4×4, then 5×5 — more pieces, more chaos."   tag="HARD"      tagBg="#FDECEB" tagColor="#A81C13"    available accentColor={BLUE} delay={0.2} />
+          <ModeCard visual={<ModeVisualClassic/>}  name="Classic Duel"   desc="Standard 3×3 Tic Tac Toe. Answer trivia to place your piece - first to align 3 wins the points."    tag="EASY"      tagBg="#E8F7EE" tagColor={GREEN_DARK} available accentColor={BLUE} delay={0} />
+          <ModeCard visual={<ModeVisualShifting/>} name="Shifting Board" desc="Every 3 rounds the board shifts - cells rotate and change position, forcing you to adapt your strategy." tag="MEDIUM"    tagBg="#FFF4E0" tagColor="#8A5A00"    available accentColor={BLUE} delay={0.1} />
+          <ModeCard visual={<ModeVisualScaleUp/>}  name="Scale Up"       desc="The board grows as the game progresses: 3×3 opens, earns moves unlock 4×4, then 5×5 - more pieces, more chaos."   tag="HARD"      tagBg="#FDECEB" tagColor="#A81C13"    available accentColor={BLUE} delay={0.2} />
           <ModeCard visual={<ModeVisualBlitz/>}    name="Blitz"          desc="5 seconds to answer per turn. No extensions, no mercy. One wrong move and your opponent owns the board."            tag="INTENSE"   tagBg="#FDECEB" tagColor="#A81C13"    available accentColor={BLUE} delay={0.3} />
         </div>
       </section>

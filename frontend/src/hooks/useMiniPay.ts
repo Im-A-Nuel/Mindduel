@@ -9,7 +9,7 @@ import { injected } from 'wagmi/connectors'
  *
  * MiniPay is an in-app wallet that injects `window.ethereum` with an
  * `isMiniPay` flag. When the dapp is opened inside MiniPay there is no connect
- * button to press — we auto-connect the injected connector on mount so the
+ * button to press - we auto-connect the injected connector on mount so the
  * player is ready to be ranked immediately.
  *
  * Returns whether we're running inside MiniPay so the UI can hide the manual
@@ -24,7 +24,7 @@ export function useMiniPay(): { isMiniPay: boolean } {
     const eth = (window as unknown as { ethereum?: { isMiniPay?: boolean } }).ethereum
     if (eth?.isMiniPay) {
       setIsMiniPay(true)
-      // Auto-connect — MiniPay expects the dapp to connect without a prompt.
+      // Auto-connect - MiniPay expects the dapp to connect without a prompt.
       connect({ connector: injected({ shimDisconnect: true }) })
     }
   }, [connect])

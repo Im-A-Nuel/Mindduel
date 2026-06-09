@@ -19,7 +19,7 @@ export const START_POINTS = 1000
 
 /**
  * Rank tiers by points. A win raises your points (and can promote you);
- * a loss lowers them. No staking, no betting — pure skill ladder.
+ * a loss lowers them. No staking, no betting - pure skill ladder.
  */
 export const RANK_TIERS = [
   { id: 'bronze',   label: 'Bronze',   min: 0,    color: '#CD7F32' },
@@ -74,13 +74,13 @@ export const GAME_MODES = [
   {
     id: 'vs-ai',
     label: 'vs AI',
-    description: 'Play vs MindDuel AI. Practice — not ranked.',
+    description: 'Play vs MindDuel AI. Practice - not ranked.',
     tag: 'NEW',
     available: true,
   },
 ] as const
 
-// ── Hints (now FREE, limited uses per match — no payment) ─────────────
+// ── Hints (now FREE, limited uses per match - no payment) ─────────────
 /** Seconds added to the trivia timer by the "Extra Time" hint. */
 export const EXTRA_TIME_HINT_SECONDS = 8
 

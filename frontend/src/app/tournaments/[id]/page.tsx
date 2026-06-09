@@ -14,7 +14,7 @@ const GREEN_DARK = '#0A7A2D'
 const BG = 'var(--mdd-bg)'
 
 function shortAddr(a: string | null): string {
-  if (!a) return '—'
+  if (!a) return '-'
   if (a.length <= 9) return a
   return a.slice(0, 4) + '…' + a.slice(-4)
 }

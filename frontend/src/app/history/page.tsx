@@ -32,7 +32,7 @@ interface Match {
 }
 
 function shortAddr(a: string | null): string {
-  if (!a) return '—'
+  if (!a) return '-'
   if (a.length <= 9) return a
   return a.slice(0, 4) + '…' + a.slice(-4)
 }
@@ -283,7 +283,7 @@ export default function HistoryPage() {
             ) : (
               filtered.map((m, i) => {
                 const deltaColor = m.pointsDelta > 0 ? GREEN_DARK : m.pointsDelta < 0 ? RED : MUTED
-                const deltaText  = m.pending ? '—'
+                const deltaText  = m.pending ? '-'
                   : !m.ranked ? '0'
                   : m.pointsDelta > 0 ? `+${m.pointsDelta}`
                   : m.pointsDelta < 0 ? `−${Math.abs(m.pointsDelta)}`

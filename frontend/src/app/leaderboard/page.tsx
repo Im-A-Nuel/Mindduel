@@ -163,7 +163,7 @@ export default function LeaderboardPage() {
           <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '60px 20px', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', marginBottom: 28 }}>
             <StateIconTrophy />
             <div style={{ fontSize: 15, fontWeight: 600, color: INK }}>No rankings yet</div>
-            <div style={{ fontSize: 13, color: MUTED, marginTop: 4, maxWidth: 320, margin: '4px auto 0' }}>Be the first to win a ranked match — your address will climb the all-time points ladder.</div>
+            <div style={{ fontSize: 13, color: MUTED, marginTop: 4, maxWidth: 320, margin: '4px auto 0' }}>Be the first to win a ranked match - your address will climb the all-time points ladder.</div>
           </div>
         )}
 

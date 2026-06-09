@@ -86,7 +86,7 @@ export function BoardRenderer({
           })}
         </div>
 
-        {/* Win line overlay — only renders for 3x3; larger boards rely on the per-cell win glow. */}
+        {/* Win line overlay - only renders for 3x3; larger boards rely on the per-cell win glow. */}
         <AnimatePresence>
           {winLine && gridSize === 3 && (
             <motion.div

@@ -60,7 +60,7 @@ export function useTheme(): ThemeCtx {
 
 /**
  * Inline script string to set the `data-theme` attribute on <html> as early
- * as possible — before React hydrates — so the dark theme paints from the
+ * as possible - before React hydrates - so the dark theme paints from the
  * first frame instead of flashing light.
  */
 export const themeBootstrapScript = `

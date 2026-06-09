@@ -1,7 +1,7 @@
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3001'
 export const WS_URL = (process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:3001').replace(/\/+$/, '')
 
-// Default timeout for backend calls — slow network shouldn't hang the UI forever.
+// Default timeout for backend calls - slow network shouldn't hang the UI forever.
 const DEFAULT_TIMEOUT_MS = 12_000
 
 async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<Response> {
@@ -126,7 +126,7 @@ export async function leaveQueue(playerId: string): Promise<void> {
       body: JSON.stringify({ playerId }),
     })
   } catch {
-    // Best-effort — if BE is down or net dropped, the queue's own GC will
+    // Best-effort - if BE is down or net dropped, the queue's own GC will
     // eventually evict the entry. Don't throw on cleanup paths.
   }
 }

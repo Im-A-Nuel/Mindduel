@@ -45,9 +45,9 @@ const BG = 'var(--mdd-bg)'
 type Tab = 'badges' | 'history' | 'ranking'
 
 const PROFILE = {
-  addr:   '—',
+  addr:   '-',
   seed:   'default',
-  joined: '—',
+  joined: '-',
   wins:   0,
   losses: 0,
   draws:  0,
@@ -62,7 +62,7 @@ function toMs(ts: number): number {
 }
 
 function relativeTime(ts: number | null): string {
-  if (!ts) return '—'
+  if (!ts) return '-'
   const diffMs = Date.now() - toMs(ts)
   const diffSec = Math.floor(diffMs / 1000)
   if (diffSec < 60) return 'Just now'
@@ -206,7 +206,7 @@ export default function ProfilePage() {
     return () => { cancelled = true }
   }, [walletAddr])
 
-  // Fetch match history — drives the History tab + streaks + joined date.
+  // Fetch match history - drives the History tab + streaks + joined date.
   useEffect(() => {
     if (!walletAddr) {
       setHistoryRows([])
@@ -315,7 +315,7 @@ export default function ProfilePage() {
                   { label: 'Wins / Losses',   value: `${wins} / ${losses}`,       color: INK },
                   { label: 'Draws',           value: String(draws),               color: MUTED },
                   { label: 'Win Rate',        value: `${winRate}%`,               color: BLUE },
-                  { label: 'Current Streak',  value: profile.streak > 0 ? `${profile.streak} wins` : '—', color: '#FF6A00', flame: profile.streak > 0 },
+                  { label: 'Current Streak',  value: profile.streak > 0 ? `${profile.streak} wins` : '-', color: '#FF6A00', flame: profile.streak > 0 },
                   { label: 'Best Streak',     value: `${profile.best} wins`,      color: INK },
                 ].map(s => (
                   <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -472,7 +472,7 @@ export default function ProfilePage() {
                       const bg     = isWin ? '#E8F7EE' : isDraw ? '#E5F0FD' : isPending ? '#FFF4E0' : '#FDECEB'
                       const fg     = isWin ? '#0A7A2D' : isDraw ? BLUE : isPending ? '#8A5A00' : '#A81C13'
                       const deltaColor = m.pointsDelta > 0 ? GREEN_DARK : m.pointsDelta < 0 ? RED : MUTED
-                      const deltaText  = isPending ? '—'
+                      const deltaText  = isPending ? '-'
                         : !m.ranked ? '0'
                         : m.pointsDelta > 0 ? `+${m.pointsDelta}`
                         : m.pointsDelta < 0 ? `−${Math.abs(m.pointsDelta)}`

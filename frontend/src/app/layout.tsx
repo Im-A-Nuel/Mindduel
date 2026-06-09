@@ -14,10 +14,10 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default:  'MindDuel — Prove Your Mind. Climb the Ranks.',
+    default:  'MindDuel - Prove Your Mind. Climb the Ranks.',
     template: '%s · MindDuel',
   },
-  description: 'Trivia-gated PvP Tic Tac Toe with on-chain points & ranking on Celo. No staking — pure skill.',
+  description: 'Trivia-gated PvP Tic Tac Toe with on-chain points & ranking on Celo. No staking - pure skill.',
   keywords: ['celo', 'minipay', 'web3', 'game', 'pvp', 'trivia', 'ranking', 'tic tac toe', 'mindduel'],
   icons: {
     icon: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     apple: '/apple-icon.png',
   },
   openGraph: {
-    title:       'MindDuel — Prove Your Mind. Climb the Ranks.',
+    title:       'MindDuel - Prove Your Mind. Climb the Ranks.',
     description: 'Trivia-gated PvP Tic Tac Toe with on-chain points & ranking on Celo.',
     type:        'website',
     siteName:    'MindDuel',

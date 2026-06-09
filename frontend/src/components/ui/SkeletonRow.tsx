@@ -32,7 +32,7 @@ export function SkeletonBlock({
   )
 }
 
-/** Multiple skeleton rows mimicking a table — used while history/leaderboard load. */
+/** Multiple skeleton rows mimicking a table - used while history/leaderboard load. */
 export function SkeletonRows({ rows = 5, gap = 12 }: { rows?: number; gap?: number }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap }}>

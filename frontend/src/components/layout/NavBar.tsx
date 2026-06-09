@@ -33,7 +33,7 @@ export function NavBar({ active }: { active: NavActive }) {
               <span className="nav-logo-text" style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.4, color: INK, whiteSpace: 'nowrap' }}>MindDuel</span>
             </Link>
 
-            {/* Nav links — hidden on mobile */}
+            {/* Nav links - hidden on mobile */}
             <div className="nav-links" style={{ display: 'flex', gap: 24 }}>
               {NAV_ITEMS.map(({ label, id, href }) => {
                 const isActive = active === id
@@ -66,7 +66,7 @@ export function NavBar({ active }: { active: NavActive }) {
         </div>
       </nav>
 
-      {/* Bottom tab bar — mobile only */}
+      {/* Bottom tab bar - mobile only */}
       <BottomTabBar active={active} />
     </>
   )

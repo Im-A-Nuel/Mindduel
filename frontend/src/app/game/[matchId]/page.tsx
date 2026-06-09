@@ -194,7 +194,7 @@ function BoardCell({ value, isPending, isEmpty, isWin, isShifting, onClick }: {
           >
             {value}
           </motion.span>
-          {/* Burst ring fired once on placement — expands and fades */}
+          {/* Burst ring fired once on placement - expands and fades */}
           <motion.div
             initial={{ scale: 0.4, opacity: 0.55 }}
             animate={{ scale: 1.6, opacity: 0 }}
@@ -237,7 +237,7 @@ function PlayerChip({ color, label, addr, mark, active }: { color: string; label
 }
 
 function HintIcon({ id }: { id: HintId }) {
-  // 14×14 stroke-based glyphs — visually consistent with the rest of the iOS-y UI.
+  // 14×14 stroke-based glyphs - visually consistent with the rest of the iOS-y UI.
   switch (id) {
     case 'eliminate2':
       return (
@@ -313,7 +313,7 @@ function AnswerBtn({ label, letterLabel, state, onClick, eliminated }: { label: 
   )
 }
 
-// ── TriviaCard — controlled ───────────────────────────────────────────
+// ── TriviaCard - controlled ───────────────────────────────────────────
 function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout, disabled, eliminated, timeKey, extraTimeBumps, firstLetterHint, categoryHint }: {
   question: DisplayQuestion
   selectedIdx: number | null
@@ -443,13 +443,13 @@ function GameOverModal({ winner, isVsAI, myMark, ranked }: { winner: GameWinner;
   const subtitle = (() => {
     if (iWon) {
       if (isVsAI) return 'Practice round complete'
-      return ranked ? 'Ranked win — points added to your ladder' : 'Nice match — casual win'
+      return ranked ? 'Ranked win - points added to your ladder' : 'Nice match - casual win'
     }
     if (isDraw) {
-      return isVsAI ? 'Stalemate — neither side won' : 'A hard-fought draw'
+      return isVsAI ? 'Stalemate - neither side won' : 'A hard-fought draw'
     }
     if (isVsAI) return 'The AI was too strong this time'
-    return ranked ? 'Ranked loss — points deducted' : 'Better luck next time'
+    return ranked ? 'Ranked loss - points deducted' : 'Better luck next time'
   })()
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(8px)' }}>
@@ -496,7 +496,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   const [isLoading, setIsLoading]   = useState(true)
   const [gameModeStr, setGameModeStr] = useState('classic')
 
-  // Board state — dynamic size
+  // Board state - dynamic size
   const [boardSize, setBoardSize]         = useState(3)
   const [board, setBoard]                 = useState<CellValue[]>(Array(9).fill(null))
   const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>('X')
@@ -513,10 +513,10 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   const [apiQuestion, setApiQuestion]       = useState<TriviaQuestion | null>(null)
   const [apiSessionId, setApiSessionId]     = useState<string | null>(null)
   const [triviaFetching, setTriviaFetching] = useState(false)
-  // optPerm[displayIdx] = originalIdx — reshuffled for every new question
+  // optPerm[displayIdx] = originalIdx - reshuffled for every new question
   const [optPerm, setOptPerm] = useState<number[]>([0, 1, 2, 3])
 
-  // Hint state — hints are now FREE but limited to FREE_HINTS_PER_MATCH total
+  // Hint state - hints are now FREE but limited to FREE_HINTS_PER_MATCH total
   // uses per match. We track a usage counter (persisted per-match so a refresh /
   // WS reconnect mid-match doesn't reset the budget). Visual effects reset when
   // the question changes.
@@ -582,7 +582,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     try { sessionStorage.setItem(hintsUsedKey, String(hintsUsed)) } catch {}
   }, [hintsUsed, hintsUsedKey])
 
-  // Reset visual hint effects when the question changes — the per-match hint
+  // Reset visual hint effects when the question changes - the per-match hint
   // budget (hintsUsed) persists across questions.
   useEffect(() => {
     setFirstLetterHint(null)
@@ -629,7 +629,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
           clearInterval(id)
           // Defer to next tick so we don't setState during render
           setTimeout(() => {
-            toast('Blitz: no cell picked in time — turn forfeited.', 'warning')
+            toast('Blitz: no cell picked in time - turn forfeited.', 'warning')
             forfeitTurnWithoutPlacement()
           }, 0)
           return null
@@ -663,7 +663,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
 
     const savedCats = JSON.parse(sessionStorage.getItem('mddCategories') ?? '[]') as string[]
     const savedDiff = (sessionStorage.getItem('mddDifficulty') ?? 'hard') as 'easy' | 'medium' | 'hard'
-    // Category filter — STRICT: never serve a question outside the picked
+    // Category filter - STRICT: never serve a question outside the picked
     // categories. Earlier the local pool fell back to TRIVIA_POOL (all
     // categories) when the cat×difficulty intersection was small, which
     // made vs-AI and free play violate the user's category choice.
@@ -686,7 +686,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     const t = setTimeout(() => {
       setIsLoading(false)
       const modeLabel = MODE_META[mode]?.label ?? mode
-      toast(vsAI ? `You play as X — AI plays as O [${modeLabel}]` : `Match found — you play as ${mark} [${modeLabel}]`, 'info')
+      toast(vsAI ? `You play as X - AI plays as O [${modeLabel}]` : `Match found - you play as ${mark} [${modeLabel}]`, 'info')
     }, 900)
     return () => clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -705,7 +705,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     const isPvP = !params.matchId.startsWith('vs-ai-')
     if (!isPvP) return
 
-    // Track whether we've received any live event yet — once we have, the
+    // Track whether we've received any live event yet - once we have, the
     // server's stale DB-derived `state` message must NOT clobber our
     // currentPlayer (DB never updates per-turn). Spans reconnects so a
     // dropped/restored socket doesn't undo turn state.
@@ -732,7 +732,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
         try {
           const msg = JSON.parse(e.data)
           if (msg.type === 'ping') {
-            // Heartbeat reply — keeps server-side last-seen fresh.
+            // Heartbeat reply - keeps server-side last-seen fresh.
             if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'pong', t: Date.now() }))
             return
           }
@@ -767,7 +767,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               }
               // If the player arrived via a direct URL (no lobby flow), mddCategories
               // may be missing or empty. Populate from the authoritative server state
-              // so they use the correct question pool — without this, any player who
+              // so they use the correct question pool - without this, any player who
               // opens /game/<matchId> directly (e.g. from a shared link) would receive
               // questions from all categories regardless of what the creator chose.
               if (Array.isArray(msg.match.categories) && msg.match.categories.length > 0) {
@@ -793,7 +793,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       }
 
       ws.onerror = () => {
-        // Let onclose drive the reconnect — error events fire too.
+        // Let onclose drive the reconnect - error events fire too.
       }
     }
 
@@ -809,7 +809,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       wsRef.current = null
     }
   // Socket lifecycle is tied to the match only. `winner` is intentionally NOT a
-  // dependency — it's read via winnerRef inside onclose, so a win no longer tears
+  // dependency - it's read via winnerRef inside onclose, so a win no longer tears
   // down and rebuilds the socket (which used to reset receivedLiveEvent and let a
   // stale DB-derived `state` message clobber the board).
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -831,7 +831,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   }, [questionIndex])
 
   // Guard: ensures the game-over side-effects (DB report, on-chain settle,
-  // wallet popup, history write) fire exactly once per match — even under
+  // wallet popup, history write) fire exactly once per match - even under
   // React StrictMode double-invoke in dev.
   const finishedOnceRef = useRef(false)
 
@@ -852,7 +852,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     const modeMap: Record<string, string> = { classic: 'Classic Duel', shifting: 'Shifting Board', scaleup: 'Scale Up', blitz: 'Blitz', 'vs-ai': 'vs AI' }
     const modeLabel = modeMap[modeId] ?? modeId
 
-    // A wallet connection is required for a ranked match — without it we can't
+    // A wallet connection is required for a ranked match - without it we can't
     // identify the player on-chain, so we gracefully fall back to casual.
     const effectiveRanked = !isVsAI && ranked && !!address
 
@@ -898,12 +898,12 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       return
     }
 
-    // Ranked PvP — only the winner (or either side on a draw) reports; the
+    // Ranked PvP - only the winner (or either side on a draw) reports; the
     // backend's finish is idempotent. We still write a local result first so
     // the result page renders instantly, then patch deltas from the response.
     writeResult(0, null, null)
     // Report the ACTUAL winner address (not just "me") so the loser's client
-    // records the same outcome — the backend is idempotent per matchId, so both
+    // records the same outcome - the backend is idempotent per matchId, so both
     // sides reporting the same winner records the on-chain result exactly once
     // while each client still receives its own points delta back.
     const winnerAddr = isDraw ? null : (iWon ? address! : opponentAddr)
@@ -915,7 +915,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
         ranked:  true,
       })
       if (!res.ok) {
-        toast('Couldn\'t record ranked result — points may sync later.', 'warning')
+        toast('Couldn\'t record ranked result - points may sync later.', 'warning')
         return
       }
       let pointsDelta = 0
@@ -1015,7 +1015,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   function advanceTurn(place: boolean, cell: number) {
     const currentSize = boardSizeRef.current
     const mode = gameModeRef.current
-    // Read the mark from the ref, not the closed-over `currentPlayer` state —
+    // Read the mark from the ref, not the closed-over `currentPlayer` state -
     // advanceTurn is reached through the memoized handlePickAnswer, whose
     // closure can hold a stale currentPlayer.
     const mark = currentPlayerRef.current
@@ -1084,7 +1084,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     // Shifting Board: a shift happens only right after a piece is placed, every
     // 3rd placed piece. The trigger is derived from the placed-count (identical
     // on both clients since they share the board), and the MOVER applies the
-    // shift then broadcasts the already-shifted board — so the opponent renders
+    // shift then broadcasts the already-shifted board - so the opponent renders
     // the same board instead of computing its own (which desynced the two
     // boards in PvP). Forfeits place nothing → no shift.
     let outBoard = boardRef.current
@@ -1154,13 +1154,13 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       } catch (e) {
         setTriviaSelectedIdx(null)
         if (e instanceof TriviaSessionExpiredError) {
-          toast('Question expired — fetching a new one', 'warning')
+          toast('Question expired - fetching a new one', 'warning')
           // Drop the dead session and force a fresh trivia fetch on next tick.
           setApiSessionId(null)
           setApiQuestion(null)
           setTimeKey(k => k + 1)
         } else {
-          toast('Error checking answer — try again', 'error')
+          toast('Error checking answer - try again', 'error')
         }
         return
       }
@@ -1177,7 +1177,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     // on-chain by the backend relayer at game-over.
 
     setTimeout(() => {
-      toast(correct ? 'Correct! Move placed.' : 'Wrong answer — turn lost.', correct ? 'success' : 'error')
+      toast(correct ? 'Correct! Move placed.' : 'Wrong answer - turn lost.', correct ? 'success' : 'error')
       setTriviaSelectedIdx(null); setTriviaCorrectIdx(null)
       setApiQuestion(null); setApiSessionId(null)
       advanceTurn(correct, pendingCell)
@@ -1211,7 +1211,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   }
 
   /**
-   * Resign the match. There is no on-chain transaction or escrow on Celo —
+   * Resign the match. There is no on-chain transaction or escrow on Celo -
    * the frontend simply declares the opponent the winner locally and broadcasts
    * it over WebSocket. Setting `winner` fires the game-over effect, which for a
    * ranked match reports the opponent as winner to the backend relayer (which
@@ -1260,7 +1260,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
         try {
           const res = await peekTrivia(apiSessionId, 'eliminate2')
           if (res.type !== 'eliminate2') return false
-          // Backend returns original indices — convert to display space via optPerm
+          // Backend returns original indices - convert to display space via optPerm
           const displayWrong = res.wrongIndices
             .map(origIdx => optPerm.indexOf(origIdx))
             .filter(d => d >= 0 && !eliminated.includes(d))
@@ -1347,7 +1347,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   const boardDisabled = gameOver || pendingCell !== null || isAITurn || isOppTurn || isShifting
 
   const turnText = isShifting ? 'Board is shifting…'
-    : isMyTurn ? (pendingCell !== null ? 'Answer to claim cell' : 'Your turn — select a cell')
+    : isMyTurn ? (pendingCell !== null ? 'Answer to claim cell' : 'Your turn - select a cell')
     : isAITurn ? 'AI is thinking…'
     : 'Opponent\'s turn'
 
@@ -1396,7 +1396,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               <button
                 onClick={() => {
                   const url = `${window.location.origin}/spectate/${params.matchId}`
-                  navigator.clipboard.writeText(url).then(() => toast('Watch link copied — share it!', 'success')).catch(() => toast('Could not copy link', 'error'))
+                  navigator.clipboard.writeText(url).then(() => toast('Watch link copied - share it!', 'success')).catch(() => toast('Could not copy link', 'error'))
                 }}
                 title="Copy spectator link"
                 className="game-nav-share"
@@ -1434,7 +1434,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               <PlayerChip
                 color={BLUE}
                 label="YOU"
-                addr={address ? `${address.slice(0, 6)}…${address.slice(-4)}` : '—'}
+                addr={address ? `${address.slice(0, 6)}…${address.slice(-4)}` : '-'}
                 mark={myMark}
                 active={currentPlayer === myMark}
               />
@@ -1509,7 +1509,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
           <AnimatePresence>
             {pendingCell !== null && !gameOver && (
               <motion.p initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} style={{ textAlign: 'center', fontSize: 13, color: BLUE, fontWeight: 600, marginTop: 14 }}>
-                Cell {pendingCell + 1} selected — answer to claim
+                Cell {pendingCell + 1} selected - answer to claim
               </motion.p>
             )}
           </AnimatePresence>
@@ -1545,7 +1545,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                 <IconCrosshair size={28} color="#0071E3" bg="#E5F0FD" />
                 <div>
                   <p style={{ fontSize: 16, fontWeight: 700, color: INK, margin: '0 0 4px' }}>Pick a cell</p>
-                  <p style={{ fontSize: 13, color: MUTED, margin: 0, lineHeight: 1.5 }}>Click an empty square on the board to claim it.<br />A trivia question will appear — answer correctly to place your piece.</p>
+                  <p style={{ fontSize: 13, color: MUTED, margin: 0, lineHeight: 1.5 }}>Click an empty square on the board to claim it.<br />A trivia question will appear - answer correctly to place your piece.</p>
                 </div>
                 {blitzPickLeft !== null && (
                   <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: blitzPickLeft <= 3 ? '#A81C13' : '#8A5A00', background: blitzPickLeft <= 3 ? '#FDECEB' : '#FFF4E0', padding: '6px 12px', borderRadius: 999, letterSpacing: 0.4 }}>
@@ -1653,7 +1653,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             {!isVsAI && ranked && (
               <>
                 <br /><br />
-                <strong>Ranked match:</strong> resigning counts as a loss — your opponent gains points and you lose points on the ladder.
+                <strong>Ranked match:</strong> resigning counts as a loss - your opponent gains points and you lose points on the ladder.
               </>
             )}
           </>

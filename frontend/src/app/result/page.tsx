@@ -40,7 +40,7 @@ interface SessionMatchLog {
 }
 
 function shortAddr(a: string | null | undefined): string {
-  if (!a) return '—'
+  if (!a) return '-'
   if (a.length <= 9) return a
   return a.slice(0, 4) + '…' + a.slice(-4)
 }
@@ -126,7 +126,7 @@ function ResultRow({ label, value, color, big, badge }: { label: string; value: 
 function MatchStats({ log }: { log: LogEntry[] }) {
   const correct = log.filter(q => q.correct).length
   const total   = log.length
-  const avg     = total > 0 ? (log.reduce((a, q) => a + q.time, 0) / total).toFixed(1) : '—'
+  const avg     = total > 0 ? (log.reduce((a, q) => a + q.time, 0) / total).toFixed(1) : '-'
   return (
     <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
@@ -296,7 +296,7 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
                   <svg width="20" height="20" viewBox="0 0 18 18" fill="none"><path d="M9 2L11 6.5L16 7L12.5 10.5L13.5 15.5L9 13L4.5 15.5L5.5 10.5L2 7L7 6.5L9 2Z" fill={BLUE}/></svg>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{ranked ? `Points ${formatDelta(pointsDelta)} this match` : 'Casual match — no points lost'}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{ranked ? `Points ${formatDelta(pointsDelta)} this match` : 'Casual match - no points lost'}</div>
                   <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>The questions get easier with practice. Rematch to win your points back.</div>
                 </div>
               </div>

@@ -50,7 +50,7 @@ export default function TournamentsPage() {
         name: name.trim(), size, ranked, mode: 'classic',
         createdBy: address,
       })
-      toast('Tournament created — waiting for players to join.', 'success')
+      toast('Tournament created - waiting for players to join.', 'success')
       await refresh()
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Create failed', 'error')
@@ -64,7 +64,7 @@ export default function TournamentsPage() {
     try {
       const r = await joinTournamentApi(t.tournamentId, address)
       if (r.started) {
-        toast('Bracket full — tournament started!', 'success')
+        toast('Bracket full - tournament started!', 'success')
       } else {
         toast(`Joined. ${r.tournament.registered}/${r.tournament.size} players.`, 'success')
       }

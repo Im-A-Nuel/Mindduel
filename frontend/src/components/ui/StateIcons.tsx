@@ -81,7 +81,7 @@ export function IconViewers({ size = 12, color = '#6E6E73' }: { size?: number; c
   )
 }
 
-/** Robot / AI head — replaces 🤖 */
+/** Robot / AI head - replaces 🤖 */
 export function IconRobot({ size = 24, color = '#0071E3', bg }: { size?: number; color?: string; bg?: string }) {
   const inner = (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -102,7 +102,7 @@ export function IconRobot({ size = 24, color = '#0071E3', bg }: { size?: number;
   )
 }
 
-/** Crosshair / target — replaces 🎯 */
+/** Crosshair / target - replaces 🎯 */
 export function IconCrosshair({ size = 24, color = '#0071E3', bg }: { size?: number; color?: string; bg?: string }) {
   const inner = (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -122,7 +122,7 @@ export function IconCrosshair({ size = 24, color = '#0071E3', bg }: { size?: num
   )
 }
 
-/** Lightning bolt — replaces ⚡ */
+/** Lightning bolt - replaces ⚡ */
 export function IconBolt({ size = 24, color = '#8A5A00', bg }: { size?: number; color?: string; bg?: string }) {
   const inner = (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -137,7 +137,7 @@ export function IconBolt({ size = 24, color = '#8A5A00', bg }: { size?: number; 
   )
 }
 
-/** Flame — replaces 🔥 */
+/** Flame - replaces 🔥 */
 export function IconFlame({ size = 16, color = '#FF6A00' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none" aria-hidden="true" style={{ display: 'inline-block', verticalAlign: '-2px' }}>
@@ -146,7 +146,7 @@ export function IconFlame({ size = 16, color = '#FF6A00' }: { size?: number; col
   )
 }
 
-/** Coin / token — replaces 🪙 */
+/** Coin / token - replaces 🪙 */
 export function IconCoin({ size = 16, color = '#8A5A00' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: 'inline-block', verticalAlign: '-2px' }}>
@@ -156,7 +156,7 @@ export function IconCoin({ size = 16, color = '#8A5A00' }: { size?: number; colo
   )
 }
 
-/** Medal — replaces 🏅 */
+/** Medal - replaces 🏅 */
 export function IconMedal({ size = 28, color = '#8A5A00', bg = '#FFF4E0' }: { size?: number; color?: string; bg?: string }) {
   return (
     <div style={{ width: size + 20, height: size + 20, borderRadius: Math.round((size + 20) * 0.3), background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
@@ -170,7 +170,7 @@ export function IconMedal({ size = 28, color = '#8A5A00', bg = '#FFF4E0' }: { si
   )
 }
 
-/** Trophy inline (small) — replaces 🏆 in text contexts */
+/** Trophy inline (small) - replaces 🏆 in text contexts */
 export function IconTrophySm({ size = 20, color = '#8A5A00' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: 'inline-block', verticalAlign: '-4px', marginRight: 4 }}>
@@ -184,7 +184,7 @@ export function IconTrophySm({ size = 20, color = '#8A5A00' }: { size?: number; 
   )
 }
 
-/** Dice — replaces 🎲 */
+/** Dice - replaces 🎲 */
 export function IconDice({ size = 14, color = '#6E6E73' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: 'inline-block', verticalAlign: '-2px', marginRight: 4 }}>
@@ -198,7 +198,7 @@ export function IconDice({ size = 14, color = '#6E6E73' }: { size?: number; colo
   )
 }
 
-/** Handshake / draw — replaces 🤝 */
+/** Handshake / draw - replaces 🤝 */
 export function IconHandshake({ size = 20, color = '#0071E3', bg = 'var(--mdd-card)' }: { size?: number; color?: string; bg?: string }) {
   return (
     <div style={{ width: 40, height: 40, borderRadius: 20, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

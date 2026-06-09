@@ -99,7 +99,7 @@ body {
   /* Extra bottom space so content isn't hidden behind tab bar */
   .has-bottom-tab { padding-bottom: 88px !important; }
 
-  /* Nav — hide links & network badge on mobile */
+  /* Nav - hide links & network badge on mobile */
   .nav-links           { display: none !important; }
   .nav-network          { display: none !important; }
   /* Also hide the DEVNET badge inside the wallet chip on mobile */
@@ -108,15 +108,15 @@ body {
   /* Prevent navbar from overflowing on narrow screens */
   .glass-nav { overflow: hidden; }
 
-  /* Wallet chip — compact on mobile */
+  /* Wallet chip - compact on mobile */
   .wallet-chip { padding: 8px 10px !important; gap: 6px !important; font-size: 12.5px !important; }
 
-  /* Landing nav — tighter padding & gap on mobile */
+  /* Landing nav - tighter padding & gap on mobile */
   .lp-nav-inner { padding: 0 14px !important; gap: 8px !important; }
   .lp-nav-right { gap: 8px !important; }
   .lp-play-now button { padding: 8px 14px !important; font-size: 12.5px !important; }
 
-  /* Page content — tighter padding on mobile */
+  /* Page content - tighter padding on mobile */
   .page-content {
     padding-left: 16px !important;
     padding-right: 16px !important;
@@ -156,24 +156,24 @@ body {
     flex-shrink: unset !important;
   }
 
-  /* Edit Profile modal — tighter padding on mobile */
+  /* Edit Profile modal - tighter padding on mobile */
   .edit-profile-modal { padding: 18px !important; }
 
   /* Tournament bracket: show swipe hint on mobile */
   .bracket-swipe-hint { display: inline-flex !important; }
 
-  /* Keyboard shortcuts FAB — hide on mobile (no keyboard, plus collides with tab bar) */
+  /* Keyboard shortcuts FAB - hide on mobile (no keyboard, plus collides with tab bar) */
   .kbd-fab { display: none !important; }
 
-  /* Footer mobile — tighter padding, stack columns full-width */
+  /* Footer mobile - tighter padding, stack columns full-width */
   .footer-inner { padding: 18px 16px !important; gap: 10px !important; }
   .footer-inner > * { width: 100%; }
 
   /* Footer is hidden on inner pages on mobile (landing page is the only
-     place we show it on phones — bottom tab bar handles navigation elsewhere) */
+     place we show it on phones - bottom tab bar handles navigation elsewhere) */
   .footer-hide-mobile { display: none !important; }
 
-  /* Game page header — drop secondary labels on phone so primary controls fit */
+  /* Game page header - drop secondary labels on phone so primary controls fit */
   .game-nav-brand   { display: none !important; }
   .game-nav-share   { padding: 6px 10px !important; font-size: 11.5px !important; }
   .game-resign-label { display: none !important; }
@@ -184,7 +184,7 @@ body {
   .game-nav-mode { display: none !important; }
 }
 
-/* Ultra narrow — drop Play Now button entirely so navbar fits cleanly */
+/* Ultra narrow - drop Play Now button entirely so navbar fits cleanly */
 @media (max-width: 380px) {
   .lp-play-now { display: none !important; }
 }
@@ -193,7 +193,7 @@ body {
   .edit-profile-modal { padding: 14px !important; border-radius: 18px !important; }
 }
 
-/* Very narrow screens — hide full label, show short label only */
+/* Very narrow screens - hide full label, show short label only */
 @media (max-width: 419px) {
   .wallet-addr       { display: none !important; }
   .wallet-addr-short { display: inline !important; }
@@ -229,7 +229,7 @@ body {
 }
 
 /* ────────────────────────────────────────────────────────────────────────
-   THEME TOKENS — light default; dark via [data-theme="dark"] on <html>.
+   THEME TOKENS - light default; dark via [data-theme="dark"] on <html>.
    Tokens follow Apple's layered-surface principle: bg < card < card-alt,
    each ~6% lighter than the previous. Border alpha kept low for subtlety.
    ──────────────────────────────────────────────────────────────────────── */
@@ -253,9 +253,9 @@ body {
 }
 
 [data-theme="dark"] {
-  --mdd-bg:            #0D0D1A;   /* base — matches CLAUDE.md spec */
+  --mdd-bg:            #0D0D1A;   /* base - matches CLAUDE.md spec */
   --mdd-bg-soft:       #121224;
-  --mdd-card:          #16162F;   /* one step up — Apple-flat layered */
+  --mdd-card:          #16162F;   /* one step up - Apple-flat layered */
   --mdd-card-alt:      #1B1B38;
   --mdd-card-elevated: #1F1F40;   /* modals / hover */
   --mdd-ink:           #F1F5F9;
@@ -271,14 +271,14 @@ body {
   color-scheme: dark;
 }
 
-/* Smooth theme switch — apply only to the body and explicit surfaces so we
+/* Smooth theme switch - apply only to the body and explicit surfaces so we
    don't accidentally override Framer Motion's transform/opacity timings. */
 html, body {
   transition: background-color 220ms ease, color 220ms ease;
 }
 
 /* ────────────────────────────────────────────────────────────────────────
-   DARK MODE OVERRIDES — target the inline-style hex values used throughout
+   DARK MODE OVERRIDES - target the inline-style hex values used throughout
    the app via CSS attribute selectors. We keep brand accent colors (BLUE,
    GREEN, RED, currency purple/blue) intact so visual identity survives.
    ──────────────────────────────────────────────────────────────────────── */
@@ -289,7 +289,7 @@ html[data-theme="dark"] body {
   color: var(--mdd-ink) !important;
 }
 
-/* Page outer wrappers — match any inline style mentioning #F5F5F7 */
+/* Page outer wrappers - match any inline style mentioning #F5F5F7 */
 html[data-theme="dark"] [style*="#F5F5F7"],
 html[data-theme="dark"] [style*="#F5F8FF"],
 html[data-theme="dark"] [style*="#FAFAFB"] {
@@ -381,7 +381,7 @@ html[data-theme="dark"] [style*="background: white"] {
   border-top-color: rgba(255,255,255,0.08) !important;
 }
 
-/* Soft pastel pill backgrounds — keep contextual color but dim the bg */
+/* Soft pastel pill backgrounds - keep contextual color but dim the bg */
 [data-theme="dark"] [style*="background:#E5F0FD"],
 [data-theme="dark"] [style*="background: #E5F0FD"] {
   background: rgba(0,113,227,0.15) !important;
@@ -409,7 +409,7 @@ html[data-theme="dark"] [style*="background: white"] {
   box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.06) !important;
 }
 
-/* Loading state script-injected colors don't match attribute selectors —
+/* Loading state script-injected colors don't match attribute selectors -
    handle via element-type rules. */
 [data-theme="dark"] kbd {
   background: var(--mdd-input) !important;
@@ -417,12 +417,12 @@ html[data-theme="dark"] [style*="background: white"] {
   box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 1px 0 rgba(255,255,255,0.04) !important;
 }
 
-/* Skeleton rows look fine in dark with their own gradient — but lighten base */
+/* Skeleton rows look fine in dark with their own gradient - but lighten base */
 [data-theme="dark"] [style*="linear-gradient(90deg, #ECECEE"] {
   background: linear-gradient(90deg, #1E1E3F 0%, #2A2A4E 50%, #1E1E3F 100%) !important;
 }
 
-/* Devnet pill on landing — keep the live dot but lighten label */
+/* Devnet pill on landing - keep the live dot but lighten label */
 [data-theme="dark"] [style*="color:#0A7A2D"],
 [data-theme="dark"] [style*="color: #0A7A2D"] { color: #34C759 !important; }
 [data-theme="dark"] [style*="color:#A81C13"],
@@ -432,7 +432,7 @@ html[data-theme="dark"] [style*="background: white"] {
 [data-theme="dark"] [style*="color:#0050A0"],
 [data-theme="dark"] [style*="color: #0050A0"] { color: #6CB2FF !important; }
 
-/* Footer brand block — black bg becomes lighter so logo dot is visible */
+/* Footer brand block - black bg becomes lighter so logo dot is visible */
 [data-theme="dark"] [style*="background:#1D1D1F"],
 [data-theme="dark"] [style*="background: #1D1D1F"] {
   background: #2A2A45 !important;
@@ -453,12 +453,12 @@ html[data-theme="dark"] [style*="background: white"] {
 [data-theme="dark"] [style*="rgba(0,0,0,0.07)"],
 [data-theme="dark"] [style*="rgba(0,0,0,0.08)"],
 [data-theme="dark"] [style*="rgba(0,0,0,0.10)"] {
-  /* Override inherent borders — only safe when these patterns are borders;
+  /* Override inherent borders - only safe when these patterns are borders;
      box-shadows below get their own overrides. Use a generic light tint. */
   border-color: var(--mdd-border) !important;
 }
 
-/* Shadow refinements — dark cards need stronger drop, no white halo */
+/* Shadow refinements - dark cards need stronger drop, no white halo */
 [data-theme="dark"] [style*="box-shadow:0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)"],
 [data-theme="dark"] [style*="boxShadow:0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)"],
 [data-theme="dark"] [style*="box-shadow: 0 1px 3px rgba(0,0,0,0.04)"],
@@ -472,7 +472,7 @@ html[data-theme="dark"] [style*="background: white"] {
   box-shadow: var(--mdd-shadow-elev) !important;
 }
 
-/* Dashed borders inside DemoBoard — soften */
+/* Dashed borders inside DemoBoard - soften */
 [data-theme="dark"] [style*="dashed #D1D1D6"],
 [data-theme="dark"] [style*="border:1.5px dashed #D1D1D6"] {
   border-color: rgba(255,255,255,0.12) !important;
@@ -504,7 +504,7 @@ html[data-theme="dark"] [style*="background: white"] {
   background: var(--mdd-border-strong) !important;
 }
 
-/* Mode card visuals are dark gradients already — leave them. But the
+/* Mode card visuals are dark gradients already - leave them. But the
    description block under mode cards uses #fff (handled), and the tag
    pill pastels (handled). */
 
@@ -518,7 +518,7 @@ html[data-theme="dark"] [style*="background: white"] {
   background: #2A2A45 !important;
 }
 
-/* Wallet chip stays dark in both themes — explicit override to keep it
+/* Wallet chip stays dark in both themes - explicit override to keep it
    visually distinctive (it's already a black pill). Use a lighter shade
    in dark mode so the gradient avatar stays visible. */
 [data-theme="dark"] .wallet-chip {
@@ -528,18 +528,18 @@ html[data-theme="dark"] [style*="background: white"] {
 
 /* Faucet pill gradient brightens up nicely in dark; do nothing. */
 
-/* Modal & ConfirmDialog — make sure the inner card uses elevated surface */
+/* Modal & ConfirmDialog - make sure the inner card uses elevated surface */
 [data-theme="dark"] [role="dialog"],
 [data-theme="dark"] [role="alertdialog"] {
   background: var(--mdd-card-elevated) !important;
 }
 
-/* Modal backdrop — slightly stronger to feel like depth in dark */
+/* Modal backdrop - slightly stronger to feel like depth in dark */
 [data-theme="dark"] [style*="rgba(0,0,0,0.45)"] {
   background-color: rgba(0,0,0,0.65) !important;
 }
 
-/* Toast colored backgrounds — already handled by theme tokens via the
+/* Toast colored backgrounds - already handled by theme tokens via the
    ToastProvider component. (uses Tailwind dark via bg-bg-elevated, fine.) */
 
 /* Skeleton: in dark, base color shifts to elevated surface so animation
@@ -549,26 +549,26 @@ html[data-theme="dark"] [style*="background: white"] {
   background-size: 300% 100% !important;
 }
 
-/* Game board cells — keep their distinct colors but adjust empty state */
+/* Game board cells - keep their distinct colors but adjust empty state */
 [data-theme="dark"] [style*="background:#FAFAFA"],
 [data-theme="dark"] [style*="background: #FAFAFA"] {
   background: var(--mdd-card-alt) !important;
 }
 
-/* Trivia card option button (white card with shadow) — already handled */
+/* Trivia card option button (white card with shadow) - already handled */
 
-/* Result page confetti pieces — keep brand colors */
+/* Result page confetti pieces - keep brand colors */
 
-/* Bottom tab active indicator — use ink color which becomes light */
+/* Bottom tab active indicator - use ink color which becomes light */
 [data-theme="dark"] .bottom-tab-bar [style*="color:#0071E3"] {
   /* keep BLUE active accent */
 }
 
-/* Preserve gradient buttons (BLUE, GREEN, CELO gradients) — they
+/* Preserve gradient buttons (BLUE, GREEN, CELO gradients) - they
    already have explicit gradient backgrounds that don't match our generic
    #fff/F5F5F7 selectors. Nothing to do here. */
 
-/* Tailwind utility classes that hardcode colors — override in dark theme */
+/* Tailwind utility classes that hardcode colors - override in dark theme */
 [data-theme="dark"] .bg-white { background-color: var(--mdd-card) !important; }
 [data-theme="dark"] .bg-bg-base { background: var(--mdd-bg) !important; }
 [data-theme="dark"] .bg-bg-surface { background: var(--mdd-card) !important; }
@@ -628,7 +628,7 @@ html[data-theme="dark"] [style*="background: white"] {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   GLASS DESIGN SYSTEM — Apple-style morphism
+   GLASS DESIGN SYSTEM - Apple-style morphism
    Smooth, layered frosted surfaces with inner highlights & ambient glow.
    Light: bright frost  |  Dark: deep indigo glass with violet ambient.
 ═══════════════════════════════════════════════════════════════════════ */
@@ -704,7 +704,7 @@ html[data-theme="dark"] [style*="background: white"] {
   border-radius: 24px;
 }
 
-/* ── Tinted glass — accent color ─────────────────────────────────── */
+/* ── Tinted glass - accent color ─────────────────────────────────── */
 .glass-blue {
   background: rgba(0, 113, 227, 0.06);
   backdrop-filter: blur(16px) saturate(1.6);
@@ -910,13 +910,13 @@ html[data-theme="dark"] [style*="background: white"] {
   /* Tighter padding */
   .lb-table-row { padding-left: 14px !important; padding-right: 14px !important; }
 
-  /* Podium — smaller padding & font on mobile */
+  /* Podium - smaller padding & font on mobile */
   .lb-podium      { gap: 8px !important; }
   .lb-podium-card { padding: 14px 8px 16px !important; }
   .lb-podium-card .ident-3 { display: none; }
 }
 
-/* Very narrow — stack 2nd/3rd row, 1st on top? Keep horizontal but compact further */
+/* Very narrow - stack 2nd/3rd row, 1st on top? Keep horizontal but compact further */
 @media (max-width: 419px) {
   .lb-podium-card { padding: 12px 6px 14px !important; gap: 6px !important; }
 }

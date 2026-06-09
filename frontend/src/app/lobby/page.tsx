@@ -320,7 +320,7 @@ export default function LobbyPage() {
     if (!isOnline) return 'You’re offline. Reconnect to continue.'
     if (cats.length === 0) return 'Pick at least one trivia category to start.'
     if (isVsAI) return null
-    // Ranked records results for the connected address — require a wallet.
+    // Ranked records results for the connected address - require a wallet.
     if (ranked && !isConnected) return 'Connect your wallet to play Ranked.'
     return null
   }
@@ -417,14 +417,14 @@ export default function LobbyPage() {
       }
       // Ranked matches require a connected wallet to record the joiner's result.
       if (result.ranked && !isConnected) {
-        setJoinError('This is a Ranked match — connect your wallet to join.')
+        setJoinError('This is a Ranked match - connect your wallet to join.')
         toast('Connect your wallet to join a Ranked match.', 'warning')
         setJoining(false)
         return
       }
       // Self-join check
       if (result.playerOne && address && result.playerOne === address) {
-        setJoinError('You created this match — share the code instead.')
+        setJoinError('You created this match - share the code instead.')
         setJoining(false)
         return
       }
@@ -439,7 +439,7 @@ export default function LobbyPage() {
       // category pool, rather than each using their own stale sessionStorage value.
       sessionStorage.setItem('mddDifficulty', result.difficulty ?? difficulty)
       // Inherit creator's categories (BE returns them in joinByCode response).
-      // The joiner's own picks are ignored here — both players must use the
+      // The joiner's own picks are ignored here - both players must use the
       // same trivia pool, otherwise each side fetches different categories.
       const inheritedCats = result.categories?.length ? result.categories : cats
       sessionStorage.setItem('mddCategories', JSON.stringify(inheritedCats))
@@ -488,7 +488,7 @@ export default function LobbyPage() {
       return
     }
 
-    // Player 1 path: waiting in queue — poll until an opponent claims us.
+    // Player 1 path: waiting in queue - poll until an opponent claims us.
     pollRef.current = setInterval(async () => {
       try {
         const found = await getMatchForPlayer(playerId)
@@ -498,7 +498,7 @@ export default function LobbyPage() {
           // Overwrite with the merged categories the backend resolved when
           // matching the two players. Without this, P1 only ever uses their
           // own unmerged category list and may receive a different question
-          // pool than P2 — causing both players to see questions from
+          // pool than P2 - causing both players to see questions from
           // different (and unexpected) categories.
           if (found.categories && found.categories.length > 0) {
             sessionStorage.setItem('mddCategories', JSON.stringify(found.categories))
@@ -528,7 +528,7 @@ export default function LobbyPage() {
     setMatchmaking(false)
     setMatchmakingPhase('idle')
     // Best-effort: tell BE to drop us from the queue so we don't take a slot
-    // a real player could have. Failure is non-fatal — BE GC eventually evicts.
+    // a real player could have. Failure is non-fatal - BE GC eventually evicts.
     void leaveQueue(resolvePlayerId())
   }
 
@@ -620,7 +620,7 @@ export default function LobbyPage() {
               <div>
                 <div style={{ fontSize: 12, color: MUTED, marginBottom: 4, fontWeight: 500 }}>Active matches right now</div>
                 <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -1, lineHeight: 1, color: INK, fontVariantNumeric: 'tabular-nums' }}>
-                  {liveStats === null ? '—' : liveStats.activeMatches + liveStats.waitingMatches}
+                  {liveStats === null ? '-' : liveStats.activeMatches + liveStats.waitingMatches}
                 </div>
                 {liveStats !== null && liveStats.queueLength > 0 && (
                   <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>{liveStats.queueLength} in queue</div>
@@ -631,7 +631,7 @@ export default function LobbyPage() {
                 <div style={{ fontSize: 12, color: MUTED, marginBottom: 6, fontWeight: 500 }}>Ranked matches · last 24h</div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontVariantNumeric: 'tabular-nums' }}>
                   <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.6, lineHeight: 1.1, color: BLUE }}>
-                    {liveStats === null ? '—' : liveStats.rankedLast24h}
+                    {liveStats === null ? '-' : liveStats.rankedLast24h}
                   </span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: BLUE, letterSpacing: 0.3 }}>RANKED</span>
                 </div>
@@ -641,7 +641,7 @@ export default function LobbyPage() {
                 <div style={{ fontSize: 12, color: MUTED, marginBottom: 6, fontWeight: 500 }}>Ranked players on the ladder</div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontVariantNumeric: 'tabular-nums' }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>
-                    {liveStats === null ? '—' : liveStats.playersRanked}
+                    {liveStats === null ? '-' : liveStats.playersRanked}
                   </span>
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 0.3 }}>PLAYERS</span>
                 </div>
@@ -665,7 +665,7 @@ export default function LobbyPage() {
       {networkCheck.status === 'wrong-network' && (
         <div style={{ background: '#FDECEB', borderBottom: '1px solid #F5C2C0', padding: '10px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#A81C13' }}>
-            ⚠ Switch your wallet to <strong>Celo</strong> — ranked results are recorded on the Celo network.
+            ⚠ Switch your wallet to <strong>Celo</strong> - ranked results are recorded on the Celo network.
           </span>
         </div>
       )}
@@ -696,7 +696,7 @@ export default function LobbyPage() {
             </button>
           </div>
           <p style={{ fontSize: 15, color: MUTED, margin: 0, lineHeight: 1.4 }}>
-            Configure your duel — pick a mode, go Casual or climb the Ranked ladder, choose what you know.
+            Configure your duel - pick a mode, go Casual or climb the Ranked ladder, choose what you know.
           </p>
         </motion.div>
 
@@ -752,7 +752,7 @@ export default function LobbyPage() {
                             WebkitBackdropFilter: 'blur(12px)',
                           }}
                         >
-                          {/* Tag pill on top — own row, no overlap with title */}
+                          {/* Tag pill on top - own row, no overlap with title */}
                           <span style={{
                             alignSelf: 'flex-start',
                             padding: '3px 8px', borderRadius: 999,
@@ -760,7 +760,7 @@ export default function LobbyPage() {
                             background: d.tagBg, color: d.tagColor,
                           }}>{d.tag}</span>
 
-                          {/* Title — own row */}
+                          {/* Title - own row */}
                           <span style={{
                             fontSize: 14, fontWeight: 700,
                             color: active ? BLUE : INK,
@@ -784,7 +784,7 @@ export default function LobbyPage() {
             )}
           </AnimatePresence>
 
-          {/* Match Type — Casual vs Ranked */}
+          {/* Match Type - Casual vs Ranked */}
           <AnimatePresence>
             {!isVsAI && (
               <motion.div key="matchtype" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.28 }} style={{ overflow: 'hidden' }}>
@@ -793,7 +793,7 @@ export default function LobbyPage() {
                   <MatchTypeToggle value={matchType} onChange={setMatchType} rankedDisabled={!isConnected} />
                   <p style={{ margin: '12px 2px 0', fontSize: 12, color: MUTED, lineHeight: 1.5 }}>
                     {matchType === 'ranked'
-                      ? 'Ranked results are recorded on-chain — winning adds points, losing subtracts them. No tokens are staked.'
+                      ? 'Ranked results are recorded on-chain - winning adds points, losing subtracts them. No tokens are staked.'
                       : 'Casual matches are just for fun and never affect your on-chain ranking.'}
                     {matchType === 'ranked' && !isConnected && (
                       <span style={{ display: 'block', marginTop: 4, color: '#8A5A00', fontWeight: 500 }}>
@@ -889,11 +889,11 @@ export default function LobbyPage() {
           )}
           {isVsAI && (
             <p style={{ textAlign: 'center', fontSize: 12, color: MUTED, marginTop: -8 }}>
-              Practice mode — casual, never ranked. No wallet required.
+              Practice mode - casual, never ranked. No wallet required.
             </p>
           )}
 
-          {/* Mobile-only: Join with Code — below action buttons */}
+          {/* Mobile-only: Join with Code - below action buttons */}
           <div className="lg:hidden" style={{ display: 'flex', flexDirection: 'column' }}>
             <Card>
               <SectionTitle>Join with Code</SectionTitle>
@@ -938,7 +938,7 @@ export default function LobbyPage() {
             <div>
               <div style={{ fontSize: 12, color: MUTED, marginBottom: 4, fontWeight: 500 }}>Active matches right now</div>
               <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -1, lineHeight: 1, color: INK, fontVariantNumeric: 'tabular-nums' }}>
-                {liveStats === null ? '—' : liveStats.activeMatches + liveStats.waitingMatches}
+                {liveStats === null ? '-' : liveStats.activeMatches + liveStats.waitingMatches}
               </div>
               {liveStats !== null && liveStats.queueLength > 0 && (
                 <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>{liveStats.queueLength} in queue</div>
@@ -949,7 +949,7 @@ export default function LobbyPage() {
               <div style={{ fontSize: 12, color: MUTED, marginBottom: 6, fontWeight: 500 }}>Ranked matches · last 24h</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontVariantNumeric: 'tabular-nums' }}>
                 <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.6, lineHeight: 1.1, color: BLUE }}>
-                  {liveStats === null ? '—' : liveStats.rankedLast24h}
+                  {liveStats === null ? '-' : liveStats.rankedLast24h}
                 </span>
                 <span style={{ fontSize: 11, fontWeight: 700, color: BLUE, letterSpacing: 0.3 }}>RANKED</span>
               </div>
@@ -959,7 +959,7 @@ export default function LobbyPage() {
               <div style={{ fontSize: 12, color: MUTED, marginBottom: 6, fontWeight: 500 }}>Ranked players on the ladder</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontVariantNumeric: 'tabular-nums' }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>
-                  {liveStats === null ? '—' : liveStats.playersRanked}
+                  {liveStats === null ? '-' : liveStats.playersRanked}
                 </span>
                 <span style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 0.3 }}>PLAYERS</span>
               </div>

@@ -166,7 +166,7 @@ export default function SpectatePage({ params }: { params: { matchId: string } }
 
             <p style={{ textAlign: 'center', fontSize: 11.5, color: MUTED, marginTop: 18, lineHeight: 1.5 }}>
               You&apos;re watching this duel as a spectator. You can&apos;t make moves.<br />
-              Share this URL — anyone can watch live, no wallet required.
+              Share this URL - anyone can watch live, no wallet required.
             </p>
           </>
         )}
