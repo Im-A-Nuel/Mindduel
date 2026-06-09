@@ -4,6 +4,20 @@ const nextConfig = {
   images: {
     domains: [],
   },
+  // wagmi's connector barrel pulls in MetaMask/WalletConnect/Coinbase SDKs that
+  // optionally require React-Native / Node-only modules we never use on web
+  // (we only use the `injected` connector). Stub them so the bundle builds
+  // clean without "Module not found" noise.
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      '@react-native-async-storage/async-storage': false,
+      'pino-pretty': false,
+      lokijs: false,
+      encoding: false,
+    }
+    return config
+  },
   async headers() {
     return [
       {
