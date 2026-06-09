@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { PROGRAM_ID } from '@/lib/constants'
+import { RANKING_CONTRACT_ADDRESS, CELO_EXPLORER } from '@/lib/constants'
 
 /**
  * Routes where the footer is hidden — full-screen / immersive surfaces
@@ -17,11 +17,11 @@ const FAINT      = 'var(--mdd-faint)'
 const GREEN  = '#34C759'
 const BLUE   = '#0071E3'
 
-const REPO_URL = 'https://github.com/im-f-nuel/MinDDuel'
+const REPO_URL = 'https://github.com/Im-A-Nuel/Mindduel'
 const DOCS_URL = 'https://mindduel.gitbook.io/mindduel-docs'
 
 function shortPk(pk: string): string {
-  return pk.slice(0, 4) + '…' + pk.slice(-4)
+  return pk.slice(0, 6) + '…' + pk.slice(-4)
 }
 
 export function Footer() {
@@ -57,23 +57,25 @@ export function Footer() {
           <Image src="/icon-192.png" alt="MindDuel" width={22} height={22} style={{ borderRadius: 6 }} />
           <span style={{ fontWeight: 600, color: INK, fontSize: 13 }}>MindDuel</span>
           <span style={{ color: FAINT }}>·</span>
-          <span>Trivia-gated PvP TTT on Solana</span>
+          <span>Trivia-gated PvP TTT on Celo</span>
         </div>
 
         {/* Middle: deployment info */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, background: '#E8F7EE', color: '#0A7A2D', fontSize: 11, fontWeight: 600 }}>
             <span style={{ width: 6, height: 6, borderRadius: 3, background: GREEN, animation: 'liveDotPulse 1.6s ease-in-out infinite' }} />
-            Solana Devnet
+            Celo Mainnet
           </span>
-          <a
-            href={`https://explorer.solana.com/address/${PROGRAM_ID}?cluster=devnet`}
-            target="_blank" rel="noopener noreferrer"
-            title="View program on Solana Explorer"
-            style={{ color: MUTED, textDecoration: 'none', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 11.5 }}
-          >
-            Program {shortPk(PROGRAM_ID)} ↗
-          </a>
+          {RANKING_CONTRACT_ADDRESS && (
+            <a
+              href={`${CELO_EXPLORER}/address/${RANKING_CONTRACT_ADDRESS}`}
+              target="_blank" rel="noopener noreferrer"
+              title="View MindDuelRanking on Celoscan"
+              style={{ color: MUTED, textDecoration: 'none', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 11.5 }}
+            >
+              Contract {shortPk(RANKING_CONTRACT_ADDRESS)} ↗
+            </a>
+          )}
         </div>
 
         {/* Right: links */}

@@ -2,13 +2,15 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useWallet } from '@/hooks/useWallet'
+import { useRanking } from '@/hooks/useRanking'
 import { NavBar } from '@/components/layout/NavBar'
 import { EditProfileModal, EditableProfile } from '@/components/profile/EditProfileModal'
 import { fetchBadges, fetchHistory, type BadgeRow, type HistoryEntry } from '@/lib/api'
 import { SkeletonBadgeGrid } from '@/components/ui/SkeletonRow'
 import { useToast } from '@/components/ui/Toast'
 import { IconFlame, IconMedal, StateIconWallet } from '@/components/ui/StateIcons'
+import { CELO_EXPLORER, RANK_TIERS, START_POINTS, tierForPoints } from '@/lib/constants'
 
 const PROFILE_STORAGE_PREFIX = 'mddProfile:'
 
@@ -40,16 +42,16 @@ const GREEN_DARK = '#0A7A2D'
 const RED        = '#FF3B30'
 const BG = 'var(--mdd-bg)'
 
-type Tab = 'badges' | 'history' | 'earnings'
+type Tab = 'badges' | 'history' | 'ranking'
 
 const PROFILE = {
   addr:   '—',
   seed:   'default',
   joined: '—',
   wins:   0,
+  losses: 0,
+  draws:  0,
   rate:   0,
-  sol:    0,
-  usdc:   0,
   streak: 0,
   best:   0,
 }
@@ -83,26 +85,6 @@ function shortAddr(addr: string | null): string {
   return addr.slice(0, 4) + '…' + addr.slice(-4)
 }
 
-function computeEarningsData(rows: HistoryEntry[], currency: 'sol' | 'usdc'): number[] {
-  const relevant = rows.filter(
-    r => r.currency === currency && r.finishedAt != null && r.delta > 0,
-  )
-  const dayMap = new Map<string, number>()
-  for (const r of relevant) {
-    const day = new Date(toMs(r.finishedAt!)).toDateString()
-    dayMap.set(day, (dayMap.get(day) ?? 0) + r.delta)
-  }
-  const now = Date.now()
-  const points: number[] = []
-  let cumulative = 0
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now - i * 86_400_000).toDateString()
-    cumulative += dayMap.get(d) ?? 0
-    points.push(cumulative)
-  }
-  return points
-}
-
 // ── Identicon ─────────────────────────────────────────────────────────
 function Identicon({ seed, size = 56, radius = 14 }: { seed: string; size?: number; radius?: number }) {
   const { cells, color1, color2 } = useMemo(() => {
@@ -133,54 +115,49 @@ function Identicon({ seed, size = 56, radius = 14 }: { seed: string; size?: numb
   )
 }
 
-// ── Earnings chart ────────────────────────────────────────────────────
-function EarningsChart({ accent = BLUE, data }: { accent?: string; data: number[] }) {
-  const hasData = data.some(v => v > 0)
-  if (!hasData) {
-    return (
-      <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED, fontSize: 13 }}>
-        No earnings in the last 30 days
-      </div>
-    )
-  }
-
-  const W = 620, H = 220
-  const padL = 40, padR = 16, padT = 16, padB = 28
-  const min = Math.min(...data) * 0.9
-  const max = Math.max(...data) * 1.05 || 1
-  const xStep = (W - padL - padR) / (data.length - 1)
-  const yScale = (v: number) => padT + (H - padT - padB) * (1 - (v - min) / (max - min))
-  const pts = data.map((v, i) => [padL + i * xStep, yScale(v)] as [number, number])
-  const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')
-  const areaD = pathD + ` L ${pts[pts.length - 1][0].toFixed(1)} ${H - padB} L ${padL} ${H - padB} Z`
-  const ticks = [min, (min + max) / 2, max].map(v => ({ v, y: yScale(v) }))
-  const xLabels = [{ i: 0, label: '30d ago' }, { i: 14, label: '15d' }, { i: 29, label: 'Today' }]
-  const gradientId = `areaGrad-${accent.replace(/[^a-z0-9]/gi, '')}`
-
+// ── Rank ladder ───────────────────────────────────────────────────────
+function RankLadder({ points }: { points: number }) {
+  const current = tierForPoints(points)
   return (
-    <svg width={W} height={H} style={{ display: 'block', maxWidth: '100%' }}>
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={accent} stopOpacity="0.22"/>
-          <stop offset="100%" stopColor={accent} stopOpacity="0"/>
-        </linearGradient>
-      </defs>
-      {ticks.map((t, i) => (
-        <text key={i} x={padL - 8} y={t.y + 4} fontSize="10" fill="#AEAEB2" textAnchor="end" fontFamily="system-ui, sans-serif" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.v.toFixed(2)}</text>
-      ))}
-      {xLabels.map((t, i) => (
-        <text key={i} x={padL + t.i * xStep} y={H - 8} fontSize="10" fill="#AEAEB2" textAnchor="middle" fontFamily="system-ui, sans-serif">{t.label}</text>
-      ))}
-      <path d={areaD} fill={`url(#${gradientId})`} />
-      <path d={pathD} fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="4" fill="var(--mdd-card)" stroke={accent} strokeWidth="2"/>
-    </svg>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {[...RANK_TIERS].reverse().map(t => {
+        const active = t.id === current.id
+        const reached = points >= t.min
+        return (
+          <div
+            key={t.id}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14,
+              padding: '14px 18px', borderRadius: 16,
+              background: active ? 'var(--mdd-bg-soft)' : 'transparent',
+              border: active ? `1.5px solid ${t.color}` : '0.5px solid rgba(0,0,0,0.06)',
+              opacity: reached ? 1 : 0.5,
+            }}
+          >
+            <span style={{ width: 14, height: 14, borderRadius: 7, background: t.color, flexShrink: 0, boxShadow: active ? `0 0 0 4px ${t.color}33` : 'none' }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: INK }}>{t.label}</div>
+              <div style={{ fontSize: 12, color: MUTED, marginTop: 1 }}>{t.min}+ points</div>
+            </div>
+            {active && (
+              <span style={{ padding: '3px 10px', borderRadius: 999, background: t.color, color: '#fff', fontSize: 11, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                {points} pts
+              </span>
+            )}
+            {!active && reached && (
+              <span style={{ fontSize: 12, fontWeight: 600, color: GREEN_DARK }}>✓</span>
+            )}
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
 // ── Page ──────────────────────────────────────────────────────────────
 export default function ProfilePage() {
-  const { publicKey } = useWallet()
+  const { address } = useWallet()
+  const { ranking } = useRanking(address)
   const toast = useToast()
   const [tab, setTab]     = useState<Tab>('history')
   const [profile, setProfile] = useState(PROFILE)
@@ -191,16 +168,24 @@ export default function ProfilePage() {
   const [historyRows, setHistoryRows] = useState<HistoryEntry[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
 
-  const walletAddr = publicKey?.toBase58()
+  const walletAddr = address
   const defaultSeed = walletAddr ? walletAddr.slice(0, 10) : PROFILE.seed
 
+  // On-chain ranking drives the headline stats; fall back to defaults pre-connect.
+  const points = ranking?.points ?? START_POINTS
+  const tier   = tierForPoints(points)
+  const wins   = ranking?.wins ?? profile.wins
+  const losses = ranking?.losses ?? profile.losses
+  const draws  = ranking?.draws ?? profile.draws
+  const totalRanked = wins + losses + draws
+  const winRate = totalRanked > 0 ? Math.round((wins / totalRanked) * 100) : 0
+
   useEffect(() => {
-    if (!publicKey) return
-    const addr = publicKey.toBase58()
-    const short = addr.slice(0, 6) + '…' + addr.slice(-4)
-    setProfile(p => ({ ...p, addr: short, seed: addr.slice(0, 10) }))
-    setEditable(loadStoredProfile(addr, addr.slice(0, 10)))
-  }, [publicKey])
+    if (!address) return
+    const short = address.slice(0, 6) + '…' + address.slice(-4)
+    setProfile(p => ({ ...p, addr: short, seed: address.slice(0, 10) }))
+    setEditable(loadStoredProfile(address, address.slice(0, 10)))
+  }, [address])
 
   function handleSaveProfile(next: EditableProfile) {
     setEditable(next)
@@ -221,11 +206,11 @@ export default function ProfilePage() {
     return () => { cancelled = true }
   }, [walletAddr])
 
-  // Fetch match history — drives both the stats sidebar and the History/Earnings tabs
+  // Fetch match history — drives the History tab + streaks + joined date.
   useEffect(() => {
     if (!walletAddr) {
       setHistoryRows([])
-      setProfile(p => ({ ...p, wins: 0, rate: 0, sol: 0, usdc: 0, streak: 0, best: 0 }))
+      setProfile(p => ({ ...p, wins: 0, losses: 0, draws: 0, rate: 0, streak: 0, best: 0 }))
       return
     }
     let cancelled = false
@@ -237,9 +222,9 @@ export default function ProfilePage() {
 
         const finished = rows.filter(r => r.result === 'win' || r.result === 'loss' || r.result === 'draw')
         const total    = finished.length
-        const wins     = finished.filter(r => r.result === 'win').length
-        const solEarned  = finished.filter(r => r.result === 'win' && r.currency === 'sol' ).reduce((s, r) => s + Math.max(0, r.delta), 0)
-        const usdcEarned = finished.filter(r => r.result === 'win' && r.currency === 'usdc').reduce((s, r) => s + Math.max(0, r.delta), 0)
+        const w        = finished.filter(r => r.result === 'win').length
+        const l        = finished.filter(r => r.result === 'loss').length
+        const d        = finished.filter(r => r.result === 'draw').length
 
         // history ordered newest-first
         let streak = 0
@@ -259,10 +244,8 @@ export default function ProfilePage() {
 
         setProfile(p => ({
           ...p,
-          wins,
-          rate:   total > 0 ? Math.round((wins / total) * 100) : 0,
-          sol:    parseFloat(solEarned.toFixed(3)),
-          usdc:   parseFloat(usdcEarned.toFixed(2)),
+          wins: w, losses: l, draws: d,
+          rate:   total > 0 ? Math.round((w / total) * 100) : 0,
           streak, best,
           joined: oldestTs ? joinedLabel(oldestTs) : p.joined,
         }))
@@ -271,9 +254,6 @@ export default function ProfilePage() {
       .finally(() => { if (!cancelled) setHistoryLoading(false) })
     return () => { cancelled = true }
   }, [walletAddr])
-
-  const solEarningsData  = useMemo(() => computeEarningsData(historyRows, 'sol'),  [historyRows])
-  const usdcEarningsData = useMemo(() => computeEarningsData(historyRows, 'usdc'), [historyRows])
 
   return (
     <div style={{ minHeight: '100vh', background: BG, fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif", color: INK }}>
@@ -311,10 +291,17 @@ export default function ProfilePage() {
                 </p>
               )}
 
-              <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 11px', borderRadius: 999, background: `${tier.color}1A`, color: tier.color, fontSize: 12, fontWeight: 700 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 4, background: tier.color }} />
+                  {tier.label} · {points} pts
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, background: '#E8F7EE', color: GREEN_DARK, fontSize: 11, fontWeight: 600 }}>
                   <span style={{ width: 6, height: 6, borderRadius: 3, background: GREEN }} />
-                  Solana Devnet
+                  Celo
                 </span>
                 <span style={{ padding: '3px 9px', borderRadius: 999, background: 'var(--mdd-bg)', color: MUTED, fontSize: 11, fontWeight: 600 }}>
                   Joined {profile.joined}
@@ -324,10 +311,10 @@ export default function ProfilePage() {
               {/* Stats list */}
               <div style={{ width: '100%', marginTop: 22, paddingTop: 18, borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {[
-                  { label: 'Total Wins',      value: String(profile.wins),        color: INK },
-                  { label: 'Win Rate',        value: `${profile.rate}%`,          color: BLUE },
-                  { label: 'SOL Earned',      value: `${profile.sol.toFixed(2)} SOL`,  color: '#9945FF' },
-                  { label: 'USDC Earned',     value: `${(profile.usdc ?? 0).toFixed(2)} USDC`, color: '#2775CA' },
+                  { label: 'Rank Points',     value: `${points}`,                 color: tier.color },
+                  { label: 'Wins / Losses',   value: `${wins} / ${losses}`,       color: INK },
+                  { label: 'Draws',           value: String(draws),               color: MUTED },
+                  { label: 'Win Rate',        value: `${winRate}%`,               color: BLUE },
                   { label: 'Current Streak',  value: profile.streak > 0 ? `${profile.streak} wins` : '—', color: '#FF6A00', flame: profile.streak > 0 },
                   { label: 'Best Streak',     value: `${profile.best} wins`,      color: INK },
                 ].map(s => (
@@ -383,7 +370,7 @@ export default function ProfilePage() {
           >
             {/* Tab control */}
             <div style={{ display: 'flex', gap: 4, padding: 4, background: 'rgba(0,0,0,0.05)', borderRadius: 10, width: 'fit-content' }}>
-              {([['badges', 'Badges'], ['history', 'Match History'], ['earnings', 'Earnings']] as [Tab, string][]).map(([id, label]) => (
+              {([['badges', 'Badges'], ['history', 'Match History'], ['ranking', 'Ranking']] as [Tab, string][]).map(([id, label]) => (
                 <button
                   key={id}
                   onClick={() => setTab(id)}
@@ -402,8 +389,8 @@ export default function ProfilePage() {
                   style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '26px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 22 }}>
-                    <span style={{ fontSize: 16, fontWeight: 700 }}>NFT Achievements</span>
-                    <span style={{ fontSize: 12, color: MUTED }}>{badges.length} earned · soulbound</span>
+                    <span style={{ fontSize: 16, fontWeight: 700 }}>Achievements</span>
+                    <span style={{ fontSize: 12, color: MUTED }}>{badges.length} earned</span>
                   </div>
 
                   {!walletAddr ? (
@@ -418,19 +405,16 @@ export default function ProfilePage() {
                       <IconMedal size={24} />
                       <div style={{ fontSize: 14, fontWeight: 600 }}>No badges yet</div>
                       <div style={{ fontSize: 12.5, color: MUTED, marginTop: 4, maxWidth: 340, margin: '4px auto 0', lineHeight: 1.5 }}>
-                        Win your first match to earn the <strong>First Blood</strong> badge — minted as a soulbound NFT to your wallet.
+                        Win your first ranked match to earn the <strong>First Blood</strong> badge.
                       </div>
                     </div>
                   ) : (
                     <div className="badge-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px 14px' }}>
                       {badges.map(b => (
-                        <a
+                        <div
                           key={b.id}
-                          href={b.mintAddr ? `https://explorer.solana.com/address/${b.mintAddr}?cluster=devnet` : undefined}
-                          target="_blank"
-                          rel="noopener noreferrer"
                           title={b.description}
-                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit', cursor: b.mintAddr ? 'pointer' : 'default' }}
+                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
                         >
                           <div style={{ width: 72, height: 72, borderRadius: 18, position: 'relative', overflow: 'hidden', boxShadow: '0 6px 16px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.25)' }}>
                             {b.image && b.image.startsWith('data:') ? (
@@ -439,19 +423,14 @@ export default function ProfilePage() {
                             ) : (
                               <div style={{ width: '100%', height: '100%', background: '#9B5DE5' }} />
                             )}
-                            {b.status === 'pending' && (
-                              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <span style={{ fontSize: 9.5, fontWeight: 700, color: '#fff', letterSpacing: 0.5 }}>MINTING…</span>
-                              </div>
-                            )}
                           </div>
                           <div style={{ textAlign: 'center', lineHeight: 1.3 }}>
                             <div style={{ fontSize: 12.5, fontWeight: 600, color: INK }}>{b.name}</div>
                             <div style={{ fontSize: 10.5, color: MUTED, marginTop: 2 }}>
-                              {b.status === 'minted' ? 'On-chain ↗' : 'Pending mint'}
+                              {relativeTime(b.earnedAt)}
                             </div>
                           </div>
-                        </a>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -468,7 +447,7 @@ export default function ProfilePage() {
                   <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
                     <div style={{ width: 40, fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 }}>Result</div>
                     <div style={{ flex: 1, fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, paddingLeft: 12 }}>Opponent · Mode</div>
-                    <div style={{ width: 110, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 }}>Delta</div>
+                    <div style={{ width: 110, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 }}>Points</div>
                     <div style={{ width: 90, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 }}>When</div>
                   </div>
 
@@ -488,10 +467,16 @@ export default function ProfilePage() {
                     historyRows.map((m, i) => {
                       const isWin  = m.result === 'win'
                       const isDraw = m.result === 'draw'
-                      const label  = isWin ? 'W' : isDraw ? 'D' : 'L'
-                      const bg     = isWin ? '#E8F7EE' : isDraw ? '#E5F0FD' : '#FDECEB'
-                      const fg     = isWin ? '#0A7A2D' : isDraw ? BLUE : '#A81C13'
-                      const unit   = (m.currency ?? 'sol').toUpperCase()
+                      const isPending = m.result === 'pending'
+                      const label  = isPending ? '…' : isWin ? 'W' : isDraw ? 'D' : 'L'
+                      const bg     = isWin ? '#E8F7EE' : isDraw ? '#E5F0FD' : isPending ? '#FFF4E0' : '#FDECEB'
+                      const fg     = isWin ? '#0A7A2D' : isDraw ? BLUE : isPending ? '#8A5A00' : '#A81C13'
+                      const deltaColor = m.pointsDelta > 0 ? GREEN_DARK : m.pointsDelta < 0 ? RED : MUTED
+                      const deltaText  = isPending ? '—'
+                        : !m.ranked ? '0'
+                        : m.pointsDelta > 0 ? `+${m.pointsDelta}`
+                        : m.pointsDelta < 0 ? `−${Math.abs(m.pointsDelta)}`
+                        : '±0'
                       return (
                         <div
                           key={m.matchId}
@@ -505,11 +490,23 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           <div style={{ flex: 1, paddingLeft: 12 }}>
-                            <div style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 13.5, fontWeight: 600, color: INK }}>vs {shortAddr(m.opponent)}</div>
-                            <div style={{ fontSize: 12, color: MUTED, marginTop: 1 }}>{m.mode}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 13.5, fontWeight: 600, color: INK }}>vs {shortAddr(m.opponent)}</span>
+                              <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase', background: m.ranked ? '#E5F0FD' : 'var(--mdd-bg)', color: m.ranked ? BLUE : MUTED }}>
+                                {m.ranked ? 'Ranked' : 'Casual'}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: 12, color: MUTED, marginTop: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span>{m.mode}</span>
+                              {m.txHash && (
+                                <a href={`${CELO_EXPLORER}/tx/${m.txHash}`} target="_blank" rel="noopener noreferrer" style={{ color: BLUE, fontWeight: 600, textDecoration: 'none' }}>
+                                  Celoscan ↗
+                                </a>
+                              )}
+                            </div>
                           </div>
-                          <div style={{ width: 110, textAlign: 'right', fontSize: 14, fontWeight: 600, color: m.delta >= 0 ? GREEN_DARK : RED, fontVariantNumeric: 'tabular-nums' }}>
-                            {m.delta >= 0 ? `+${m.delta.toFixed(3)}` : `−${Math.abs(m.delta).toFixed(3)}`} {unit}
+                          <div style={{ width: 110, textAlign: 'right', fontSize: 14, fontWeight: 600, color: isPending || !m.ranked ? MUTED : deltaColor, fontVariantNumeric: 'tabular-nums' }}>
+                            {deltaText}{!isPending && m.ranked ? ' pts' : ''}
                           </div>
                           <div style={{ width: 90, textAlign: 'right', fontSize: 12.5, color: MUTED }}>{relativeTime(m.finishedAt ?? m.createdAt)}</div>
                         </div>
@@ -519,57 +516,35 @@ export default function ProfilePage() {
                 </motion.div>
               )}
 
-              {/* ── Earnings ────────────────────────────────────────── */}
-              {tab === 'earnings' && (
-                <motion.div key="earnings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }}
+              {/* ── Ranking ─────────────────────────────────────────── */}
+              {tab === 'ranking' && (
+                <motion.div key="ranking" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }}
                   style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
                 >
-                  {/* SOL panel */}
+                  {/* Headline */}
                   <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                      <div>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                          <span style={{ width: 16, height: 16, borderRadius: 8, background: 'linear-gradient(135deg, #9945FF, #14F195)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 700 }}>◎</span>
-                          SOL Earned
-                        </div>
-                        <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -1, marginTop: 6, fontVariantNumeric: 'tabular-nums', color: '#9945FF' }}>
-                          {profile.sol.toFixed(2)} <span style={{ fontSize: 16, color: MUTED, fontWeight: 600 }}>SOL</span>
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right', marginTop: 4 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: GREEN_DARK, fontVariantNumeric: 'tabular-nums' }}>
-                          {profile.sol > 0 ? `+${profile.sol.toFixed(3)}` : '0.000'} SOL
-                        </div>
-                        <div style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>All time</div>
-                      </div>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                      <span style={{ width: 16, height: 16, borderRadius: 8, background: tier.color, display: 'inline-block' }} />
+                      Current Rank
                     </div>
-                    <div style={{ marginLeft: -8 }}>
-                      <EarningsChart accent="#9945FF" data={solEarningsData} />
+                    <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -1, marginTop: 6, fontVariantNumeric: 'tabular-nums', color: tier.color }}>
+                      {tier.label} <span style={{ fontSize: 16, color: MUTED, fontWeight: 600 }}>· {points} pts</span>
                     </div>
+                    <div style={{ display: 'flex', gap: 18, marginTop: 14, flexWrap: 'wrap' }}>
+                      <div><div style={{ fontSize: 18, fontWeight: 700, color: GREEN_DARK }}>{wins}</div><div style={{ fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.3 }}>Wins</div></div>
+                      <div><div style={{ fontSize: 18, fontWeight: 700, color: RED }}>{losses}</div><div style={{ fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.3 }}>Losses</div></div>
+                      <div><div style={{ fontSize: 18, fontWeight: 700, color: MUTED }}>{draws}</div><div style={{ fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.3 }}>Draws</div></div>
+                      <div><div style={{ fontSize: 18, fontWeight: 700, color: BLUE }}>{winRate}%</div><div style={{ fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.3 }}>Win Rate</div></div>
+                    </div>
+                    {!ranking?.exists && walletAddr && (
+                      <div style={{ fontSize: 12.5, color: MUTED, marginTop: 14 }}>Play a ranked match to register on the Celo ladder. New players start at {START_POINTS} points.</div>
+                    )}
                   </div>
 
-                  {/* USDC panel */}
+                  {/* Ladder */}
                   <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                      <div>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                          <span style={{ width: 16, height: 16, borderRadius: 8, background: 'linear-gradient(135deg, #2775CA, #1B5DA5)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 700 }}>$</span>
-                          USDC Earned
-                        </div>
-                        <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -1, marginTop: 6, fontVariantNumeric: 'tabular-nums', color: '#2775CA' }}>
-                          {(profile.usdc ?? 0).toFixed(2)} <span style={{ fontSize: 16, color: MUTED, fontWeight: 600 }}>USDC</span>
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right', marginTop: 4 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: GREEN_DARK, fontVariantNumeric: 'tabular-nums' }}>
-                          {(profile.usdc ?? 0) > 0 ? `+${(profile.usdc ?? 0).toFixed(2)}` : '0.00'} USDC
-                        </div>
-                        <div style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>All time</div>
-                      </div>
-                    </div>
-                    <div style={{ marginLeft: -8 }}>
-                      <EarningsChart accent="#2775CA" data={usdcEarningsData} />
-                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>Rank Ladder</div>
+                    <RankLadder points={points} />
                   </div>
                 </motion.div>
               )}

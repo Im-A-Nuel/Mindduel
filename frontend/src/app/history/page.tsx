@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useWallet } from '@/hooks/useWallet'
 import { NavBar } from '@/components/layout/NavBar'
 import { fetchHistory, type HistoryEntry } from '@/lib/api'
 import { SkeletonRows } from '@/components/ui/SkeletonRow'
 import { StateIconAlert, StateIconWallet } from '@/components/ui/StateIcons'
+import { CELO_EXPLORER } from '@/lib/constants'
 
 const BLUE       = '#0071E3'
 const INK        = 'var(--mdd-ink)'
@@ -23,11 +24,10 @@ interface Match {
   mode: string
   modeId: ModeFilter
   win: boolean
-  delta: number
-  currency: 'sol' | 'usdc'
+  ranked: boolean
+  pointsDelta: number
+  txHash: string | null
   date: string
-  questions: number
-  correct: number
   pending?: boolean
 }
 
@@ -64,18 +64,17 @@ function modeLabelOf(mode: string): string {
   return 'Classic Duel'
 }
 
-function entryToMatch(e: HistoryEntry, myWallet: string): Match {
+function entryToMatch(e: HistoryEntry): Match {
   return {
-    opp:       shortAddr(e.opponent),
-    mode:      modeLabelOf(e.mode),
-    modeId:    modeIdOf(e.mode),
-    win:       e.result === 'win',
-    delta:     e.delta,
-    currency:  e.currency,
-    date:      formatDate(e.finishedAt ?? e.createdAt),
-    questions: 0, // not tracked in DB
-    correct:   0,
-    pending:   e.result === 'pending',
+    opp:         shortAddr(e.opponent),
+    mode:        modeLabelOf(e.mode),
+    modeId:      modeIdOf(e.mode),
+    win:         e.result === 'win',
+    ranked:      e.ranked,
+    pointsDelta: e.pointsDelta,
+    txHash:      e.txHash,
+    date:        formatDate(e.finishedAt ?? e.createdAt),
+    pending:     e.result === 'pending',
   }
 }
 
@@ -91,20 +90,8 @@ function StatCard({ value, unit, label, accent }: { value: string; unit?: string
   )
 }
 
-function AccuracyBar({ correct, total }: { correct: number; total: number }) {
-  const pct = total > 0 ? (correct / total) * 100 : 0
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <div style={{ width: 40, height: 3, borderRadius: 2, background: '#E5E5EA', overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: pct >= 80 ? '#34C759' : pct >= 50 ? BLUE : RED, borderRadius: 2 }} />
-      </div>
-      <span style={{ fontSize: 11, color: MUTED, fontVariantNumeric: 'tabular-nums' }}>{correct}/{total}</span>
-    </div>
-  )
-}
-
 export default function HistoryPage() {
-  const { publicKey } = useWallet()
+  const { address } = useWallet()
   const [resultFilter, setResultFilter] = useState<ResultFilter>('all')
   const [modeFilter, setModeFilter]     = useState<ModeFilter>('all')
   const [matches, setMatches]           = useState<Match[]>([])
@@ -112,18 +99,17 @@ export default function HistoryPage() {
   const [error, setError]               = useState<string | null>(null)
 
   useEffect(() => {
-    if (!publicKey) {
+    if (!address) {
       setMatches([])
       return
     }
-    const addr = publicKey.toBase58()
     let cancelled = false
     setLoading(true)
     setError(null)
-    fetchHistory(addr, 100)
+    fetchHistory(address, 100)
       .then(list => {
         if (cancelled) return
-        setMatches(list.map(e => entryToMatch(e, addr)))
+        setMatches(list.map(entryToMatch))
         setLoading(false)
       })
       .catch(e => {
@@ -132,7 +118,7 @@ export default function HistoryPage() {
         setLoading(false)
       })
     return () => { cancelled = true }
-  }, [publicKey])
+  }, [address])
 
   const filtered = matches.filter(m => {
     if (resultFilter === 'wins'   && !m.win) return false
@@ -144,8 +130,7 @@ export default function HistoryPage() {
   const totalMatches = matches.length
   const wins         = matches.filter(m => m.win).length
   const winRate      = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0
-  const solEarned    = matches.filter(m => m.delta > 0 && m.currency === 'sol').reduce((acc, m) => acc + m.delta, 0)
-  const usdcEarned   = matches.filter(m => m.delta > 0 && m.currency === 'usdc').reduce((acc, m) => acc + m.delta, 0)
+  const netPoints    = matches.reduce((acc, m) => acc + (m.ranked ? m.pointsDelta : 0), 0)
   const bestStreak   = (() => {
     let best = 0, cur = 0
     for (const m of matches) { cur = m.win ? cur + 1 : 0; best = Math.max(best, cur) }
@@ -181,8 +166,7 @@ export default function HistoryPage() {
         >
           <StatCard value={String(totalMatches)} label="Total Matches" />
           <StatCard value={`${winRate}%`}        label="Win Rate"      accent={BLUE} />
-          <StatCard value={`${solEarned.toFixed(3)}`}  unit="SOL"  label="SOL Earned"  accent="#9945FF" />
-          <StatCard value={`${usdcEarned.toFixed(2)}`} unit="USDC" label="USDC Earned" accent="#2775CA" />
+          <StatCard value={netPoints >= 0 ? `+${netPoints}` : `−${Math.abs(netPoints)}`} unit="pts" label="Net Points" accent={netPoints >= 0 ? GREEN_DARK : RED} />
           <StatCard value={`${bestStreak}`}      unit="wins" label="Best Streak"  accent="#FF6A00" />
         </motion.div>
 
@@ -236,12 +220,12 @@ export default function HistoryPage() {
           <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', minWidth: 380 }}>
             <div style={{ width: 40, fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>Result</div>
             <div style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, paddingLeft: 12 }}>Opponent · Mode</div>
-            <div style={{ width: 100, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>Δ Stake</div>
+            <div style={{ width: 110, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>Points</div>
             <div style={{ width: 90, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>When</div>
           </div>
 
           <AnimatePresence mode="popLayout">
-            {!publicKey ? (
+            {!address ? (
               <motion.div
                 key="no-wallet"
                 initial={{ opacity: 0 }}
@@ -297,7 +281,14 @@ export default function HistoryPage() {
                 <div style={{ fontSize: 13, color: MUTED, marginTop: 4 }}>{matches.length === 0 ? 'Create or join a match to start your history.' : 'Try adjusting the filters'}</div>
               </motion.div>
             ) : (
-              filtered.map((m, i) => (
+              filtered.map((m, i) => {
+                const deltaColor = m.pointsDelta > 0 ? GREEN_DARK : m.pointsDelta < 0 ? RED : MUTED
+                const deltaText  = m.pending ? '—'
+                  : !m.ranked ? '0'
+                  : m.pointsDelta > 0 ? `+${m.pointsDelta}`
+                  : m.pointsDelta < 0 ? `−${Math.abs(m.pointsDelta)}`
+                  : '±0'
+                return (
                 <motion.div
                   key={`${m.opp}-${m.date}-${i}`}
                   layout
@@ -314,32 +305,51 @@ export default function HistoryPage() {
                     {m.pending ? (
                       <div style={{ width: 28, height: 28, borderRadius: 8, background: '#FFF4E0', color: '#8A5A00', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>…</div>
                     ) : (
-                      <div style={{ width: 28, height: 28, borderRadius: 8, background: m.win ? '#E8F7EE' : (m.delta === 0 ? 'var(--mdd-bg)' : '#FDECEB'), color: m.win ? '#0A7A2D' : (m.delta === 0 ? MUTED : '#A81C13'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
-                        {m.win ? 'W' : (m.delta === 0 ? 'D' : 'L')}
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: m.win ? '#E8F7EE' : (m.pointsDelta === 0 ? 'var(--mdd-bg)' : '#FDECEB'), color: m.win ? '#0A7A2D' : (m.pointsDelta === 0 ? MUTED : '#A81C13'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
+                        {m.win ? 'W' : (m.pointsDelta === 0 ? 'D' : 'L')}
                       </div>
                     )}
                   </div>
 
                   {/* Opponent + mode */}
                   <div style={{ flex: 1, minWidth: 0, paddingLeft: 12 }}>
-                    <div style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 13.5, fontWeight: 600, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>vs {m.opp}</div>
-                    <div style={{ fontSize: 12, color: MUTED, marginTop: 1 }}>{m.mode}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 13.5, fontWeight: 600, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>vs {m.opp}</span>
+                      <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase', background: m.ranked ? '#E5F0FD' : 'var(--mdd-bg)', color: m.ranked ? BLUE : MUTED, flexShrink: 0 }}>
+                        {m.ranked ? 'Ranked' : 'Casual'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 12, color: MUTED, marginTop: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span>{m.mode}</span>
+                      {m.txHash && (
+                        <a
+                          href={`${CELO_EXPLORER}/tx/${m.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          style={{ color: BLUE, fontWeight: 600, textDecoration: 'none' }}
+                        >
+                          Celoscan ↗
+                        </a>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Δ */}
-                  <div style={{ width: 100, textAlign: 'right', fontSize: 14, fontWeight: 600, color: m.delta > 0 ? GREEN_DARK : m.delta < 0 ? RED : MUTED, fontVariantNumeric: 'tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                    {m.pending ? '—' : m.delta > 0 ? `+${m.delta.toFixed(3)}` : m.delta < 0 ? `−${Math.abs(m.delta).toFixed(3)}` : '—'}
+                  {/* Points delta */}
+                  <div style={{ width: 110, textAlign: 'right', fontSize: 14, fontWeight: 600, color: m.pending || !m.ranked ? MUTED : deltaColor, fontVariantNumeric: 'tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    {deltaText}{!m.pending && m.ranked ? ' pts' : ''}
                   </div>
 
                   {/* When */}
                   <div style={{ width: 90, textAlign: 'right', fontSize: 12.5, color: MUTED, flexShrink: 0 }}>{m.date}</div>
                 </motion.div>
-              ))
+                )
+              })
             )}
           </AnimatePresence>
         </motion.div>
 
-        {publicKey && filtered.length > 0 && (
+        {address && filtered.length > 0 && (
           <p style={{ textAlign: 'center', fontSize: 12, color: MUTED, marginTop: 20 }}>
             Showing {filtered.length} of {matches.length} matches
           </p>

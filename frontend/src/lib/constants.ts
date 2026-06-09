@@ -1,49 +1,47 @@
-export const PROGRAM_ID = '8XZTXNux374128LFJSVhp5XSNyYMPNZpfw4vyjWmSJkN'
-export const TREASURY_ADDRESS = 'CPoofbZho4bJmSAyVJxfeMK9CoZpXpDYftctghwUJX86'
+// ── Celo / chain config ───────────────────────────────────────────────
+export const CELO_CHAIN_ID = 42220
+export const CELO_RPC_URL =
+  process.env.NEXT_PUBLIC_CELO_RPC_URL ?? 'https://forno.celo.org'
 
-/**
- * Mock USDC SPL mint on devnet. Set after running `npm run setup:usdc` in backend.
- * Read from NEXT_PUBLIC_MOCK_USDC_MINT to allow override per environment.
- */
-export const MOCK_USDC_MINT =
-  process.env.NEXT_PUBLIC_MOCK_USDC_MINT ?? ''
-export const USDC_DECIMALS = 6
-export const FAUCET_AMOUNT_USDC = 100
+/** Deployed MindDuelRanking contract (set after `forge script` deploy). */
+export const RANKING_CONTRACT_ADDRESS = (
+  process.env.NEXT_PUBLIC_RANKING_CONTRACT_ADDRESS ?? ''
+) as `0x${string}` | ''
+
+export const CELO_EXPLORER = 'https://celoscan.io'
+
 export const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3001'
 
-export const RPC_ENDPOINT = {
-  devnet:  'https://api.devnet.solana.com',
-  mainnet: 'https://api.mainnet-beta.solana.com',
-} as const
+// ── Ranking ladder ────────────────────────────────────────────────────
+/** Rating every new player starts at (mirrors the contract's START). */
+export const START_POINTS = 1000
 
-export const STAKE_TIERS = [
-  {
-    id: 'casual',
-    label: 'Casual',
-    min: 0.01,
-    max: 0.1,
-    color: '#34C759',
-    description: 'Low risk, great for beginners',
-  },
-  {
-    id: 'challenger',
-    label: 'Challenger',
-    min: 0.1,
-    max: 1,
-    color: '#0071E3',
-    description: 'Balanced risk for serious players',
-  },
-  {
-    id: 'high-stakes',
-    label: 'High Stakes',
-    min: 1,
-    max: null,
-    color: '#FF9500',
-    description: 'Maximum risk, maximum reward',
-  },
+/**
+ * Rank tiers by points. A win raises your points (and can promote you);
+ * a loss lowers them. No staking, no betting — pure skill ladder.
+ */
+export const RANK_TIERS = [
+  { id: 'bronze',   label: 'Bronze',   min: 0,    color: '#CD7F32' },
+  { id: 'silver',   label: 'Silver',   min: 1000, color: '#A8A9AD' },
+  { id: 'gold',     label: 'Gold',     min: 1200, color: '#F5B301' },
+  { id: 'platinum', label: 'Platinum', min: 1400, color: '#43C6DB' },
+  { id: 'diamond',  label: 'Diamond',  min: 1600, color: '#6C8CFF' },
+  { id: 'master',   label: 'Master',   min: 1850, color: '#B14BF4' },
 ] as const
 
+export type RankTier = (typeof RANK_TIERS)[number]
+
+/** Resolve the tier for a points total. */
+export function tierForPoints(points: number): RankTier {
+  let tier: RankTier = RANK_TIERS[0]
+  for (const t of RANK_TIERS) {
+    if (points >= t.min) tier = t
+  }
+  return tier
+}
+
+// ── Game modes (unchanged from the original duel) ─────────────────────
 export const GAME_MODES = [
   {
     id: 'classic',
@@ -76,23 +74,26 @@ export const GAME_MODES = [
   {
     id: 'vs-ai',
     label: 'vs AI',
-    description: 'Play vs MindDuel AI. Perfect for practice.',
+    description: 'Play vs MindDuel AI. Practice — not ranked.',
     tag: 'NEW',
     available: true,
   },
 ] as const
 
+// ── Hints (now FREE, limited uses per match — no payment) ─────────────
 /** Seconds added to the trivia timer by the "Extra Time" hint. */
 export const EXTRA_TIME_HINT_SECONDS = 8
 
+/** Total free hints a player may use in a single match. */
+export const FREE_HINTS_PER_MATCH = 3
+
 export const HINTS = [
-  { id: 'eliminate2',   label: 'Eliminate 2',   price: 0.002, description: 'Remove 2 wrong answers',                              iconId: 'scissors'    },
-  { id: 'category',     label: 'Category',      price: 0.001, description: 'Reveal the question category',                       iconId: 'tag'         },
-  { id: 'extra-time',   label: 'Extra Time',    price: 0.003, description: `+${EXTRA_TIME_HINT_SECONDS} seconds on the clock`,     iconId: 'timer-plus'  },
-  { id: 'first-letter', label: 'First Letter',  price: 0.001, description: 'Reveal the first letter',                            iconId: 'type'        },
-  { id: 'skip',         label: 'Skip',          price: 0.005, description: 'Skip this question entirely',                        iconId: 'skip'        },
+  { id: 'eliminate2',   label: 'Eliminate 2',   description: 'Remove 2 wrong answers',                          iconId: 'scissors'   },
+  { id: 'category',     label: 'Category',      description: 'Reveal the question category',                    iconId: 'tag'        },
+  { id: 'extra-time',   label: 'Extra Time',    description: `+${EXTRA_TIME_HINT_SECONDS} seconds on the clock`, iconId: 'timer-plus' },
+  { id: 'first-letter', label: 'First Letter',  description: 'Reveal the first letter',                         iconId: 'type'       },
+  { id: 'skip',         label: 'Skip',          description: 'Skip this question entirely',                      iconId: 'skip'       },
 ] as const
 
-export const PLATFORM_FEE_BPS    = 250
 export const TURN_TIMEOUT_SECONDS = 86400
 export const BLITZ_TIMEOUT_SECONDS = 300

@@ -48,14 +48,12 @@ export interface MatchCreateResponse {
   status: string
 }
 
-export type MatchCurrency = 'sol' | 'usdc'
-
 export interface MatchJoinResponse {
   matchId: string
   status: string
   mode: string
-  stake: number
-  currency: MatchCurrency
+  /** Ranked matches record their result on-chain; casual ones do not. */
+  ranked: boolean
   playerOne: string
   /** Categories the creator picked. Joiner inherits these for trivia fetch. */
   categories: string[]
@@ -69,8 +67,7 @@ export interface QueueResponse {
   position?: number
   queueLength: number
   playerOne?: string
-  stake?: number
-  currency?: MatchCurrency
+  ranked?: boolean
   mode?: string
   sharedCategories?: string[]
 }
@@ -78,9 +75,9 @@ export interface QueueResponse {
 export interface LeaderboardEntry {
   rank: number
   address: string
+  points: number
   wins: number
   losses: number
-  solEarned: number
   winRate: number
 }
 
@@ -162,15 +159,14 @@ export async function revealTrivia(sessionId: string, answerIndex: number): Prom
 export async function createMatch(
   playerOne: string,
   mode: string,
-  stake: number,
-  currency: MatchCurrency = 'sol',
+  ranked: boolean,
   categories?: string[],
   difficulty?: string,
 ): Promise<MatchCreateResponse> {
   const res = await fetchWithTimeout(`${API}/api/match/create`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ playerOne, mode, stake, currency, categories, difficulty }),
+    body: JSON.stringify({ playerOne, mode, ranked, categories, difficulty }),
   })
   if (!res.ok) throw new Error('Failed to create match')
   return res.json()
@@ -190,14 +186,13 @@ export async function joinMatch(joinCode: string, playerTwo: string): Promise<Ma
 export async function queueMatch(
   playerId: string,
   mode: string,
-  stake: number,
-  currency: MatchCurrency = 'sol',
+  ranked: boolean,
   categories?: string[],
 ): Promise<QueueResponse> {
   const res = await fetchWithTimeout(`${API}/api/match/queue`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ playerId, mode, stake, currency, categories }),
+    body: JSON.stringify({ playerId, mode, ranked, categories }),
   })
   if (!res.ok) throw new Error('Queue failed')
   return res.json()
@@ -219,12 +214,13 @@ export async function fetchLeaderboard(period: string): Promise<LeaderboardRespo
 export interface HistoryEntry {
   matchId:    string
   mode:       string
-  stake:      number
-  currency:   MatchCurrency
+  ranked:     boolean
   status:     'waiting' | 'active' | 'finished'
   result:     'win' | 'loss' | 'draw' | 'pending'
-  delta:      number
+  /** Points gained (+) or lost (−) on this match. 0 for casual/unranked. */
+  pointsDelta: number
   opponent:   string | null
+  txHash:     string | null
   createdAt:  number
   finishedAt: number | null
 }
@@ -248,18 +244,38 @@ export async function reportVsAiResult(args: {
   }, 8_000).catch(() => { /* best-effort */ })
 }
 
+export interface MatchFinishResult {
+  ok: boolean
+  /** Points change applied on-chain for winner / loser (ranked only). */
+  winnerDelta?: number
+  loserDelta?: number
+  winnerPoints?: number
+  loserPoints?: number
+  /** Celo tx hash of the recordMatch call (ranked only). */
+  txHash?: string | null
+}
+
+/**
+ * Report the finished match to the backend. For ranked matches the backend
+ * relayer records the result on-chain (recordMatch) and returns the points
+ * deltas + tx hash. Players never sign or pay gas.
+ */
 export async function reportMatchFinish(args: {
-  matchId:    string
-  winner:     string | null
-  pot:        number
-  fee:        number
-  onChainSig: string | null
-}): Promise<void> {
-  await fetchWithTimeout(`${API}/api/match/finish`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(args),
-  }, 8_000).catch(() => { /* best-effort, not blocking UX */ })
+  matchId: string
+  winner:  string | null
+  ranked:  boolean
+}): Promise<MatchFinishResult> {
+  try {
+    const res = await fetchWithTimeout(`${API}/api/match/finish`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(args),
+    }, 15_000)
+    if (!res.ok) return { ok: false }
+    return await res.json()
+  } catch {
+    return { ok: false }
+  }
 }
 
 export interface BadgeRow {
@@ -269,19 +285,16 @@ export interface BadgeRow {
   symbol:      string
   description: string
   image:       string
-  mintAddr:    string | null
-  txSig:       string | null
   earnedAt:    number
-  status:      'minted' | 'pending'
+  status:      'earned'
 }
 
 export interface TournamentSummary {
   tournamentId: string
   name:         string
   size:         number
-  stake:        number
-  currency:     'sol' | 'usdc'
   mode:         string
+  ranked:       boolean
   status:       'open' | 'in_progress' | 'finished'
   champion:     string | null
   createdBy:    string
@@ -322,7 +335,7 @@ export async function getTournamentDetail(id: string): Promise<{ tournament: Tou
 }
 
 export async function createTournament(args: {
-  name: string; size: 4 | 8; stake: number; currency: 'sol' | 'usdc'; mode: string; createdBy: string
+  name: string; size: 4 | 8; ranked: boolean; mode: string; createdBy: string
 }): Promise<TournamentSummary> {
   const res = await fetchWithTimeout(`${API}/api/tournament/create`, {
     method: 'POST',
@@ -357,82 +370,16 @@ export async function fetchBadges(player: string): Promise<BadgeRow[]> {
 }
 
 export interface LiveStats {
-  activeMatches:      number
-  waitingMatches:     number
-  totalLockedSol:     number
-  totalLockedUsdc:    number
-  wageredLast24hSol:  number
-  wageredLast24hUsdc: number
-  finishedTotal:      number
-  queueLength:        number
-}
-
-// ── Sponsored transactions ────────────────────────────────────────────
-// Backend pays gas + rent on behalf of the user. Frontend builds the tx
-// with feePayer = sponsor pubkey, sends here for partial-sign, then has
-// the user sign and submits. Sponsor only signs as fee payer; instruction
-// authority still requires user signature, so a malicious user cannot use
-// this endpoint to drain anything.
-
-let sponsorPubkeyCache: string | null = null
-
-export async function fetchSponsorPubkey(): Promise<string | null> {
-  if (sponsorPubkeyCache) return sponsorPubkeyCache
-  try {
-    const res = await fetchWithTimeout(`${API}/api/sponsor/pubkey`, {}, 5_000)
-    if (!res.ok) return null
-    const body = await res.json() as { pubkey?: string }
-    if (body.pubkey) sponsorPubkeyCache = body.pubkey
-    return body.pubkey ?? null
-  } catch { return null }
-}
-
-export async function signTxWithSponsor(txBase64: string): Promise<string> {
-  const res = await fetchWithTimeout(`${API}/api/sponsor/sign-tx`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tx: txBase64 }),
-  }, 8_000)
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({})) as { error?: string }
-    throw new Error(body.error ?? 'Sponsor sign failed')
-  }
-  const body = await res.json() as { tx: string }
-  return body.tx
+  activeMatches:  number
+  waitingMatches: number
+  playersRanked:  number
+  matchesPlayed:  number
+  rankedLast24h:  number
+  queueLength:    number
 }
 
 export async function fetchLiveStats(): Promise<LiveStats> {
   const res = await fetchWithTimeout(`${API}/api/stats`, {}, 6_000)
   if (!res.ok) throw new Error('Failed to fetch stats')
-  return res.json()
-}
-
-export interface OracleSettleProof {
-  /** Base58 oracle pubkey (== on-chain ORACLE_PUBKEY / treasury). */
-  oraclePubkey: string
-  /** Base58 game PDA the oracle signed for. */
-  gamePubkey: string
-  /** Base64 signed message: game pubkey (32) || winner pubkey (32). */
-  message: string
-  /** Base64 64-byte Ed25519 signature over `message`. */
-  signature: string
-}
-
-/**
- * Ask the backend oracle to sign the recorded winner of a finished match. The
- * winner submits this proof to `settle_with_proof` to claim the pot without the
- * loser having to resign. The oracle only signs the authoritative recorded
- * winner, so the proof cannot be obtained for an arbitrary address.
- */
-export async function fetchOracleSettleProof(matchId: string, winner: string): Promise<OracleSettleProof> {
-  const res = await fetchWithTimeout(`${API}/api/oracle/settle-proof`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ matchId, winner }),
-  }, 8_000)
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({})) as { error?: string }
-    throw new Error(body.error ?? 'Oracle proof request failed')
-  }
   return res.json()
 }

@@ -71,9 +71,12 @@ export default function BracketViewPage({ params }: { params: { id: string } }) 
               style={{ marginTop: 12, marginBottom: 24 }}
             >
               <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.8, margin: '0 0 4px' }}>{tournament.name}</h1>
-              <p style={{ margin: 0, fontSize: 13.5, color: MUTED }}>
-                {tournament.size} players · {tournament.stake} {tournament.currency.toUpperCase()} · {tournament.mode}
-                <span style={{ marginLeft: 10, padding: '2px 9px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: tournament.status === 'finished' ? '#E8F7EE' : '#E5F0FD', color: tournament.status === 'finished' ? GREEN_DARK : BLUE }}>
+              <p style={{ margin: 0, fontSize: 13.5, color: MUTED, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ padding: '2px 9px', borderRadius: 999, fontSize: 11, fontWeight: 700, letterSpacing: 0.3, background: tournament.ranked ? '#E5F0FD' : 'rgba(0,0,0,0.05)', color: tournament.ranked ? BLUE : MUTED }}>
+                  {tournament.ranked ? 'RANKED' : 'CASUAL'}
+                </span>
+                <span>{tournament.size} players · {tournament.mode}</span>
+                <span style={{ padding: '2px 9px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: tournament.status === 'finished' ? '#E8F7EE' : '#E5F0FD', color: tournament.status === 'finished' ? GREEN_DARK : BLUE }}>
                   {tournament.status === 'finished' ? <><IconTrophySm size={12} color="#8A5A00" />FINISHED</> : tournament.status === 'in_progress' ? 'LIVE' : 'OPEN'}
                 </span>
               </p>

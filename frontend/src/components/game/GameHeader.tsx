@@ -4,20 +4,18 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
-import { GAME_MODES, STAKE_TIERS } from '@/lib/constants'
+import { GAME_MODES } from '@/lib/constants'
 
 interface GameHeaderProps {
   matchId: string
   mode: string
-  stakeAmount: number
-  stakeTier: string
+  ranked?: boolean
   isVsAI?: boolean
   className?: string
 }
 
-export function GameHeader({ matchId, mode, stakeAmount, stakeTier, isVsAI = false, className }: GameHeaderProps) {
+export function GameHeader({ matchId, mode, ranked = false, isVsAI = false, className }: GameHeaderProps) {
   const modeInfo = GAME_MODES.find(m => m.id === mode)
-  const tierInfo = STAKE_TIERS.find(t => t.id === stakeTier)
 
   return (
     <header className={cn(
@@ -45,13 +43,10 @@ export function GameHeader({ matchId, mode, stakeAmount, stakeTier, isVsAI = fal
         )}
         {isVsAI ? (
           <Badge variant="accent">Practice</Badge>
-        ) : tierInfo && stakeAmount > 0 && (
-          <Badge variant={
-            stakeTier === 'casual' ? 'success' :
-            stakeTier === 'challenger' ? 'primary' : 'accent'
-          } dot>
-            {stakeAmount} SOL
-          </Badge>
+        ) : ranked ? (
+          <Badge variant="success" dot>Ranked</Badge>
+        ) : (
+          <Badge variant="primary">Casual</Badge>
         )}
       </div>
 
@@ -63,7 +58,7 @@ export function GameHeader({ matchId, mode, stakeAmount, stakeTier, isVsAI = fal
           className="flex items-center gap-1.5 text-xs font-mono text-success"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-success" />
-          LIVE · DEVNET
+          LIVE · CELO
         </motion.div>
       </div>
     </header>

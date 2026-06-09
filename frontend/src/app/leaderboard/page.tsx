@@ -4,8 +4,9 @@ import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { NavBar } from '@/components/layout/NavBar'
 import { fetchLeaderboard } from '@/lib/api'
+import { tierForPoints } from '@/lib/constants'
 import { SkeletonRows } from '@/components/ui/SkeletonRow'
-import { StateIconAlert, StateIconTrophy, IconFlame } from '@/components/ui/StateIcons'
+import { StateIconAlert, StateIconTrophy } from '@/components/ui/StateIcons'
 
 const BLUE       = '#0071E3'
 const INK        = 'var(--mdd-ink)'
@@ -20,10 +21,10 @@ type Period = 'alltime' | 'week' | 'today'
 interface LeaderboardRow {
   rank: number
   addr: string
+  points: number
   wins: number
-  sol: number
+  losses: number
   rate: number
-  streak: number
   self: boolean
 }
 
@@ -88,10 +89,10 @@ export default function LeaderboardPage() {
         setApiRows(data.entries.map(e => ({
           rank: e.rank,
           addr: e.address,
+          points: e.points,
           wins: e.wins,
-          sol: e.solEarned,
+          losses: e.losses,
           rate: e.winRate,
-          streak: 0,
           self: false,
         })))
         setFetchState('loaded')
@@ -128,7 +129,7 @@ export default function LeaderboardPage() {
                 <span style={{ fontSize: 11, fontWeight: 700, color: GREEN_DARK, letterSpacing: 0.3 }}>LIVE</span>
               </div>
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: 14, color: MUTED }}>Top players ranked by total wins</p>
+            <p style={{ margin: '4px 0 0', fontSize: 14, color: MUTED }}>Top players ranked by on-chain points</p>
           </div>
 
           {/* Period filter */}
@@ -162,7 +163,7 @@ export default function LeaderboardPage() {
           <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '60px 20px', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', marginBottom: 28 }}>
             <StateIconTrophy />
             <div style={{ fontSize: 15, fontWeight: 600, color: INK }}>No rankings yet</div>
-            <div style={{ fontSize: 13, color: MUTED, marginTop: 4, maxWidth: 320, margin: '4px auto 0' }}>Be the first to win a match — your wallet will appear at the top of the all-time leaderboard.</div>
+            <div style={{ fontSize: 13, color: MUTED, marginTop: 4, maxWidth: 320, margin: '4px auto 0' }}>Be the first to win a ranked match — your address will climb the all-time points ladder.</div>
           </div>
         )}
 
@@ -201,7 +202,11 @@ export default function LeaderboardPage() {
                   </div>
                 </div>
                 <div style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12.5, fontWeight: 600, color: INK, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.addr}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5, color: isFirst ? '#7A5A00' : INK, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{e.wins}<span style={{ fontSize: 11, fontWeight: 600, color: MUTED, marginLeft: 4 }}>wins</span></div>
+                <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5, color: isFirst ? '#7A5A00' : INK, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{e.points.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 600, color: MUTED, marginLeft: 4 }}>pts</span></div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 9px', borderRadius: 999, background: `${tierForPoints(e.points).color}22` }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 3, background: tierForPoints(e.points).color }} />
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: tierForPoints(e.points).color, letterSpacing: 0.3 }}>{tierForPoints(e.points).label}</span>
+                </div>
                 {e.self && <div style={{ fontSize: 10, fontWeight: 700, color: BLUE, letterSpacing: 0.3, textTransform: 'uppercase' }}>You</div>}
               </motion.div>
             )
@@ -220,10 +225,10 @@ export default function LeaderboardPage() {
           <div className="lb-table-row" style={{ display: 'flex', alignItems: 'center', padding: '14px 20px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
             <div style={{ width: 44, fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>#</div>
             <div style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 }}>Player</div>
-            <div style={{ width: 70, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>Wins</div>
-            <div style={{ width: 100, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0, whiteSpace: 'nowrap' }}>SOL</div>
-            <div className="lb-col-winrate" style={{ width: 90, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0, whiteSpace: 'nowrap' }}>Win Rate</div>
-            <div className="lb-col-streak" style={{ width: 80, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>Streak</div>
+            <div className="lb-col-streak" style={{ width: 100, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>Tier</div>
+            <div style={{ width: 100, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0, whiteSpace: 'nowrap' }}>Points</div>
+            <div className="lb-col-winrate" style={{ width: 80, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0, whiteSpace: 'nowrap' }}>W / L</div>
+            <div style={{ width: 90, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0, whiteSpace: 'nowrap' }}>Win Rate</div>
           </div>
 
           {rows.map((entry, i) => (
@@ -253,25 +258,32 @@ export default function LeaderboardPage() {
                 </div>
               </div>
 
-              {/* Wins */}
-              <div style={{ width: 70, textAlign: 'right', fontSize: 14, fontWeight: 600, color: INK, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{entry.wins}</div>
+              {/* Tier */}
+              <div className="lb-col-streak" style={{ width: 100, textAlign: 'right', flexShrink: 0, display: 'flex', justifyContent: 'flex-end' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, background: `${tierForPoints(entry.points).color}22` }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 3, background: tierForPoints(entry.points).color }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: tierForPoints(entry.points).color, letterSpacing: 0.2 }}>{tierForPoints(entry.points).label}</span>
+                </span>
+              </div>
 
-              {/* SOL */}
-              <div style={{ width: 100, textAlign: 'right', fontSize: 13.5, fontWeight: 600, color: GREEN_DARK, fontVariantNumeric: 'tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>{entry.sol.toFixed(2)} SOL</div>
+              {/* Points */}
+              <div style={{ width: 100, textAlign: 'right', fontSize: 14, fontWeight: 700, color: INK, fontVariantNumeric: 'tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>{entry.points.toLocaleString()}</div>
+
+              {/* W / L */}
+              <div className="lb-col-winrate" style={{ width: 80, textAlign: 'right', fontSize: 13.5, fontWeight: 600, fontVariantNumeric: 'tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                <span style={{ color: GREEN_DARK }}>{entry.wins}</span>
+                <span style={{ color: MUTED }}> / </span>
+                <span style={{ color: RED }}>{entry.losses}</span>
+              </div>
 
               {/* Win Rate */}
-              <div className="lb-col-winrate" style={{ width: 90, textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ width: 90, textAlign: 'right', flexShrink: 0 }}>
                 <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
                   <span style={{ fontSize: 14, fontWeight: 600, color: entry.rate >= 70 ? GREEN_DARK : entry.rate >= 60 ? BLUE : MUTED, fontVariantNumeric: 'tabular-nums' }}>{entry.rate}%</span>
                   <div style={{ width: 48, height: 3, borderRadius: 2, background: '#E5E5EA', overflow: 'hidden' }}>
                     <div style={{ width: `${entry.rate}%`, height: '100%', background: entry.rate >= 70 ? GREEN : entry.rate >= 60 ? BLUE : MUTED, borderRadius: 2 }} />
                   </div>
                 </div>
-              </div>
-
-              {/* Streak */}
-              <div className="lb-col-streak" style={{ width: 80, textAlign: 'right', fontSize: 13.5, fontWeight: 600, color: entry.streak >= 5 ? '#FF6A00' : entry.streak > 0 ? INK : MUTED, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-                {entry.streak > 0 ? <span style={{ display: 'flex', alignItems: 'center', gap: 3, justifyContent: 'flex-end' }}>{entry.streak}<IconFlame size={13} color="#FF6A00" /></span> : '—'}
               </div>
             </motion.div>
           ))}
@@ -280,7 +292,7 @@ export default function LeaderboardPage() {
         {/* Footer note */}
         {rows.length > 0 && (
           <p style={{ textAlign: 'center', fontSize: 12, color: MUTED, marginTop: 24 }}>
-            Rankings derived from settled on-chain matches · Devnet
+            Rankings derived from settled on-chain ranked matches · Celo
           </p>
         )}
       </div>

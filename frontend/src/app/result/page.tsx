@@ -8,6 +8,7 @@ import { WalletButton } from '@/components/wallet/WalletButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { BottomTabBar } from '@/components/layout/BottomTabBar'
 import { IconRobot, IconCrosshair, IconBolt, IconHandshake } from '@/components/ui/StateIcons'
+import { CELO_EXPLORER, tierForPoints } from '@/lib/constants'
 
 const BLUE       = '#0071E3'
 const RED        = '#FF3B30'
@@ -21,14 +22,42 @@ type ResultKind = 'win' | 'lose' | 'draw'
 
 interface LogEntry { q: string; correct: boolean; time: number }
 
-interface SessionMatchData {
-  result:   ResultKind
-  opponent: string
-  mode:     string
-  isVsAI:  boolean
-  stake:    number
-  currency?: 'sol' | 'usdc'
-  log:      LogEntry[]
+/** Handoff written by the game page to sessionStorage key `mddResult`. */
+interface SessionResult {
+  result:      'win' | 'loss' | 'draw'
+  ranked:      boolean
+  pointsDelta: number
+  newPoints:   number | null
+  txHash:      string | null
+  mode:        string
+  opponent:    string | null
+}
+
+/** Optional per-question match log, written under `mddLastMatch`. */
+interface SessionMatchLog {
+  log?:    LogEntry[]
+  isVsAI?: boolean
+}
+
+function shortAddr(a: string | null | undefined): string {
+  if (!a) return '—'
+  if (a.length <= 9) return a
+  return a.slice(0, 4) + '…' + a.slice(-4)
+}
+
+function modeLabelOf(mode: string): string {
+  if (mode === 'vs-ai') return 'vs AI'
+  if (mode === 'shifting') return 'Shifting Board'
+  if (mode === 'scaleup') return 'Scale Up'
+  if (mode === 'blitz') return 'Blitz'
+  return 'Classic Duel'
+}
+
+/** Format a points delta like "+16" / "−16" / "±0". */
+function formatDelta(d: number): string {
+  if (d > 0) return `+${d}`
+  if (d < 0) return `−${Math.abs(d)}`
+  return '±0'
 }
 
 
@@ -131,23 +160,20 @@ function NavLogo() {
 }
 
 // ── Result Content ────────────────────────────────────────────────────
-function ResultContent({ kind, matchData }: { kind: ResultKind; matchData: SessionMatchData | null }) {
+function ResultContent({ kind, result, log }: { kind: ResultKind; result: SessionResult | null; log: LogEntry[] }) {
   const win  = kind === 'win'
   const draw = kind === 'draw'
 
-  const opponent = matchData?.opponent ?? '—'
-  const mode     = matchData?.mode ?? 'Classic Duel'
-  const stake    = matchData?.stake ?? 0
-  const log      = matchData?.log ?? []
-  const currency = matchData?.currency ?? 'sol'
-  const unit     = currency.toUpperCase()
+  const opponent    = shortAddr(result?.opponent)
+  const mode        = modeLabelOf(result?.mode ?? 'classic')
+  const ranked      = result?.ranked ?? false
+  const pointsDelta = result?.pointsDelta ?? 0
+  const newPoints   = result?.newPoints ?? null
+  const txHash      = result?.txHash ?? null
+  const isVsAI      = result?.mode === 'vs-ai'
 
-  const potClaimed  = `+${(stake * 2 * 0.975).toFixed(3)} ${unit}`
-  const platformFee = `−${(stake * 2 * 0.025).toFixed(4)} ${unit}`
-  const stakeLost   = `−${stake.toFixed(3)} ${unit}`
-  const splitAmount = `+${(stake * 0.975).toFixed(3)} ${unit}`
-  const lostLabel   = `${unit} Lost`
-  const returnedLabel = `${unit} Returned`
+  const deltaColor = pointsDelta > 0 ? GREEN_DARK : pointsDelta < 0 ? RED : MUTED
+  const tier       = newPoints != null ? tierForPoints(newPoints) : null
 
   const correct = log.filter(q => q.correct).length
   const total   = log.length
@@ -188,61 +214,72 @@ function ResultContent({ kind, matchData }: { kind: ResultKind; matchData: Sessi
                 {win ? 'You Won!' : draw ? "It's a Draw!" : 'You Lost'}
               </h1>
               <p style={{ fontSize: 14, color: MUTED, margin: 0 }}>
-                vs {opponent} · {mode} · {total} questions
+                vs {opponent} · {mode}{total > 0 ? ` · ${total} questions` : ''}
               </p>
             </div>
 
             {/* Stats card */}
             <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '6px 22px 14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
-              {win ? (
-                <>
-                  {stake > 0 && (
-                    <>
-                      <ResultRow label="Pot Claimed"  value={potClaimed}  color={GREEN_DARK} big />
-                      <ResultRow label="Platform Fee" value={platformFee} color={MUTED} />
-                    </>
-                  )}
-                  <ResultRow label="Correct" value={`${correct}/${total}`} />
-                </>
-              ) : draw ? (
-                <>
-                  {stake > 0 && (
-                    <ResultRow label={returnedLabel} value={splitAmount} color={BLUE} big />
-                  )}
-                  <ResultRow label="Correct" value={`${correct}/${total}`} />
-                </>
+              {ranked ? (
+                <ResultRow
+                  label="Points"
+                  value={formatDelta(pointsDelta)}
+                  color={deltaColor}
+                  big
+                />
               ) : (
-                <>
-                  {stake > 0 && (
-                    <ResultRow label={lostLabel} value={stakeLost} color={RED} big />
-                  )}
-                  <ResultRow label="Correct" value={`${correct}/${total}`} />
-                </>
+                <ResultRow label="Mode" value="Casual · no points" color={MUTED} />
               )}
+              {ranked && tier && (
+                <ResultRow
+                  label="New Rank"
+                  value={`${tier.label} · ${newPoints} pts`}
+                  color={tier.color}
+                  badge={<span style={{ width: 9, height: 9, borderRadius: 5, background: tier.color, display: 'inline-block' }} />}
+                />
+              )}
+              {total > 0 && <ResultRow label="Correct" value={`${correct}/${total}`} />}
             </div>
 
             {/* Match Stats */}
-            <MatchStats log={log} />
+            {log.length > 0 && <MatchStats log={log} />}
 
-            {/* Epic banner (win-staked) / Practice banner (win-free) / Draw / Lose banner */}
-            {win && stake > 0 ? (
-              <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '18px 22px', border: '1.5px solid #E8B844', boxShadow: '0 6px 20px rgba(232,184,68,0.15)', display: 'flex', alignItems: 'center', gap: 16 }}>
-                <IconBolt size={24} color="#fff" bg="linear-gradient(135deg, #FFD66B, #E8B844)" />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: -0.2 }}>Epic Game!</div>
-                  <div style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.4, marginTop: 2 }}>This match scored high on drama. Mint it as an NFT.</div>
+            {/* Tx link */}
+            {txHash && (
+              <a
+                href={`${CELO_EXPLORER}/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none' }}
+              >
+                <div style={{ background: 'var(--mdd-card)', borderRadius: 16, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
+                  <IconBolt size={20} color="#fff" bg="linear-gradient(135deg, #35D07F, #1B8F5A)" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: INK }}>Recorded on Celo</div>
+                    <div style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 11.5, color: MUTED, marginTop: 2 }}>{shortAddr(txHash)}</div>
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: BLUE }}>View on Celoscan ↗</span>
                 </div>
-                <button style={{ appearance: 'none', border: 'none', padding: '10px 16px', background: 'var(--mdd-dark-surface)', color: '#fff', borderRadius: 12, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>Mint for 0.01 SOL</button>
-                <button style={{ appearance: 'none', border: 'none', background: 'transparent', color: MUTED, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>Skip</button>
+              </a>
+            )}
+
+            {/* Banner */}
+            {win && ranked ? (
+              <div style={{ background: '#E8F7EE', borderRadius: 16, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                <IconBolt size={20} color="#fff" bg="linear-gradient(135deg, #35D07F, #1B8F5A)" />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>Ranked win!</div>
+                  <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>Your points climbed {formatDelta(pointsDelta)}. Keep winning to climb the ladder.</div>
+                </div>
               </div>
             ) : win ? (
               <div style={{ background: '#E5F0FD', borderRadius: 16, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-                {matchData?.isVsAI
+                {isVsAI
                   ? <IconRobot size={20} color="#0071E3" bg="var(--mdd-card)" />
                   : <IconCrosshair size={20} color="#0071E3" bg="var(--mdd-card)" />}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{matchData?.isVsAI ? 'Practice round won!' : 'Free play victory!'}</div>
-                  <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>Try a real staked match for SOL/USDC rewards.</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{isVsAI ? 'Practice round won!' : 'Casual victory!'}</div>
+                  <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>Play a ranked match to earn points and climb the leaderboard.</div>
                 </div>
               </div>
             ) : draw ? (
@@ -250,7 +287,7 @@ function ResultContent({ kind, matchData }: { kind: ResultKind; matchData: Sessi
                 <IconHandshake size={20} color="#0071E3" bg="var(--mdd-card)" />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>Evenly matched!</div>
-                  <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>{stake > 0 ? `Your ${unit} has been returned.` : 'Practice round tied.'} Challenge them again to settle the score.</div>
+                  <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>{ranked ? 'No points change for a draw.' : 'Practice round tied.'} Challenge them again to settle the score.</div>
                 </div>
               </div>
             ) : (
@@ -259,8 +296,8 @@ function ResultContent({ kind, matchData }: { kind: ResultKind; matchData: Sessi
                   <svg width="20" height="20" viewBox="0 0 18 18" fill="none"><path d="M9 2L11 6.5L16 7L12.5 10.5L13.5 15.5L9 13L4.5 15.5L5.5 10.5L2 7L7 6.5L9 2Z" fill={BLUE}/></svg>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>You answered {correct} of {total} correctly</div>
-                  <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>Top 30% performance for this match. The questions get easier with practice.</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{ranked ? `Points ${formatDelta(pointsDelta)} this match` : 'Casual match — no points lost'}</div>
+                  <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>The questions get easier with practice. Rematch to win your points back.</div>
                 </div>
               </div>
             )}
@@ -269,30 +306,14 @@ function ResultContent({ kind, matchData }: { kind: ResultKind; matchData: Sessi
             <div className={win || draw ? undefined : 'result-ctas-lose'} style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
               <a href="/lobby" style={{ flex: 1, minWidth: 140 }}>
                 <button style={{ appearance: 'none', border: 'none', width: '100%', padding: '14px', background: BLUE, color: '#fff', borderRadius: 14, fontSize: 15, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,113,227,0.25)' }}>
-                  {win ? 'Play Again' : draw ? 'Rematch' : 'Rematch'}
+                  {win ? 'Play Again' : 'Rematch'}
                 </button>
               </a>
-              <a href="/lobby" className={win || draw ? undefined : 'result-back-btn-lose'} style={{ display: 'block' }}>
+              <a href="/leaderboard" className={win || draw ? undefined : 'result-back-btn-lose'} style={{ display: 'block' }}>
                 <button style={{ appearance: 'none', border: '1.5px solid rgba(0,0,0,0.10)', padding: '14px 22px', background: 'var(--mdd-card)', color: INK, borderRadius: 14, fontSize: 15, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Back to Lobby
+                  View Leaderboard
                 </button>
               </a>
-              {win && stake > 0 && (
-                <button
-                  onClick={() => {
-                    const text = `Just won ${stake.toFixed(3)} ${(matchData?.currency ?? 'sol').toUpperCase()} on @MindDuelApp\nTrivia + on-chain Tic-Tac-Toe on @solana devnet.\nProve your mind, win on-chain.`
-                    const url = typeof window !== 'undefined' ? window.location.origin : 'https://mindduel.app'
-                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer')
-                  }}
-                  style={{ appearance: 'none', border: '1.5px solid #1DA1F2', padding: '14px 18px', background: 'var(--mdd-card)', color: '#1DA1F2', borderRadius: 14, fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
-                  title="Share win on Twitter"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                  </svg>
-                  Share win
-                </button>
-              )}
             </div>
           </motion.div>
 
@@ -307,18 +328,30 @@ function ResultContent({ kind, matchData }: { kind: ResultKind; matchData: Sessi
 // ── Inner component that reads URL param + sessionStorage ─────────────
 function ResultPageInner() {
   const searchParams = useSearchParams()
-  const [matchData, setMatchData] = useState<SessionMatchData | null>(null)
+  const [result, setResult] = useState<SessionResult | null>(null)
+  const [log, setLog]       = useState<LogEntry[]>([])
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('mddLastMatch')
-    if (!stored) return
-    try { setMatchData(JSON.parse(stored) as SessionMatchData) } catch { /* invalid */ }
+    const stored = sessionStorage.getItem('mddResult')
+    if (stored) {
+      try { setResult(JSON.parse(stored) as SessionResult) } catch { /* invalid */ }
+    }
+    const logRaw = sessionStorage.getItem('mddLastMatch')
+    if (logRaw) {
+      try {
+        const m = JSON.parse(logRaw) as SessionMatchLog
+        if (Array.isArray(m.log)) setLog(m.log)
+      } catch { /* invalid */ }
+    }
   }, [])
 
   const raw = searchParams.get('r')
-  const kind: ResultKind = matchData?.result ?? (raw === 'lose' ? 'lose' : raw === 'draw' ? 'draw' : 'win')
+  // Result handoff uses 'loss'; URL param and ResultKind use 'lose'.
+  const kind: ResultKind = result
+    ? (result.result === 'loss' ? 'lose' : result.result === 'draw' ? 'draw' : 'win')
+    : (raw === 'lose' ? 'lose' : raw === 'draw' ? 'draw' : 'win')
 
-  return <ResultContent kind={kind} matchData={matchData} />
+  return <ResultContent kind={kind} result={result} log={log} />
 }
 
 // ── Page export (Suspense required for useSearchParams in Next.js 14) ─
