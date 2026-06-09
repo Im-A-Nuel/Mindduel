@@ -35,8 +35,10 @@ contracts/deployments/*.local.json
 !.env.sample
 backend/.env
 backend/.env.*
+!backend/.env.example
 frontend/.env
 frontend/.env.*
+!frontend/.env.example
 
 # ── Solana wallet / keypair files ─────────────────────────────────────
 # Committing these exposes your private key and will drain your wallet
