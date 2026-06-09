@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ClientProviders } from '@/components/ClientProviders'
 import { Footer } from '@/components/layout/Footer'
-import { SigningBanner } from '@/components/SigningBanner'
 import { themeBootstrapScript } from '@/components/ThemeProvider'
 import './globals.css'
 
@@ -15,11 +14,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default:  'MindDuel — Prove Your Mind. Win On-Chain.',
+    default:  'MindDuel — Prove Your Mind. Climb the Ranks.',
     template: '%s · MindDuel',
   },
-  description: 'Trivia-gated PvP Tic Tac Toe with real SOL/USDC wagering on Solana devnet.',
-  keywords: ['solana', 'web3', 'game', 'pvp', 'trivia', 'nft', 'tic tac toe', 'mindduel'],
+  description: 'Trivia-gated PvP Tic Tac Toe with on-chain points & ranking on Celo. No staking — pure skill.',
+  keywords: ['celo', 'minipay', 'web3', 'game', 'pvp', 'trivia', 'ranking', 'tic tac toe', 'mindduel'],
   icons: {
     icon: [
       { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
@@ -28,8 +27,8 @@ export const metadata: Metadata = {
     apple: '/apple-icon.png',
   },
   openGraph: {
-    title:       'MindDuel — Prove Your Mind. Win On-Chain.',
-    description: 'Trivia-gated PvP Tic Tac Toe with real SOL/USDC wagering on Solana.',
+    title:       'MindDuel — Prove Your Mind. Climb the Ranks.',
+    description: 'Trivia-gated PvP Tic Tac Toe with on-chain points & ranking on Celo.',
     type:        'website',
     siteName:    'MindDuel',
     images:      [{ url: '/icon-512.png', width: 512, height: 512 }],
@@ -58,7 +57,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div style={{ flex: 1 }}>{children}</div>
             <Footer />
           </div>
-          <SigningBanner />
         </ClientProviders>
       </body>
     </html>
