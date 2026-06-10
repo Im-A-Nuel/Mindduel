@@ -17,18 +17,21 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',').map(s => s.trim(
   'https://mindduel.app',
 ]
 
-// Vercel preview deployments use unpredictable subdomains. Allow them via a
-// regex only if explicitly enabled.
-const allowVercelPreview = process.env.ALLOW_VERCEL_PREVIEW === '1'
+// Any *.vercel.app origin is allowed by default (the app has no credentialed
+// cookies, so CORS is not a security boundary here). This avoids depending on
+// an exact ALLOWED_ORIGINS env value in prod.
+const VERCEL_RE = /(^|\.)vercel\.app$/
 
 await app.register(cors, {
   origin: (origin, cb) => {
     if (!origin) return cb(null, true)
     if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true)
-    if (allowVercelPreview && /\.vercel\.app$/.test(new URL(origin).hostname)) {
-      return cb(null, true)
-    }
-    cb(new Error(`Origin ${origin} not allowed by CORS`), false)
+    try {
+      if (VERCEL_RE.test(new URL(origin).hostname)) return cb(null, true)
+    } catch { /* malformed origin */ }
+    // Deny WITHOUT throwing — a thrown error makes Fastify return 500 with no
+    // CORS header (the browser then just reports a confusing CORS failure).
+    cb(null, false)
   },
   methods: ['GET', 'POST', 'DELETE'],
 })
