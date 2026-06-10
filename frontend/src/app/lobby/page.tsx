@@ -11,6 +11,8 @@ import { createMatch, joinMatch, queueMatch, getMatchForPlayer, getGuestId, fetc
 import { useToast } from '@/components/ui/Toast'
 import { useIsOnline } from '@/components/NetworkStatus'
 import { useNetworkCheck } from '@/hooks/useNetworkCheck'
+import { useSwitchChain } from 'wagmi'
+import { CELO_CHAIN_ID } from '@/lib/constants'
 
 // ── Design tokens ────────────────────────────────────────────────────
 const BLUE   = '#0071E3'
@@ -255,6 +257,7 @@ export default function LobbyPage() {
   const toast = useToast()
   const isOnline = useIsOnline()
   const networkCheck = useNetworkCheck()
+  const { switchChain, isPending: switching } = useSwitchChain()
   const [liveStats, setLiveStats]   = useState<LiveStats | null>(null)
   const [statsError, setStatsError] = useState(false)
 
@@ -663,10 +666,17 @@ export default function LobbyPage() {
       <NavBar active="play" />
 
       {networkCheck.status === 'wrong-network' && (
-        <div style={{ background: '#FDECEB', borderBottom: '1px solid #F5C2C0', padding: '10px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <div style={{ background: '#FDECEB', borderBottom: '1px solid #F5C2C0', padding: '10px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#A81C13' }}>
-            ⚠ Switch your wallet to <strong>Celo</strong> - ranked results are recorded on the Celo network.
+            ⚠ Your wallet is on the wrong network - ranked results are recorded on <strong>Celo</strong>.
           </span>
+          <button
+            onClick={() => switchChain({ chainId: CELO_CHAIN_ID })}
+            disabled={switching}
+            style={{ appearance: 'none', border: 'none', background: '#A81C13', color: '#fff', padding: '6px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 700, cursor: switching ? 'wait' : 'pointer', fontFamily: 'inherit' }}
+          >
+            {switching ? 'Switching…' : 'Switch to Celo'}
+          </button>
         </div>
       )}
 

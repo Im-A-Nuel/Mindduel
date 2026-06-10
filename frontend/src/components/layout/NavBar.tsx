@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { WalletButton } from '@/components/wallet/WalletButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { BottomTabBar } from './BottomTabBar'
+import { useNetworkCheck } from '@/hooks/useNetworkCheck'
 
 const BLUE  = '#0071E3'
 const INK        = 'var(--mdd-ink)'
@@ -55,19 +56,27 @@ export function NavBar({ active }: { active: NavActive }) {
 
           {/* Right: network badge (desktop only) + wallet */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-            <div className="nav-network" style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 11px', background: 'var(--mdd-card)', borderRadius: 999, boxShadow: '0 0 0 0.5px rgba(0,0,0,0.08)' }}>
-              <div style={{ width: 7, height: 7, borderRadius: 4, background: GREEN }} />
-              <span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}>Celo Mainnet</span>
-            </div>
+            <NetworkBadge />
             <ThemeToggle />
             <WalletButton />
           </div>
-
         </div>
       </nav>
-
-      {/* Bottom tab bar - mobile only */}
       <BottomTabBar active={active} />
     </>
+  )
+}
+
+function NetworkBadge() {
+  const net = useNetworkCheck()
+  const onCelo = net.status === 'celo'
+  const wrong = net.status === 'wrong-network'
+  const dot = onCelo ? '#34C759' : wrong ? '#FF9500' : '#AEAEB2'
+  const label = onCelo ? 'Celo Mainnet' : wrong ? 'Wrong network' : 'Celo Mainnet'
+  return (
+    <div className="nav-network" style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 11px', background: 'var(--mdd-card)', borderRadius: 999, boxShadow: '0 0 0 0.5px rgba(0,0,0,0.08)' }}>
+      <div style={{ width: 7, height: 7, borderRadius: 4, background: dot }} />
+      <span style={{ fontSize: 12, fontWeight: 500, color: wrong ? '#A8600A' : MUTED }}>{label}</span>
+    </div>
   )
 }
