@@ -40,6 +40,34 @@ export const RANKING_ABI = [
   },
   {
     type: 'function',
+    name: 'checkIn',
+    stateMutability: 'nonpayable',
+    inputs: [],
+    outputs: [],
+  },
+  {
+    type: 'function',
+    name: 'lastCheckInDay',
+    stateMutability: 'view',
+    inputs: [{ name: '', type: 'address' }],
+    outputs: [{ name: '', type: 'uint64' }],
+  },
+  {
+    type: 'function',
+    name: 'checkInCount',
+    stateMutability: 'view',
+    inputs: [{ name: '', type: 'address' }],
+    outputs: [{ name: '', type: 'uint64' }],
+  },
+  {
+    type: 'function',
+    name: 'totalCheckIns',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+  },
+  {
+    type: 'function',
     name: 'getPlayers',
     stateMutability: 'view',
     inputs: [

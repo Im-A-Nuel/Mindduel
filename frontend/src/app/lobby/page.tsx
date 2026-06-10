@@ -11,6 +11,7 @@ import { createMatch, joinMatch, queueMatch, getMatchForPlayer, getGuestId, fetc
 import { useToast } from '@/components/ui/Toast'
 import { useIsOnline } from '@/components/NetworkStatus'
 import { useNetworkCheck } from '@/hooks/useNetworkCheck'
+import { CheckInButton } from '@/components/CheckInButton'
 import { useSwitchChain } from 'wagmi'
 import { CELO_CHAIN_ID } from '@/lib/constants'
 
@@ -702,6 +703,7 @@ export default function LobbyPage() {
                 <span style={{ opacity: 0.8 }}>· {liveStats.activeMatches + liveStats.waitingMatches}</span>
               )}
             </button>
+            <CheckInButton />
           </div>
           <p style={{ fontSize: 15, color: MUTED, margin: 0, lineHeight: 1.4 }}>
             Configure your duel - pick a mode, go Casual or climb the Ranked ladder, choose what you know.
