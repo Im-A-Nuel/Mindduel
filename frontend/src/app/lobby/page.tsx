@@ -124,7 +124,7 @@ function ModeCard({ mode, selected, onClick }: { mode: typeof MODES[number]; sel
       className="glass-panel"
       style={{
         appearance: 'none', textAlign: 'left', fontFamily: 'inherit',
-        flex: '0 0 auto', width: 158, padding: '16px 14px',
+        width: '100%', padding: '16px 14px',
         borderRadius: 18,
         border: selected
           ? `2px solid ${BLUE}`
@@ -723,7 +723,7 @@ export default function LobbyPage() {
             <SectionTitle hint="Swipe →">Choose Mode</SectionTitle>
             <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none' }} className="mode-scroll">
               {MODES.map(m => (
-                <div key={m.id} style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
+                <div key={m.id} style={{ scrollSnapAlign: 'start', flex: '1 1 150px', minWidth: 150, display: 'flex' }}>
                   <ModeCard mode={m} selected={selectedMode === m.id} onClick={() => setSelectedMode(m.id)} />
                 </div>
               ))}
