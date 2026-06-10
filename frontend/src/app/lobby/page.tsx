@@ -321,7 +321,7 @@ export default function LobbyPage() {
    */
   function validateBeforeCreate(): string | null {
     if (!isOnline) return 'You’re offline. Reconnect to continue.'
-    if (cats.length === 0) return 'Pick at least one trivia category to start.'
+    // cats.length === 0 means "Random" (server picks from all categories) — allowed.
     if (isVsAI) return null
     // Ranked records results for the connected address - require a wallet.
     if (ranked && !isConnected) return 'Connect your wallet to play Ranked.'
@@ -330,7 +330,6 @@ export default function LobbyPage() {
 
   // Reactive validation state for disabling button + showing inline hint
   const validationError = (() => {
-    if (cats.length === 0) return 'Pick at least one trivia category.'
     if (ranked && !isConnected) return 'Connect your wallet to play Ranked, or switch to Casual.'
     return null
   })()
@@ -818,8 +817,9 @@ export default function LobbyPage() {
 
           {/* Trivia Category */}
           <Card>
-            <SectionTitle hint={`${cats.length} selected`}>Trivia Category</SectionTitle>
+            <SectionTitle hint={cats.length === 0 ? 'Random' : `${cats.length} selected`}>Trivia Category</SectionTitle>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <CategoryChip label="🎲 Random" selected={cats.length === 0} onClick={() => setCats([])} />
               {CATEGORIES.map(c => (
                 <CategoryChip key={c} label={c} selected={cats.includes(c)} onClick={() => toggleCat(c)} />
               ))}
