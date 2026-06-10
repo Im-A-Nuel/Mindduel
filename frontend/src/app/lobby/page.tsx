@@ -819,7 +819,7 @@ export default function LobbyPage() {
           <Card>
             <SectionTitle hint={cats.length === 0 ? 'Random' : `${cats.length} selected`}>Trivia Category</SectionTitle>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <CategoryChip label="🎲 Random" selected={cats.length === 0} onClick={() => setCats([])} />
+              <CategoryChip label="Random" selected={cats.length === 0} onClick={() => setCats([])} />
               {CATEGORIES.map(c => (
                 <CategoryChip key={c} label={c} selected={cats.includes(c)} onClick={() => toggleCat(c)} />
               ))}
