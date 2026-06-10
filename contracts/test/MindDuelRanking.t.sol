@@ -226,6 +226,34 @@ contract MindDuelRankingTest is Test {
         assertEq(a2.length, 0);
     }
 
+    // ─── Daily check-in ───────────────────────────────────────────────────
+    function test_CheckInIncrementsAndIsPermissionless() public {
+        vm.warp(2 days + 100);
+        vm.prank(alice);
+        c.checkIn();
+        assertEq(c.checkInCount(alice), 1);
+        assertEq(c.totalCheckIns(), 1);
+
+        vm.prank(bob); // anyone, not just owner
+        c.checkIn();
+        assertEq(c.checkInCount(bob), 1);
+        assertEq(c.totalCheckIns(), 2);
+    }
+
+    function test_CheckInOncePerDay() public {
+        vm.warp(5 days + 10);
+        vm.prank(alice);
+        c.checkIn();
+        vm.prank(alice);
+        vm.expectRevert(MindDuelRanking.AlreadyCheckedIn.selector);
+        c.checkIn();
+        // next day -> allowed again
+        vm.warp(6 days + 10);
+        vm.prank(alice);
+        c.checkIn();
+        assertEq(c.checkInCount(alice), 2);
+    }
+
     function test_TransfersOwnership() public {
         vm.prank(owner);
         c.transferOwnership(relayer);

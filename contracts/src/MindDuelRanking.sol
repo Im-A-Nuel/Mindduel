@@ -42,6 +42,14 @@ contract MindDuelRanking {
     address[] public roster; // every player that has ever been recorded
     mapping(bytes32 => bool) public settled; // matchId => recorded?
 
+    // ─── Daily check-in (player-signed on-chain activity) ──────────────────
+    // Players call checkIn() from their own wallet once per day. This is the
+    // user-initiated on-chain action (each a distinct sender) that drives daily
+    // active users + transactions, separate from owner-recorded match results.
+    mapping(address => uint64) public lastCheckInDay; // unix day of last check-in
+    mapping(address => uint64) public checkInCount;   // lifetime check-ins per player
+    uint256 public totalCheckIns;                     // global counter
+
     // ─── Events ───────────────────────────────────────────────────────────
     event MatchRecorded(
         bytes32 indexed matchId,
@@ -53,12 +61,14 @@ contract MindDuelRanking {
     );
     event PlayerRegistered(address indexed player);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event CheckedIn(address indexed player, uint64 indexed day, uint64 count, uint256 total);
 
     // ─── Errors ───────────────────────────────────────────────────────────
     error NotOwner();
     error ZeroAddress();
     error SamePlayer();
     error AlreadySettled();
+    error AlreadyCheckedIn();
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -118,6 +128,24 @@ contract MindDuelRanking {
         b.lastPlayed = ts;
 
         emit MatchRecorded(matchId, winner, loser, draw, a.points, b.points);
+    }
+
+    /**
+     * @notice Daily on-chain check-in, called by the player from their own
+     *         wallet. One per UTC day per address. Cheap and permissionless —
+     *         its purpose is verifiable daily on-chain activity (each caller a
+     *         distinct address), not ranking. Reverts if already checked in today.
+     */
+    function checkIn() external {
+        uint64 today = uint64(block.timestamp / 1 days);
+        if (lastCheckInDay[msg.sender] == today && checkInCount[msg.sender] != 0) {
+            revert AlreadyCheckedIn();
+        }
+        lastCheckInDay[msg.sender] = today;
+        uint64 c = checkInCount[msg.sender] + 1;
+        checkInCount[msg.sender] = c;
+        totalCheckIns += 1;
+        emit CheckedIn(msg.sender, today, c, totalCheckIns);
     }
 
     // ─── Views ────────────────────────────────────────────────────────────
