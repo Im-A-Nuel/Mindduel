@@ -27,7 +27,6 @@ const MODES = [
   { id: 'shifting', name: 'Shifting Board',  desc: 'Rows & columns shift every 3 turns.', tag: 'MEDIUM', tagBg: '#FFF4E0', tagColor: '#8A5A00', available: true },
   { id: 'scaleup',  name: 'Scale Up',        desc: 'Board grows from 3×3 → 5×5.',      tag: 'HARD',    tagBg: '#FDECEB', tagColor: '#A81C13',   available: true },
   { id: 'blitz',    name: 'Blitz',           desc: '5-second answers. No mercy.',       tag: 'INTENSE', tagBg: '#FDECEB', tagColor: '#A81C13',   available: true },
-  { id: 'vs-ai',   name: 'vs AI',           desc: 'Practice vs MindDuel AI. Casual.',  tag: 'PRACTICE', tagBg: '#E5F0FD', tagColor: BLUE,        available: true },
 ] as const
 
 type ModeId = typeof MODES[number]['id']
@@ -105,7 +104,6 @@ const MODE_ICONS: Record<ModeId, React.ReactElement> = {
   'shifting': <IconShiftingBoard />,
   'scaleup':  <IconScaleUp />,
   'blitz':    <IconBlitz />,
-  'vs-ai':    <IconVsAI />,
 }
 
 const CATEGORIES = ['General Knowledge', 'Crypto & Web3', 'Science', 'History', 'Math', 'Pop Culture']
@@ -163,10 +161,11 @@ function CategoryChip({ label, selected, onClick }: { label: string; selected: b
 // ── Casual / Ranked toggle ────────────────────────────────────────────
 // Ranked records the result on-chain (win = +points, loss = −points) for the
 // connected Celo address. Casual matches are played for fun and not recorded.
-function MatchTypeToggle({ value, onChange, rankedDisabled }: { value: 'casual' | 'ranked'; onChange: (v: 'casual' | 'ranked') => void; rankedDisabled?: boolean }) {
-  const OPTIONS: { id: 'casual' | 'ranked'; title: string; sub: string }[] = [
-    { id: 'casual', title: 'Casual',  sub: 'Just for fun · not recorded' },
-    { id: 'ranked', title: 'Ranked',  sub: 'Recorded on-chain · +/− points' },
+function MatchTypeToggle({ value, onChange, rankedDisabled }: { value: 'casual' | 'ranked' | 'ai'; onChange: (v: 'casual' | 'ranked' | 'ai') => void; rankedDisabled?: boolean }) {
+  const OPTIONS: { id: 'casual' | 'ranked' | 'ai'; title: string; sub: string }[] = [
+    { id: 'casual', title: 'Casual',  sub: 'For fun · not recorded' },
+    { id: 'ranked', title: 'Ranked',  sub: 'On-chain · +/− points' },
+    { id: 'ai',     title: 'vs AI',   sub: 'Practice vs MindDuel AI' },
   ]
   return (
     <div style={{ display: 'flex', gap: 8 }}>
@@ -262,7 +261,7 @@ export default function LobbyPage() {
   const [statsError, setStatsError] = useState(false)
 
   const [selectedMode, setSelectedMode] = useState<ModeId>('classic')
-  const [matchType, setMatchType]       = useState<'casual' | 'ranked'>('ranked')
+  const [matchType, setMatchType]       = useState<'casual' | 'ranked' | 'ai'>('ranked')
   const [cats, setCats]                 = useState<string[]>(['General Knowledge', 'Crypto & Web3'])
   const [difficulty, setDifficulty]     = useState<AIDifficulty>('hard')
   const [matchmaking, setMatchmaking]   = useState(false)
@@ -279,10 +278,10 @@ export default function LobbyPage() {
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const isVsAI = selectedMode === 'vs-ai'
+  const isVsAI = matchType === 'ai'
   // vs-AI is always casual practice; ranked also requires a connected wallet
   // since results are recorded on-chain for the player's address.
-  const ranked = !isVsAI && matchType === 'ranked'
+  const ranked = matchType === 'ranked'
 
   function toggleCat(c: string) {
     setCats(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
@@ -793,27 +792,23 @@ export default function LobbyPage() {
             )}
           </AnimatePresence>
 
-          {/* Match Type - Casual vs Ranked */}
-          <AnimatePresence>
-            {!isVsAI && (
-              <motion.div key="matchtype" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.28 }} style={{ overflow: 'hidden' }}>
-                <Card>
-                  <SectionTitle hint="No staking">Match Type</SectionTitle>
-                  <MatchTypeToggle value={matchType} onChange={setMatchType} rankedDisabled={!isConnected} />
-                  <p style={{ margin: '12px 2px 0', fontSize: 12, color: MUTED, lineHeight: 1.5 }}>
-                    {matchType === 'ranked'
-                      ? 'Ranked results are recorded on-chain - winning adds points, losing subtracts them. No tokens are staked.'
-                      : 'Casual matches are just for fun and never affect your on-chain ranking.'}
-                    {matchType === 'ranked' && !isConnected && (
-                      <span style={{ display: 'block', marginTop: 4, color: '#8A5A00', fontWeight: 500 }}>
-                        Connect a wallet to play Ranked.
-                      </span>
-                    )}
-                  </p>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Match Type - Casual / Ranked / vs AI */}
+          <Card>
+            <SectionTitle hint="No staking">Match Type</SectionTitle>
+            <MatchTypeToggle value={matchType} onChange={setMatchType} rankedDisabled={!isConnected} />
+            <p style={{ margin: '12px 2px 0', fontSize: 12, color: MUTED, lineHeight: 1.5 }}>
+              {matchType === 'ranked'
+                ? 'Ranked results are recorded on-chain - winning adds points, losing subtracts them. No tokens are staked.'
+                : matchType === 'ai'
+                ? 'Practice against MindDuel AI in your chosen mode. Casual - never affects your on-chain ranking.'
+                : 'Casual matches are just for fun and never affect your on-chain ranking.'}
+              {matchType === 'ranked' && !isConnected && (
+                <span style={{ display: 'block', marginTop: 4, color: '#8A5A00', fontWeight: 500 }}>
+                  Connect a wallet to play Ranked.
+                </span>
+              )}
+            </p>
+          </Card>
 
           {/* Trivia Category */}
           <Card>
