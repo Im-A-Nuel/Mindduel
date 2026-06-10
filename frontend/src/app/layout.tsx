@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   },
   description: 'Trivia-gated PvP Tic Tac Toe with on-chain points & ranking on Celo. No staking - pure skill.',
   keywords: ['celo', 'minipay', 'web3', 'game', 'pvp', 'trivia', 'ranking', 'tic tac toe', 'mindduel'],
+  // Talent.app (Celo Proof of Ship) domain ownership verification.
+  other: {
+    'talentapp:project_verification': 'd1b99b43635d13e6adb59143e9696829fdd3abf8d9e9003ecfa42a834d4d2df51bd35e65ef56acfd0c967eaf9b85074bf9b9fe1e37bf1f1ef3ec1d8add6f167c',
+  },
   icons: {
     icon: [
       { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
