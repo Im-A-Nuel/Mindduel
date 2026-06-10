@@ -18,7 +18,7 @@ The single on-chain contract: the points & ranking ledger. No staking, no escrow
 | | |
 |---|---|
 | **Contract** | `MindDuelRanking` |
-| **Address** | [`0xA3CDA78226dF18Acc99AbeAd8d89Cf352d17F02c`](https://celoscan.io/address/0xa3cda78226df18acc99abead8d89cf352d17f02c) |
+| **Address** | [`0x0a42721223a0eceAE92fAfE07F800A8Adc780185`](https://celoscan.io/address/0x0a42721223a0eceae92fafe07f800a8adc780185) |
 | **Owner / relayer** | `0x22227781CCf9d1F547574E7Dec05FE56De6A0B25` |
 | **Network** | Celo mainnet (chainId `42220`) |
 | **Framework** | Foundry (solc `0.8.24`) |
