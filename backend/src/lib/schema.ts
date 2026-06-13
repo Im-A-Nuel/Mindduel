@@ -68,6 +68,24 @@ export type Badge       = typeof badges.$inferSelect
 export type BadgeInsert = typeof badges.$inferInsert
 
 /**
+ * Daily check-in log. One row per (player, day) — day = floor(unix/86400) UTC.
+ * The on-chain checkIn() is the scored action; this mirror powers streak +
+ * stats display (consecutive-day streaks), which the contract doesn't store.
+ */
+export const checkins = pgTable('checkins', {
+  player:   text('player').notNull(),
+  day:      integer('day').notNull(),          // UTC day index
+  txHash:   text('tx_hash'),                    // on-chain checkIn tx (optional)
+  createdAt: bigint('created_at', { mode: 'number' }).notNull(),
+}, (table) => ({
+  byPlayer: index('idx_checkins_player').on(table.player),
+  uniq:     index('idx_checkins_player_day').on(table.player, table.day),
+}))
+
+export type CheckIn       = typeof checkins.$inferSelect
+export type CheckInInsert = typeof checkins.$inferInsert
+
+/**
  * Tournament — single-elimination bracket of 4 or 8 players.
  */
 export const tournaments = pgTable('tournaments', {
