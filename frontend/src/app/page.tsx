@@ -7,6 +7,7 @@ import { motion, useInView } from 'framer-motion'
 import { WalletButton } from '@/components/wallet/WalletButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { fetchLiveStats, type LiveStats } from '@/lib/api'
+import { getTotalCheckIns } from '@/lib/contract'
 
 const BLUE       = '#0071E3'
 const RED        = '#FF3B30'
@@ -747,9 +748,11 @@ function ModeCard({ visual, name, desc, tag, tagBg, tagColor, available, accentC
 // ── Page ─────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const [liveStats, setLiveStats] = useState<LiveStats | null>(null)
+  const [checkIns, setCheckIns] = useState<number | null>(null)
 
   useEffect(() => {
     fetchLiveStats().then(s => setLiveStats(s)).catch(() => {})
+    getTotalCheckIns().then(n => setCheckIns(n)).catch(() => {})
   }, [])
 
   return (
@@ -863,10 +866,11 @@ export default function LandingPage() {
 
       {/* ── Stats bar ────────────────────────────────────────────────── */}
       <section style={{ background: 'var(--mdd-card)', borderTop: '0.5px solid rgba(0,0,0,0.06)', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-        <div className="lp-stats" style={{ maxWidth: 1120, margin: '0 auto', padding: '28px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, textAlign: 'center' }}>
+        <div className="lp-stats" style={{ maxWidth: 1120, margin: '0 auto', padding: '28px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 24, textAlign: 'center' }}>
           {([
             { label: 'Players Ranked', value: liveStats?.playersRanked ?? null },
             { label: 'Matches Played', value: liveStats?.matchesPlayed ?? null },
+            { label: 'On-chain Check-ins', value: checkIns },
             { label: 'Ranked Matches (24h)', value: liveStats?.rankedLast24h ?? null },
             { label: 'Active Matches', value: liveStats ? liveStats.activeMatches + liveStats.waitingMatches : null },
           ] as { label: string; value: number | null }[]).map((s, i) => (

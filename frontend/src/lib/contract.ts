@@ -154,6 +154,21 @@ export async function getPlayerRanking(address: string): Promise<PlayerRanking> 
   }
 }
 
+/** Global on-chain daily check-in count (0 if unconfigured/unreachable). */
+export async function getTotalCheckIns(): Promise<number> {
+  if (!isConfigured()) return 0
+  try {
+    const n = (await publicClient.readContract({
+      address: RANKING_CONTRACT_ADDRESS as `0x${string}`,
+      abi: RANKING_ABI,
+      functionName: 'totalCheckIns',
+    })) as bigint
+    return Number(n)
+  } catch {
+    return 0
+  }
+}
+
 /** Top players from the on-chain roster, sorted by points. */
 export async function getOnchainLeaderboard(limit = 100): Promise<LeaderboardRow[]> {
   if (!isConfigured()) return []
