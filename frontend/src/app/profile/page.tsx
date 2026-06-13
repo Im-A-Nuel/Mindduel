@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useWallet } from '@/hooks/useWallet'
 import { useRanking } from '@/hooks/useRanking'
 import { NavBar } from '@/components/layout/NavBar'
+import { CheckInButton } from '@/components/CheckInButton'
 import { EditProfileModal, EditableProfile } from '@/components/profile/EditProfileModal'
 import { fetchBadges, fetchHistory, type BadgeRow, type HistoryEntry } from '@/lib/api'
 import { SkeletonBadgeGrid } from '@/components/ui/SkeletonRow'
@@ -306,6 +307,11 @@ export default function ProfilePage() {
                 <span style={{ padding: '3px 9px', borderRadius: 999, background: 'var(--mdd-bg)', color: MUTED, fontSize: 11, fontWeight: 600 }}>
                   Joined {profile.joined}
                 </span>
+              </div>
+
+              {/* Daily on-chain check-in */}
+              <div style={{ marginTop: 16 }}>
+                <CheckInButton />
               </div>
 
               {/* Stats list */}
