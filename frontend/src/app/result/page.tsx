@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { WalletButton } from '@/components/wallet/WalletButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { BottomTabBar } from '@/components/layout/BottomTabBar'
+import { ShareButton } from '@/components/ShareButton'
 import { IconRobot, IconCrosshair, IconBolt, IconHandshake } from '@/components/ui/StateIcons'
 import { CELO_EXPLORER, tierForPoints } from '@/lib/constants'
 
@@ -175,6 +176,12 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
   const deltaColor = pointsDelta > 0 ? GREEN_DARK : pointsDelta < 0 ? RED : MUTED
   const tier       = newPoints != null ? tierForPoints(newPoints) : null
 
+  const shareText = win
+    ? `I just won on MindDuel${ranked && tier && newPoints != null ? ` and climbed to ${tier.label} (${newPoints} pts)` : ''} — trivia-gated PvP on Celo. Think you can beat me?`
+    : draw
+      ? 'Hard-fought draw on MindDuel — trivia-gated PvP on Celo. Come play.'
+      : 'Just played MindDuel — trivia-gated PvP on Celo. Come climb the ranks.'
+
   const correct = log.filter(q => q.correct).length
   const total   = log.length
 
@@ -314,6 +321,9 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
                   View Leaderboard
                 </button>
               </a>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <ShareButton text={shareText} label="Share" />
+              </div>
             </div>
           </motion.div>
 
