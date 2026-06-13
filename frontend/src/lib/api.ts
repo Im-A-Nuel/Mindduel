@@ -383,3 +383,41 @@ export async function fetchLiveStats(): Promise<LiveStats> {
   if (!res.ok) throw new Error('Failed to fetch stats')
   return res.json()
 }
+
+export interface CheckInStats {
+  count: number
+  currentStreak: number
+  bestStreak: number
+  lastDay: number | null
+  checkedInToday: boolean
+  streakAlive: boolean
+}
+
+const EMPTY_CHECKIN: CheckInStats = {
+  count: 0, currentStreak: 0, bestStreak: 0, lastDay: null, checkedInToday: false, streakAlive: false,
+}
+
+/** Mirror a confirmed on-chain check-in to the backend (for streak tracking). */
+export async function recordCheckIn(player: string, txHash: string | null): Promise<CheckInStats> {
+  try {
+    const res = await fetchWithTimeout(`${API}/api/checkin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ player, txHash }),
+    }, 8_000)
+    if (!res.ok) return EMPTY_CHECKIN
+    return await res.json()
+  } catch {
+    return EMPTY_CHECKIN
+  }
+}
+
+export async function fetchCheckInStats(player: string): Promise<CheckInStats> {
+  try {
+    const res = await fetchWithTimeout(`${API}/api/checkin/${encodeURIComponent(player)}`, {}, 6_000)
+    if (!res.ok) return EMPTY_CHECKIN
+    return await res.json()
+  } catch {
+    return EMPTY_CHECKIN
+  }
+}

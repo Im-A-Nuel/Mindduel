@@ -14,13 +14,14 @@ const BLUE = '#0071E3'
  */
 export function CheckInButton() {
   const { isConnected } = useWallet()
-  const { configured, checkedInToday, count, checkIn, isPending } = useCheckIn()
+  const { configured, checkedInToday, currentStreak, checkIn, isPending } = useCheckIn()
   const toast = useToast()
 
   if (!configured || !isConnected) return null
 
+  const streakTxt = currentStreak > 0 ? ` · 🔥 ${currentStreak}d` : ''
   const label = checkedInToday
-    ? `✓ Checked in${count > 0 ? ` · ${count}` : ''}`
+    ? `✓ Checked in${streakTxt}`
     : isPending
       ? 'Confirm in wallet…'
       : 'Daily Check-in'
