@@ -102,7 +102,7 @@ body {
   /* Nav - hide links & network badge on mobile */
   .nav-links           { display: none !important; }
   .nav-network          { display: none !important; }
-  /* Also hide the DEVNET badge inside the wallet chip on mobile */
+  /* Also hide the network badge inside the wallet chip on mobile */
   .wallet-network-badge { display: none !important; }
 
   /* Prevent navbar from overflowing on narrow screens */
@@ -422,7 +422,7 @@ html[data-theme="dark"] [style*="background: white"] {
   background: linear-gradient(90deg, #1E1E3F 0%, #2A2A4E 50%, #1E1E3F 100%) !important;
 }
 
-/* Devnet pill on landing - keep the live dot but lighten label */
+/* Network pill on landing - keep the live dot but lighten label */
 [data-theme="dark"] [style*="color:#0A7A2D"],
 [data-theme="dark"] [style*="color: #0A7A2D"] { color: #34C759 !important; }
 [data-theme="dark"] [style*="color:#A81C13"],

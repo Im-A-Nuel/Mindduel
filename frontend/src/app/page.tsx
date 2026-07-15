@@ -147,7 +147,7 @@ function VisualSkillMoves() {
   )
 }
 
-function VisualTrustlessEscrow() {
+function VisualOnChainRanking() {
   return (
     <div style={DARK_SCENE}>
       <svg style={{ position: 'absolute', inset: 0 }} width="100%" height="192" viewBox="0 0 340 192" preserveAspectRatio="xMidYMid slice">
@@ -194,7 +194,7 @@ function VisualTrustlessEscrow() {
         <line x1="244" y1="102" x2="200" y2="110" stroke="#7C3AED" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.6">
           <animate attributeName="stroke-dashoffset" values="0;-14" dur="1.2s" repeatCount="indefinite"/>
         </line>
-        {/* PDA label */}
+        {/* Contract label */}
         <rect x="116" y="153" width="108" height="22" rx="7" fill="#0F0525" stroke="#5B21B6" strokeWidth="1"/>
         <text x="170" y="165" textAnchor="middle" dominantBaseline="middle" fill="#9D5FFF" fontSize="9.5" fontWeight="700">🔐  SMART CONTRACT</text>
         {/* Badges */}
@@ -237,7 +237,7 @@ function VisualInstantSettlement() {
         <text x="289" y="106" textAnchor="middle" fill="#0EA5C2" fontSize="11.5" fontWeight="700">0x9f…</text>
         {/* Speed trail */}
         <rect x="96" y="92" width="90" height="8" rx="4" fill="url(#v3trail)" opacity="0.5"/>
-        {/* Moving SOL coin */}
+        {/* Moving points token */}
         <g>
           <circle cx="200" cy="96" r="21" fill="#071E2A" stroke="#06B6D4" strokeWidth="1.8"/>
           <text x="200" y="97" textAnchor="middle" dominantBaseline="middle" fill="#06B6D4" fontSize="17" fontWeight="800">★</text>
@@ -246,7 +246,7 @@ function VisualInstantSettlement() {
         {/* 400ms badge */}
         <rect x="120" y="130" width="100" height="34" rx="11" fill="#04141E" stroke="#06B6D4" strokeWidth="1.5"/>
         <text x="170" y="142" textAnchor="middle" fill="#4A8A98" fontSize="8" fontWeight="600" letterSpacing="1">FINALITY</text>
-        <text x="170" y="157" textAnchor="middle" fill="#22D3EE" fontSize="14" fontWeight="800">400ms FAST</text>
+        <text x="170" y="157" textAnchor="middle" fill="#22D3EE" fontSize="14" fontWeight="800">~1s FAST</text>
         {/* Settled pill - blinks in after coin arrives */}
         <rect x="220" y="138" width="82" height="20" rx="7" fill="#03200E" stroke="#16A34A" strokeWidth="1">
           <animate attributeName="opacity" values="0;0;1;1;0" dur="2.2s" repeatCount="indefinite" keyTimes="0;0.5;0.55;0.95;1"/>
@@ -262,7 +262,7 @@ function VisualInstantSettlement() {
   )
 }
 
-function VisualAchievementNFTs() {
+function VisualAchievementBadges() {
   return (
     <div style={DARK_SCENE}>
       <svg style={{ position: 'absolute', inset: 0 }} width="100%" height="192" viewBox="0 0 340 192" preserveAspectRatio="xMidYMid slice">
@@ -293,10 +293,10 @@ function VisualAchievementNFTs() {
           </g>
           {/* Card labels */}
           <text x="170" y="110" textAnchor="middle" fill="#F59E0B" fontSize="11" fontWeight="800" letterSpacing="0.5">LEGENDARY</text>
-          <text x="170" y="126" textAnchor="middle" fill="#78350F" fontSize="8.5" fontWeight="600">MIND DUEL · #0847</text>
-          {/* Soulbound pill */}
+          <text x="170" y="126" textAnchor="middle" fill="#78350F" fontSize="8.5" fontWeight="600">MIND DUEL · BADGE</text>
+          {/* On-chain-tracked pill */}
           <rect x="134" y="140" width="72" height="18" rx="6" fill="#0D0806" stroke="#78350F" strokeWidth="1"/>
-          <text x="170" y="150" textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="8.5" fontWeight="700">🔒 SOULBOUND</text>
+          <text x="170" y="150" textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="8.5" fontWeight="700">🏅 ON-CHAIN</text>
         </g>
         {/* Sparkles */}
         {[[54,36,14],[296,28,11],[46,148,12],[302,152,13],[76,96,9],[268,90,10]].map(([x,y,sz],i)=>(
@@ -360,62 +360,44 @@ function VisualHintSystem() {
   )
 }
 
-function VisualDramaScore() {
+function VisualGaslessMiniPay() {
   return (
     <div style={DARK_SCENE}>
       <svg style={{ position: 'absolute', inset: 0 }} width="100%" height="192" viewBox="0 0 340 192" preserveAspectRatio="xMidYMid slice">
         <defs>
-          <radialGradient id="v6g" cx="50%" cy="58%" r="55%">
-            <stop offset="0%" stopColor="#EF4444" stopOpacity="0.3"/>
-            <stop offset="100%" stopColor="#EF4444" stopOpacity="0"/>
+          <radialGradient id="v6g" cx="50%" cy="50%" r="55%">
+            <stop offset="0%" stopColor="#10B981" stopOpacity="0.32"/>
+            <stop offset="100%" stopColor="#10B981" stopOpacity="0"/>
           </radialGradient>
           <filter id="v6f"><feGaussianBlur stdDeviation="14"/></filter>
-          <linearGradient id="v6arc" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#3B82F6"/>
-            <stop offset="45%" stopColor="#F59E0B"/>
-            <stop offset="100%" stopColor="#EF4444"/>
-          </linearGradient>
         </defs>
         <rect width="340" height="192" fill="url(#v6g)" filter="url(#v6f)"/>
-        {/* Gauge track */}
-        <path d="M 76 160 A 94 94 0 0 1 264 160" stroke="#160808" strokeWidth="18" fill="none" strokeLinecap="round"/>
-        {/* Gauge fill - 9.8/10 (arc length ~295, show ~289) */}
-        <path d="M 76 160 A 94 94 0 0 1 264 160" stroke="url(#v6arc)" strokeWidth="14" fill="none" strokeLinecap="round" strokeDasharray="295" strokeDashoffset="7"/>
-        {/* Tick marks */}
-        {Array.from({length:11},(_,i)=>{
-          const ang = Math.PI - (i/10)*Math.PI
-          const cx=170,cy=160,r1=100,r2=90
-          return <line key={i} x1={cx+r1*Math.cos(ang)} y1={cy-r1*Math.sin(ang)} x2={cx+r2*Math.cos(ang)} y2={cy-r2*Math.sin(ang)} stroke="#2A1010" strokeWidth="2"/>
-        })}
-        {/* Needle pointing to ~9.8 (rotate 86° from straight up) */}
-        <g transform="rotate(85, 170, 160)">
-          <line x1="170" y1="160" x2="170" y2="72" stroke="#EF4444" strokeWidth="3" strokeLinecap="round"/>
-        </g>
-        <circle cx="170" cy="160" r="9" fill="#140808" stroke="#EF4444" strokeWidth="2.5"/>
-        <circle cx="170" cy="160" r="4.5" fill="#EF4444"/>
-        {/* Score display */}
-        <text x="170" y="128" textAnchor="middle" fill="#EF4444" fontSize="34" fontWeight="800" letterSpacing="-1.5">9.8</text>
-        <text x="170" y="146" textAnchor="middle" fill="#6A2020" fontSize="9" fontWeight="600">/ 10 DRAMA</text>
-        {/* Flames at gauge ends - SVG flame paths */}
-        <g opacity="0.5" transform="translate(49,150)">
-          <path d="M11 21c-4.5 0-8-3-8-7 0-3.5 2.5-5.8 4.5-7 0 2.2 1.2 3 1.2 3C9 8 10 5.5 10 3c2.5 1.8 6 4.8 6 8.5 0 1-.2 2-.7 2.8.7-.9 1.2-2 1.2-3.3 0 0 1.3 1.3 1.3 4 0 3.5-3.2 6-6.8 6z" fill="#EF4444"/>
-        </g>
-        <g transform="translate(269,149)">
-          <animate attributeName="opacity" values="1;0.6;1" dur="1.4s" repeatCount="indefinite"/>
-          <path d="M11 21c-4.5 0-8-3-8-7 0-3.5 2.5-5.8 4.5-7 0 2.2 1.2 3 1.2 3C9 8 10 5.5 10 3c2.5 1.8 6 4.8 6 8.5 0 1-.2 2-.7 2.8.7-.9 1.2-2 1.2-3.3 0 0 1.3 1.3 1.3 4 0 3.5-3.2 6-6.8 6z" fill="#EF4444"/>
-        </g>
-        {/* Scale labels */}
-        <text x="52" y="178" textAnchor="middle" fill="#1A3060" fontSize="8.5" fontWeight="600">LOW</text>
-        <text x="170" y="185" textAnchor="middle" fill="#4A3010" fontSize="8.5" fontWeight="600">MED</text>
-        <text x="288" y="178" textAnchor="middle" fill="#5A1010" fontSize="8.5" fontWeight="600">EPIC</text>
-        {/* NFT unlock badge */}
-        <rect x="220" y="12" width="108" height="22" rx="7" fill="#1A0808" stroke="#EF4444" strokeWidth="1">
-          <animate attributeName="opacity" values="1;0.4;1" dur="1.8s" repeatCount="indefinite"/>
+        {/* MiniPay phone */}
+        <rect x="26" y="58" width="70" height="104" rx="14" fill="#04140E" stroke="#0F5C3E" strokeWidth="1.5"/>
+        <rect x="34" y="70" width="54" height="70" rx="6" fill="#062A1C"/>
+        <circle cx="61" cy="150" r="5" fill="none" stroke="#0F5C3E" strokeWidth="1.5"/>
+        <text x="61" y="90" textAnchor="middle" fill="#22C55E" fontSize="9.5" fontWeight="800">MiniPay</text>
+        <text x="61" y="106" textAnchor="middle" fill="#4ADE80" fontSize="8" fontWeight="600">● Connected</text>
+        {/* Dashed line to relayer */}
+        <line x1="100" y1="104" x2="216" y2="104" stroke="#10B981" strokeWidth="1.4" strokeDasharray="4 3" opacity="0.7">
+          <animate attributeName="stroke-dashoffset" values="0;-14" dur="1.2s" repeatCount="indefinite"/>
+        </line>
+        {/* Relayer shield */}
+        <path d="M258 58 L288 68 V96 C288 118 275 134 258 142 C241 134 228 118 228 96 V68 Z" fill="#04140E" stroke="#10B981" strokeWidth="1.5"/>
+        <path d="M247 100 L254 108 L270 90" fill="none" stroke="#4ADE80" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+        <text x="258" y="156" textAnchor="middle" fill="#4ADE80" fontSize="8.5" fontWeight="700">RELAYER</text>
+        <text x="258" y="168" textAnchor="middle" fill="#0F5C3E" fontSize="7.5" fontWeight="600">pays gas</text>
+        {/* 0 GAS badge */}
+        <rect x="120" y="30" width="100" height="26" rx="9" fill="#03200E" stroke="#16A34A" strokeWidth="1.5">
+          <animate attributeName="opacity" values="1;0.6;1" dur="2.4s" repeatCount="indefinite"/>
         </rect>
-        <text x="274" y="24" textAnchor="middle" dominantBaseline="middle" fill="#F87171" fontSize="9" fontWeight="700">🎖 NFT UNLOCKED</text>
-        {/* Comeback chip */}
-        <rect x="12" y="12" width="108" height="22" rx="7" fill="#1A0808" stroke="#7F1D1D" strokeWidth="1"/>
-        <text x="66" y="24" textAnchor="middle" dominantBaseline="middle" fill="#DC2626" fontSize="9" fontWeight="600">🎭 EPIC COMEBACK</text>
+        <text x="170" y="44" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="12" fontWeight="800">0 GAS FOR YOU</text>
+        {/* No signature chip */}
+        <rect x="12" y="12" width="130" height="20" rx="7" fill="#071822" stroke="#0A3040" strokeWidth="1"/>
+        <text x="77" y="23" textAnchor="middle" dominantBaseline="middle" fill="#4ADE80" fontSize="8.5" fontWeight="600">NO SIGNATURE NEEDED</text>
+        {/* recordMatch chip */}
+        <rect x="200" y="12" width="128" height="20" rx="7" fill="#071822" stroke="#0A3040" strokeWidth="1"/>
+        <text x="264" y="23" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="8.5" fontWeight="600" fontFamily="ui-monospace, monospace">recordMatch()</text>
       </svg>
     </div>
   )
@@ -466,12 +448,12 @@ function IconBulb() {
     </svg>
   )
 }
-function IconBarChart() {
+function IconWallet() {
   return (
     <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke={BLUE} strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="11" width="4" height="7" rx="1.2"/>
-      <rect x="8" y="6" width="4" height="12" rx="1.2"/>
-      <rect x="14" y="2.5" width="4" height="15.5" rx="1.2"/>
+      <rect x="2" y="5" width="16" height="12" rx="2.5"/>
+      <path d="M2 8h16"/>
+      <circle cx="14.2" cy="12.2" r="1.1" fill={BLUE} stroke="none"/>
     </svg>
   )
 }
@@ -892,11 +874,11 @@ export default function LandingPage() {
         </motion.div>
         <div className="lp-features" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           <FeatureCard delay={0}    visual={<VisualSkillMoves/>}        icon={<IconTarget/>}   title="Skill-Based Moves"   desc="You can only place a piece if you answer the trivia correctly. Strategy alone isn't enough." />
-          <FeatureCard delay={0.08} visual={<VisualTrustlessEscrow/>}   icon={<IconLock/>}     title="On-Chain Ranking"    desc="Every ranked result is recorded by a smart contract on Celo. No staking, no custody - just a tamper-proof points ladder." />
+          <FeatureCard delay={0.08} visual={<VisualOnChainRanking/>}    icon={<IconLock/>}     title="On-Chain Ranking"    desc="Every ranked result is recorded by a smart contract on Celo. No staking, no custody - just a tamper-proof points ladder." />
           <FeatureCard delay={0.16} visual={<VisualInstantSettlement/>} icon={<IconZap/>}      title="Instant Finality"    desc="Celo's fast finality means your new points and rank are confirmed on-chain the moment the game ends." />
-          <FeatureCard delay={0.24} visual={<VisualAchievementNFTs/>}   icon={<IconMedal/>}    title="Achievement NFTs"    desc="Win streaks mint soulbound badge NFTs to your wallet. Prove dominance on-chain, forever." />
+          <FeatureCard delay={0.24} visual={<VisualAchievementBadges/>} icon={<IconMedal/>}    title="On-Chain Badges"     desc="Win streaks and milestones earn achievement badges tied to your wallet - First Blood, Pentakill, Flawless Victory." />
           <FeatureCard delay={0.32} visual={<VisualHintSystem/>}        icon={<IconBulb/>}     title="Free Hint System"    desc="Stuck on a question? Use free hints each match - eliminate options, reveal categories, buy time." />
-          <FeatureCard delay={0.40} visual={<VisualDramaScore/>}        icon={<IconBarChart/>} title="Drama Score"         desc="Epic comebacks and nail-biter finishes generate a drama score. High-drama games mint NFTs." />
+          <FeatureCard delay={0.40} visual={<VisualGaslessMiniPay/>}    icon={<IconWallet/>}   title="Gasless via MiniPay" desc="A backend relayer pays every CELO gas fee and submits your ranked result. Connect and play - you never sign a transaction." />
         </div>
       </section>
 
