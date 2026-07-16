@@ -314,7 +314,7 @@ function AnswerBtn({ label, letterLabel, state, onClick, eliminated }: { label: 
 }
 
 // ── TriviaCard - controlled ───────────────────────────────────────────
-function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout, disabled, eliminated, timeKey, extraTimeBumps, firstLetterHint, categoryHint }: {
+function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout, disabled, eliminated, timeKey, extraTimeBumps, firstLetterHint, categoryHint, onTimeLeft }: {
   question: DisplayQuestion
   selectedIdx: number | null
   correctIdx: number | null
@@ -326,6 +326,8 @@ function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout
   extraTimeBumps: number
   firstLetterHint: string | null
   categoryHint: string | null
+  /** Lifts the live countdown so the board can mirror the final seconds. */
+  onTimeLeft?: (secondsLeft: number | null) => void
 }) {
   const [timeLeft, setTimeLeft] = useState(question.timeLimit)
   const revealed = correctIdx !== null
@@ -347,10 +349,18 @@ function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout
   useEffect(() => {
     if (disabled || revealed) return
     if (timeLeft <= 0) { onTimeout(); return }
-    if (timeLeft <= 5) sounds.tick()
     const id = setTimeout(() => setTimeLeft(t => t - 1), 1000)
     return () => clearTimeout(id)
   }, [timeLeft, disabled, revealed, onTimeout])
+
+  // Publish the countdown upward. The board renders the final seconds large,
+  // and owns the tick sound so it fires exactly once per second regardless of
+  // which timer is driving it.
+  useEffect(() => {
+    onTimeLeft?.(disabled || revealed ? null : timeLeft)
+  }, [timeLeft, disabled, revealed, onTimeLeft])
+
+  useEffect(() => () => onTimeLeft?.(null), [onTimeLeft])
 
   function pick(i: number) {
     if (selectedIdx !== null || eliminated.includes(i) || disabled) return
@@ -676,6 +686,56 @@ function WaitingRoom({ matchId, myMark, myAddr, oppAddr, oppJoined, iAmReady, op
   )
 }
 
+// ── Match start countdown ─────────────────────────────────────────────
+function StartCountdown({ n }: { n: number }) {
+  return (
+    <motion.div
+      key="startcountdown"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 46, background: BG, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+    >
+      <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, color: MUTED }}>BOTH READY</span>
+      <div style={{ position: 'relative', width: 150, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <AnimatePresence mode="popLayout">
+          <motion.span
+            key={n}
+            initial={{ scale: 0.4, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.9, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            style={{ position: 'absolute', fontSize: 116, fontWeight: 800, letterSpacing: -4, color: BLUE, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}
+          >
+            {n}
+          </motion.span>
+        </AnimatePresence>
+      </div>
+      <span style={{ fontSize: 15, fontWeight: 600, color: INK }}>Get ready…</span>
+    </motion.div>
+  )
+}
+
+// ── Opponent offline banner ───────────────────────────────────────────
+function OpponentOfflineBanner() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.22 }}
+      style={{
+        position: 'fixed', top: 74, left: '50%', transform: 'translateX(-50%)', zIndex: 30,
+        background: '#FDECEB', border: '1px solid #FCC9C5', borderRadius: 999,
+        padding: '9px 18px', display: 'flex', alignItems: 'center', gap: 9,
+        boxShadow: '0 6px 22px rgba(168,28,19,0.16)', maxWidth: '92vw',
+      }}
+    >
+      <span style={{ width: 8, height: 8, borderRadius: 4, background: '#A81C13', flexShrink: 0, animation: 'pulse 1.4s ease-in-out infinite' }} />
+      <span style={{ fontSize: 13, fontWeight: 600, color: '#A81C13', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        Opponent disconnected. Waiting for them to come back…
+      </span>
+    </motion.div>
+  )
+}
+
 interface LogEntry { q: string; correct: boolean; time: number }
 
 // ── Main Page ─────────────────────────────────────────────────────────
@@ -750,6 +810,13 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   // Latch: once the match has started, a later disconnect must never bounce
   // the player back into the waiting room mid-game.
   const [gameStarted, setGameStarted] = useState(false)
+  /** 3..2..1 shown to both players after the ready-check passes. null = idle. */
+  const [startCountdown, setStartCountdown] = useState<number | null>(null)
+  /** Player addresses holding an open socket, pushed by the server. */
+  const [presentPlayers, setPresentPlayers] = useState<string[]>([])
+  const [presenceKnown, setPresenceKnown] = useState(false)
+  /** Live seconds left on the trivia question, lifted out of TriviaCard. */
+  const [questionTimeLeft, setQuestionTimeLeft] = useState<number | null>(null)
 
   // Resign / forfeit-match confirm
   const [confirmResign, setConfirmResign] = useState(false)
@@ -929,7 +996,11 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
 
     function connect() {
       if (cancelled) return
-      const ws = new WebSocket(`${WS_URL}/ws/${params.matchId}`)
+      // Identify which side this socket is, so the server can report presence
+      // and the opponent can see when we drop.
+      const me = addressRef.current?.toLowerCase()
+      const qs = me ? `?player=${encodeURIComponent(me)}` : ''
+      const ws = new WebSocket(`${WS_URL}/ws/${params.matchId}${qs}`)
       wsRef.current = ws
 
       ws.onopen = () => {
@@ -962,6 +1033,9 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             setQuestionIndex(i => i + 1); setTimeKey(k => k + 1)
           } else if (msg.type === 'ready_state') {
             setReadyPlayers(Array.isArray(msg.ready) ? msg.ready.map((a: string) => String(a).toLowerCase()) : [])
+          } else if (msg.type === 'presence') {
+            setPresentPlayers(Array.isArray(msg.players) ? msg.players.map((a: string) => String(a).toLowerCase()) : [])
+            setPresenceKnown(true)
           } else if (msg.type === 'state' && msg.match) {
             if (!receivedLiveEvent) {
               setBoard(msg.match.board); setCurrentPlayer(msg.match.currentPlayer)
@@ -1230,12 +1304,52 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     && readyPlayers.includes(matchPlayers.one!)
     && readyPlayers.includes(matchPlayers.two!)
   // Waiting room only gates PvP. vs-AI never has a second human to wait for.
-  const showWaitingRoom = !isVsAI && !isLoading && !gameStarted && !gameOver
+  // The 3..2..1 replaces it once both players are ready.
+  const showWaitingRoom = !isVsAI && !isLoading && !gameStarted && !gameOver && startCountdown === null
 
-  // Latch the start so a mid-match WS drop can't re-open the waiting room.
+  // Name ourselves to the room whenever the wallet is (re)known. The socket
+  // opens before the connector settles, so `?player=` on the URL can be
+  // missing; without this the opponent would see us as permanently offline.
   useEffect(() => {
-    if (bothReady) setGameStarted(true)
-  }, [bothReady])
+    if (isVsAI || !myAddrLower) return
+    sendWsEvent({ type: 'identify', player: myAddrLower })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVsAI, myAddrLower])
+
+  // ── Opponent presence ──────────────────────────────────────────────
+  const oppOnline = !!oppAddrLower && presentPlayers.includes(oppAddrLower)
+  const [oppOffline, setOppOffline] = useState(false)
+  useEffect(() => {
+    // Only judge once the server has told us who is present, and never during
+    // vs-AI or after the match ends.
+    if (isVsAI || gameOver || !presenceKnown || !oppJoined) { setOppOffline(false); return }
+    if (oppOnline) { setOppOffline(false); return }
+    // Grace period: a reconnect (or the opponent's own StrictMode remount)
+    // briefly empties presence, and flashing "opponent left" for that would be
+    // worse than saying nothing.
+    const id = setTimeout(() => setOppOffline(true), 4000)
+    return () => clearTimeout(id)
+  }, [isVsAI, gameOver, presenceKnown, oppJoined, oppOnline])
+
+  // Ready-check passed: run a shared 3..2..1 before unlocking the board, so
+  // neither player is mid-glance at the screen when the first turn opens.
+  useEffect(() => {
+    if (!bothReady || gameStarted || startCountdown !== null) return
+    setStartCountdown(3)
+  }, [bothReady, gameStarted, startCountdown])
+
+  useEffect(() => {
+    if (startCountdown === null) return
+    if (startCountdown <= 0) {
+      sounds.countdownGo()
+      setGameStarted(true)
+      setStartCountdown(null)
+      return
+    }
+    sounds.countdownBeat()
+    const id = setTimeout(() => setStartCountdown(c => (c === null ? null : c - 1)), 1000)
+    return () => clearTimeout(id)
+  }, [startCountdown])
 
   // Fallback poll: while the waiting room is up and we still believe we're
   // alone, ask the server directly. The WebSocket `state` push is the fast
@@ -1273,6 +1387,28 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     return () => clearInterval(id)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVsAI, gameStarted, iAmReady, bothReady, myAddrLower])
+
+  // Final-seconds countdown shown large over the board. Driven by whichever
+  // clock is actually running against this player: the trivia timer once a
+  // cell is picked, otherwise Blitz's pick-a-cell timer (during which the
+  // board must stay clickable, hence the overlay never takes pointer events).
+  // Declared before the tick effect below: a dependency array is evaluated at
+  // the useEffect call, so referencing it earlier would hit the TDZ.
+  const urgentSeconds = pendingCell !== null ? questionTimeLeft : blitzPickLeft
+  const boardCountdown = (!gameOver && !isShifting && urgentSeconds !== null && urgentSeconds > 0 && urgentSeconds <= 5)
+    ? urgentSeconds
+    : null
+
+  // One urgent tick per second of the final countdown. Keyed off the value so
+  // it fires exactly once per second no matter which clock is driving it, and
+  // replaces TriviaCard's own quieter tick.
+  const lastTickRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (boardCountdown === null) { lastTickRef.current = null; return }
+    if (lastTickRef.current === boardCountdown) return
+    lastTickRef.current = boardCountdown
+    sounds.urgentTick(boardCountdown)
+  }, [boardCountdown])
 
   function sendReady() {
     if (!myAddrLower || iAmReady) return
@@ -1683,6 +1819,14 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       </AnimatePresence>
 
       <AnimatePresence>
+        {startCountdown !== null && startCountdown > 0 && <StartCountdown n={startCountdown} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {oppOffline && !showWaitingRoom && <OpponentOfflineBanner />}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {showWaitingRoom && (
           <WaitingRoom
             matchId={params.matchId}
@@ -1827,6 +1971,37 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               <AnimatePresence>
                 {winLine && winner && winner !== 'draw' && <WinLineOverlay winLine={winLine} winner={winner} boardSize={boardSize} />}
               </AnimatePresence>
+
+              {/* Final-seconds countdown, drawn OVER the board. pointerEvents
+                  stays off so cells remain clickable underneath it. */}
+              <AnimatePresence>
+                {boardCountdown !== null && (
+                  <motion.div
+                    key="boardcountdown"
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 5 }}
+                  >
+                    <AnimatePresence mode="popLayout">
+                      <motion.span
+                        key={boardCountdown}
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 1.7, opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+                        style={{
+                          position: 'absolute',
+                          fontSize: 'min(190px, 42vw)', fontWeight: 800, letterSpacing: -6,
+                          color: RED, opacity: 0.9, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
+                          textShadow: '0 8px 40px rgba(255,59,48,0.45)',
+                        }}
+                      >
+                        {boardCountdown}
+                      </motion.span>
+                    </AnimatePresence>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
@@ -1898,6 +2073,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                     extraTimeBumps={extraTimeBumps}
                     firstLetterHint={firstLetterHint}
                     categoryHint={categoryHint}
+                    onTimeLeft={setQuestionTimeLeft}
                   />
                 )}
               </motion.div>

@@ -102,6 +102,26 @@ class SoundEngine {
     this.tone(1100, 0.04, 'square', 0.08)
   }
 
+  /**
+   * Heavier tick for the last-5-seconds board countdown. Deliberately louder
+   * and longer than `tick()` so the final seconds read as urgent, and pitched
+   * a little higher each second as time runs out.
+   */
+  urgentTick(secondsLeft: number) {
+    const freq = 700 + (5 - Math.min(5, Math.max(1, secondsLeft))) * 90
+    this.tone(freq, 0.09, 'square', 0.13)
+  }
+
+  /** Match-start countdown: three beats, then a higher GO tone. */
+  countdownBeat() {
+    this.tone(660, 0.10, 'sine', 0.13)
+  }
+
+  countdownGo() {
+    this.tone(880, 0.12, 'sine', 0.16)
+    setTimeout(() => this.tone(1320, 0.20, 'sine', 0.14), 90)
+  }
+
   /** Neutral draw cue - three flat notes. */
   draw() {
     this.tone(440, 0.18, 'triangle', 0.10)

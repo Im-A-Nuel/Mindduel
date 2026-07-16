@@ -7,6 +7,8 @@ type Role = 'player' | 'spectator'
 interface RoomMember {
   socket: WsClient
   role:   Role
+  /** Lowercased wallet address, from `?player=` on the socket URL. Players only. */
+  player: string | null
 }
 
 const rooms = new Map<string, Set<RoomMember>>()
@@ -53,6 +55,27 @@ function readyPayload(matchId: string): string {
   return JSON.stringify({ type: 'ready_state', ready: readyList(matchId) })
 }
 
+/**
+ * Who is currently holding an open player socket in this room. Lets each
+ * client tell whether its opponent is still present, so a player who closes
+ * the tab or drops offline mid-match is visible to the other side instead of
+ * looking like they are simply thinking for a very long time.
+ */
+function presentPlayers(matchId: string): string[] {
+  const out = new Set<string>()
+  for (const m of rooms.get(matchId) ?? []) {
+    if (m.role === 'player' && m.player && m.socket.readyState === 1) out.add(m.player)
+  }
+  return [...out]
+}
+
+function broadcastPresence(matchId: string) {
+  const payload = JSON.stringify({ type: 'presence', players: presentPlayers(matchId) })
+  for (const m of rooms.get(matchId) ?? []) {
+    if (m.socket.readyState === 1) m.socket.send(payload)
+  }
+}
+
 function getRoom(matchId: string): Set<RoomMember> {
   let r = rooms.get(matchId)
   if (!r) { r = new Set(); rooms.set(matchId, r) }
@@ -93,7 +116,17 @@ export async function wsRoutes(app: FastifyInstance) {
     const role: Role = url.includes('role=spectator') ? 'spectator' : 'player'
     const socket = connection.socket as unknown as WsClient
 
-    const member: RoomMember = { socket, role }
+    // `?player=<addr>` identifies which side this socket belongs to, so the
+    // room can report presence. Absent for spectators and legacy clients.
+    let player: string | null = null
+    if (role === 'player') {
+      try {
+        const p = new URL(url, 'http://localhost').searchParams.get('player')
+        if (p) player = p.toLowerCase()
+      } catch { /* malformed url - presence just stays unknown */ }
+    }
+
+    const member: RoomMember = { socket, role, player }
     getRoom(matchId).add(member)
 
     // Replay in-memory state IMMEDIATELY — none of it needs the database, so
@@ -116,6 +149,8 @@ export async function wsRoutes(app: FastifyInstance) {
 
     // Tell everyone the viewer count changed
     broadcastViewerCount(matchId)
+    // ...and that this player is now present (also seeds the joiner's own view).
+    broadcastPresence(matchId)
 
     // Heartbeat: server pings every 30s. If the client drops without a
     // graceful close (e.g. lid closed, network drop) the ping write fails
@@ -181,6 +216,19 @@ export async function wsRoutes(app: FastifyInstance) {
             }
             return  // never relay the raw player_ready
           }
+          if (parsed.type === 'identify') {
+            // The socket opens before the wallet has necessarily settled, so
+            // `?player=` can be missing on the initial connect. This lets the
+            // client name itself as soon as it knows, without socket churn.
+            if (role === 'player' && typeof parsed.player === 'string' && parsed.player.length > 0) {
+              const next = parsed.player.toLowerCase()
+              if (member.player !== next) {
+                member.player = next
+                broadcastPresence(matchId)
+              }
+            }
+            return  // never relay
+          }
           if (parsed.type === 'board_updated') lastEvent.set(matchId, payload)
         } catch {
           return  // malformed JSON — drop instead of broadcast
@@ -199,6 +247,8 @@ export async function wsRoutes(app: FastifyInstance) {
         lastEvent.delete(matchId)
       } else {
         broadcastViewerCount(matchId)
+        // Let the remaining player see that their opponent dropped.
+        broadcastPresence(matchId)
       }
     })
   })
