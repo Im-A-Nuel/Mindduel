@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { getAIMove, type AIDifficulty } from '@/lib/ai'
 import { sounds } from '@/lib/sounds'
 import { WalletButton } from '@/components/wallet/WalletButton'
-import { fetchTrivia, revealTrivia, peekTrivia, TriviaSessionExpiredError, WS_URL, reportMatchFinish, reportVsAiResult, type TriviaQuestion } from '@/lib/api'
+import { fetchTrivia, revealTrivia, peekTrivia, TriviaSessionExpiredError, WS_URL, reportMatchFinish, reportVsAiResult, getMatchState, type TriviaQuestion } from '@/lib/api'
 import { useWallet } from '@/hooks/useWallet'
 import { SoundToggle } from '@/components/SoundToggle'
 import { IconRobot, IconCrosshair } from '@/components/ui/StateIcons'
@@ -876,7 +876,17 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               const p2 = typeof msg.match.playerTwo === 'string' ? msg.match.playerTwo.toLowerCase() : null
               if (p1) playerOneAddrRef.current = p1
               if (p2) playerTwoAddrRef.current = p2
-              setMatchPlayers({ one: p1, two: p2 })
+              // NEVER let a stale snapshot un-join the opponent. The server's
+              // connect-time `state` is produced by a DB read issued when the
+              // socket opened; if the opponent joins while that read is still
+              // in flight, its (older) result lands AFTER the join broadcast
+              // and would otherwise reset playerTwo back to null, leaving this
+              // client stuck on "waiting for an opponent" with no further
+              // `state` ever coming. A known opponent is monotonic.
+              setMatchPlayers(prev => ({
+                one: p1 ?? prev.one,
+                two: p2 ?? prev.two,
+              }))
               // Authoritatively derive myMark from the server's player list so a
               // stale sessionStorage value (e.g. from a race-condition in the lobby
               // polling path) can never put both players on the same side.
@@ -1114,6 +1124,43 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   useEffect(() => {
     if (bothReady) setGameStarted(true)
   }, [bothReady])
+
+  // Fallback poll: while the waiting room is up and we still believe we're
+  // alone, ask the server directly. The WebSocket `state` push is the fast
+  // path, but a dropped/stale message must not strand the match creator on
+  // "waiting for an opponent" forever (previously only a manual page refresh
+  // recovered from that). Stops as soon as the opponent is known.
+  useEffect(() => {
+    if (isVsAI || gameStarted || oppJoined) return
+    if (params.matchId.startsWith('vs-ai-')) return
+    let cancelled = false
+    const id = setInterval(async () => {
+      try {
+        const m = await getMatchState(params.matchId)
+        if (cancelled || !m) return
+        const p1 = typeof m.playerOne === 'string' ? m.playerOne.toLowerCase() : null
+        const p2 = typeof m.playerTwo === 'string' ? m.playerTwo.toLowerCase() : null
+        if (p1) playerOneAddrRef.current = p1
+        if (p2) playerTwoAddrRef.current = p2
+        setMatchPlayers(prev => ({ one: p1 ?? prev.one, two: p2 ?? prev.two }))
+      } catch { /* transient - next tick retries */ }
+    }, 2000)
+    return () => { cancelled = true; clearInterval(id) }
+  }, [isVsAI, gameStarted, oppJoined, params.matchId])
+
+  // Self-heal: while we're ready but the match hasn't started, re-announce
+  // periodically. The server answers every `player_ready` by fanning the FULL
+  // ready set back to the whole room, so this doubles as a re-sync for a
+  // client that missed the opponent's original fanout (e.g. its socket was
+  // mid-reconnect). Idempotent server-side - it's a Set.
+  useEffect(() => {
+    if (isVsAI || gameStarted || !iAmReady || bothReady || !myAddrLower) return
+    const id = setInterval(() => {
+      sendWsEvent({ type: 'player_ready', player: myAddrLower })
+    }, 2500)
+    return () => clearInterval(id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVsAI, gameStarted, iAmReady, bothReady, myAddrLower])
 
   function sendReady() {
     if (!myAddrLower || iAmReady) return

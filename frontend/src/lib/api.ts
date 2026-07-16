@@ -198,6 +198,19 @@ export async function queueMatch(
   return res.json()
 }
 
+/**
+ * Authoritative match snapshot. Used by the game page's waiting room as a
+ * fallback poll so a missed/stale WebSocket `state` can never leave a player
+ * stuck on "waiting for opponent" when the opponent has in fact joined.
+ */
+export async function getMatchState(matchId: string): Promise<{
+  matchId: string; playerOne: string; playerTwo: string | null; status: string
+} | null> {
+  const res = await fetchWithTimeout(`${API}/api/match/${encodeURIComponent(matchId)}`)
+  if (!res.ok) return null
+  return res.json()
+}
+
 export async function getMatchForPlayer(playerId: string): Promise<{ matchId: string; status: string; categories?: string[]; difficulty?: string } | null> {
   const res = await fetchWithTimeout(`${API}/api/match/player/${encodeURIComponent(playerId)}`)
   if (res.status === 404) return null
