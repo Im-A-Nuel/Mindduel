@@ -223,6 +223,9 @@ function JoinCodeModal({ code, matchId, onStart }: { code: string; matchId: stri
   function copyCode() {
     navigator.clipboard.writeText(code).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
+  // Invite link: opening it joins the match and lands the opponent straight in
+  // the waiting room, so they never have to type the code into the lobby.
+  const inviteUrl = typeof window !== 'undefined' ? `${window.location.origin}/join/${code}` : ''
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(8px)' }}>
       <motion.div initial={{ scale: 0.88, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.88, y: 20 }} transition={{ type: 'spring', stiffness: 320, damping: 26 }} style={{ width: '100%', maxWidth: 380, background: 'var(--mdd-card)', borderRadius: 24, padding: '32px 28px', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}>
@@ -237,15 +240,21 @@ function JoinCodeModal({ code, matchId, onStart }: { code: string; matchId: stri
           <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>Match ID: {matchId.slice(0, 8)}…</div>
         </div>
 
-        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
           <button onClick={copyCode} style={{ flex: 1, appearance: 'none', border: '1.5px solid rgba(0,0,0,0.10)', background: 'var(--mdd-card)', color: INK, padding: '12px', borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>
             {copied ? '✓ Copied!' : 'Copy Code'}
           </button>
-          <button onClick={onStart} style={{ flex: 1, appearance: 'none', border: 'none', background: BLUE, color: '#fff', padding: '12px', borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,113,227,0.25)' }}>
-            Start Game →
-          </button>
+          <ShareButton
+            label="Share Link"
+            url={inviteUrl}
+            text="Duel me on MindDuel: trivia-gated PvP with on-chain ranking on Celo. Tap to join my match."
+            style={{ flex: 1, borderRadius: 12, padding: '12px', justifyContent: 'center', fontSize: 14 }}
+          />
         </div>
-        <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>Opponent can join anytime using this code</p>
+        <button onClick={onStart} style={{ width: '100%', appearance: 'none', border: 'none', background: BLUE, color: '#fff', padding: '13px', borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,113,227,0.25)', marginBottom: 12 }}>
+          Start Game →
+        </button>
+        <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>Share the link and your opponent lands straight in the room. The code works too.</p>
       </motion.div>
     </motion.div>
   )

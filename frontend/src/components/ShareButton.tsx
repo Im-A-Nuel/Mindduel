@@ -15,11 +15,14 @@ export function ShareButton({
   url,
   label = 'Share',
   variant = 'solid',
+  style,
 }: {
   text?: string
   url?: string
   label?: string
   variant?: 'solid' | 'ghost'
+  /** Merged last, so callers can match a surrounding button row (width, radius). */
+  style?: React.CSSProperties
 }) {
   const toast = useToast()
 
@@ -60,6 +63,7 @@ export function ShareButton({
         color: solid ? '#fff' : INK,
         fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
         display: 'inline-flex', alignItems: 'center', gap: 7,
+        ...style,
       }}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
