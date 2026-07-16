@@ -103,3 +103,12 @@ backend/drizzle/meta/
 # Anything in docs/_internal/ is treated the same way.
 docs/DEMO_SCRIPT.md
 docs/_internal/
+
+docs/DEMO_SCRIPT.md
+docs/JUDGE_PITCH_SCRIPT.md
+docs/JUDGE_QA_PREP.md
+
+PITCH_DECK.md
+SMOKE_TEST.md
+
+CLAUDE.md
