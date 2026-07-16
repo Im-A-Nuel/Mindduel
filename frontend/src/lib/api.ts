@@ -1,5 +1,47 @@
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3001'
-export const WS_URL = (process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:3001').replace(/\/+$/, '')
+
+/**
+ * WebSocket origin.
+ *
+ * DERIVED from the backend URL unless explicitly overridden. The backend
+ * serves the API and the /ws rooms from the same host, so a separate env var
+ * is only ever a chance to get them out of sync — and it did: with
+ * NEXT_PUBLIC_WS_URL unset in production this silently fell back to
+ * `ws://localhost:3001`, so every visitor's browser tried to open a socket
+ * against THEIR OWN machine. Realtime never worked in production (no board
+ * sync, no ready-check, no state pushes) while every backend probe passed,
+ * because the backend was fine. `ws://` on an https page is also blocked as
+ * mixed content, so it could not have worked even pointed at the right host.
+ *
+ * https -> wss, http -> ws.
+ */
+function deriveWsUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_WS_URL?.trim()
+  if (explicit) return explicit.replace(/\/+$/, '')
+  return API.replace(/^http/, 'ws').replace(/\/+$/, '')
+}
+
+export const WS_URL = deriveWsUrl()
+
+// Fail loudly rather than silently degrading: a WS origin pointing at
+// localhost from a deployed page can never connect, and the symptom
+// (everything looks fine, nothing syncs) is very hard to trace back here.
+if (typeof window !== 'undefined') {
+  const pageIsRemote = !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname)
+  const wsIsLocal    = /(localhost|127\.0\.0\.1|\[::1\])/.test(WS_URL)
+  if (pageIsRemote && wsIsLocal) {
+    console.error(
+      `[MindDuel] WebSocket URL "${WS_URL}" points at localhost but the app is served from ` +
+      `${window.location.origin}. Realtime sync cannot work. Set NEXT_PUBLIC_BACKEND_URL ` +
+      `(and optionally NEXT_PUBLIC_WS_URL) to the deployed backend, then rebuild.`,
+    )
+  } else if (window.location.protocol === 'https:' && WS_URL.startsWith('ws://')) {
+    console.error(
+      `[MindDuel] WebSocket URL "${WS_URL}" uses ws:// on an https page; browsers block this ` +
+      `as mixed content. Use wss://.`,
+    )
+  }
+}
 
 // Default timeout for backend calls - slow network shouldn't hang the UI forever.
 const DEFAULT_TIMEOUT_MS = 12_000
