@@ -728,6 +728,75 @@ function ModeCard({ visual, name, desc, tag, tagBg, tagColor, available, accentC
 }
 
 // ── Page ─────────────────────────────────────────────────────────────
+// ── CTA background: drifting X / O marks ──────────────────────────────
+// Positions are FIXED rather than random: this renders during SSR too, and a
+// Math.random() layout would differ between the server and client passes and
+// trip a hydration mismatch.
+type Particle = { left: number; top: number; size: number; mark: 'x' | 'o'; dur: number; delay: number; drift: number; rot: number; opacity: number }
+
+const CTA_PARTICLES: Particle[] = [
+  { left:  4, top: 18, size: 46, mark: 'x', dur: 15, delay: 0,   drift:  16, rot:  14, opacity: 0.16 },
+  { left: 12, top: 68, size: 28, mark: 'o', dur: 19, delay: 1.6, drift: -12, rot: -20, opacity: 0.12 },
+  { left: 21, top: 34, size: 20, mark: 'o', dur: 13, delay: 3.1, drift:  10, rot:  26, opacity: 0.10 },
+  { left: 29, top: 82, size: 36, mark: 'x', dur: 21, delay: 0.7, drift: -18, rot: -12, opacity: 0.13 },
+  { left: 38, top: 10, size: 24, mark: 'o', dur: 17, delay: 2.3, drift:  14, rot:  18, opacity: 0.11 },
+  { left: 47, top: 74, size: 18, mark: 'x', dur: 14, delay: 4.0, drift:  -9, rot:  22, opacity: 0.09 },
+  { left: 56, top: 26, size: 40, mark: 'x', dur: 23, delay: 1.1, drift:  20, rot: -16, opacity: 0.15 },
+  { left: 64, top: 62, size: 26, mark: 'o', dur: 16, delay: 2.9, drift: -14, rot:  24, opacity: 0.12 },
+  { left: 72, top: 14, size: 22, mark: 'x', dur: 18, delay: 0.4, drift:  11, rot: -22, opacity: 0.10 },
+  { left: 80, top: 78, size: 44, mark: 'o', dur: 20, delay: 3.6, drift: -17, rot:  12, opacity: 0.14 },
+  { left: 88, top: 40, size: 30, mark: 'x', dur: 15, delay: 1.9, drift:  13, rot:  20, opacity: 0.12 },
+  { left: 94, top: 12, size: 18, mark: 'o', dur: 22, delay: 4.4, drift: -10, rot: -18, opacity: 0.09 },
+  { left: 16, top: 48, size: 16, mark: 'x', dur: 12, delay: 5.0, drift:   8, rot:  28, opacity: 0.08 },
+  { left: 68, top: 90, size: 20, mark: 'o', dur: 24, delay: 2.1, drift: -12, rot:  16, opacity: 0.10 },
+]
+
+function CtaParticles() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', borderRadius: 24 }} aria-hidden="true">
+      <style>{`
+        @keyframes ctaDrift {
+          0%   { transform: translate(0, 0) rotate(0deg); }
+          50%  { transform: translate(var(--dx), -18px) rotate(var(--rot)); }
+          100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cta-particle { animation: none !important; }
+        }
+      `}</style>
+      {CTA_PARTICLES.map((p, i) => (
+        <div
+          key={i}
+          className="cta-particle"
+          style={{
+            position: 'absolute',
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            width: p.size,
+            height: p.size,
+            opacity: p.opacity,
+            // Consumed by the keyframes above, so each mark drifts its own way.
+            ['--dx' as string]: `${p.drift}px`,
+            ['--rot' as string]: `${p.rot}deg`,
+            animation: `ctaDrift ${p.dur}s ease-in-out ${p.delay}s infinite`,
+            willChange: 'transform',
+          }}
+        >
+          {p.mark === 'x' ? (
+            <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none">
+              <path d="M5 5L19 19M19 5L5 19" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="7.6" stroke={RED} strokeWidth="2.6" />
+            </svg>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function LandingPage() {
   const [liveStats, setLiveStats] = useState<LiveStats | null>(null)
   const [checkIns, setCheckIns] = useState<number | null>(null)
@@ -1004,21 +1073,41 @@ export default function LandingPage() {
       {/* ── CTA ──────────────────────────────────────────────────────── */}
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '0 28px 80px' }}>
         <motion.div initial={{ opacity: 0, y: 24, scale: 0.98 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          style={{ background: 'var(--mdd-dark-surface)', borderRadius: 24, padding: '60px 40px', textAlign: 'center' }}
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            borderRadius: 24,
+            padding: '60px 40px',
+            textAlign: 'center',
+            // Layered radial glows over the dark surface: blue from the left,
+            // violet through the middle, a cool teal on the right.
+            background: `
+              radial-gradient(760px 320px at 12% 0%, rgba(0,113,227,0.30), transparent 62%),
+              radial-gradient(680px 340px at 88% 108%, rgba(124,58,237,0.28), transparent 60%),
+              radial-gradient(520px 260px at 62% 6%, rgba(6,182,212,0.16), transparent 58%),
+              linear-gradient(150deg, #14142B 0%, var(--mdd-dark-surface) 55%, #0D0D1A 100%)
+            `,
+            boxShadow: '0 24px 70px rgba(0,113,227,0.16), inset 0 1px 0 rgba(255,255,255,0.06)',
+          }}
         >
-          <h2 style={{ fontSize: 40, fontWeight: 700, letterSpacing: -1.5, color: '#fff', margin: '0 0 12px' }}>Ready to Duel?</h2>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', margin: '0 0 32px', lineHeight: 1.5 }}>
-            Connect your wallet and prove your mind is worth more than your opponent&apos;s.
-          </p>
-          <Link href="/lobby">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              style={{ appearance: 'none', border: 'none', padding: '15px 36px', background: BLUE, color: '#fff', borderRadius: 14, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 20px rgba(0,113,227,0.35)' }}
-            >
-              Start Playing Now
-            </motion.button>
-          </Link>
+          <CtaParticles />
+
+          {/* Content sits above the drifting marks. */}
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ fontSize: 40, fontWeight: 700, letterSpacing: -1.5, color: '#fff', margin: '0 0 12px' }}>Ready to Duel?</h2>
+            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.66)', margin: '0 0 32px', lineHeight: 1.5 }}>
+              Connect your wallet and prove your mind is worth more than your opponent&apos;s.
+            </p>
+            <Link href="/lobby">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                style={{ appearance: 'none', border: 'none', padding: '15px 36px', background: BLUE, color: '#fff', borderRadius: 14, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 20px rgba(0,113,227,0.45)' }}
+              >
+                Start Playing Now
+              </motion.button>
+            </Link>
+          </div>
         </motion.div>
       </section>
 
