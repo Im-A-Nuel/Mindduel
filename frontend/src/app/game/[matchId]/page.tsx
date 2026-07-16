@@ -478,6 +478,109 @@ function GameOverModal({ winner, isVsAI, myMark, ranked }: { winner: GameWinner;
   )
 }
 
+// ── Waiting room (PvP only) ───────────────────────────────────────────
+// Gates the match until BOTH players confirm they're ready, so neither client
+// can be mid-connect while the other places the opening mark.
+function ReadySlot({ label, addr, mark, ready, joined, isYou }: {
+  label: string; addr: string | null; mark: 'X' | 'O'; ready: boolean; joined: boolean; isYou: boolean
+}) {
+  const color = isYou ? BLUE : RED
+  return (
+    <div style={{
+      flex: '1 1 0', minWidth: 0, padding: '20px 18px', borderRadius: 18,
+      background: 'var(--mdd-card)',
+      border: `1.5px solid ${ready ? GREEN_DARK : 'var(--mdd-border-strong)'}`,
+      boxShadow: ready ? `0 4px 18px ${GREEN_DARK}22` : '0 1px 3px rgba(0,0,0,0.05)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+      transition: 'border-color 200ms ease, box-shadow 200ms ease',
+    }}>
+      <div style={{
+        width: 42, height: 42, borderRadius: 12, background: color,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        {mark === 'X'
+          ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#fff" strokeWidth="3.2" strokeLinecap="round"/></svg>
+          : <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5" stroke="#fff" strokeWidth="3.2"/></svg>}
+      </div>
+      <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.8, color: MUTED }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: INK, fontVariantNumeric: 'tabular-nums' }}>
+        {addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : 'waiting to join…'}
+      </span>
+      <span style={{
+        padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700, letterSpacing: 0.3,
+        background: ready ? '#E8F7EE' : 'var(--mdd-bg-soft)',
+        color: ready ? GREEN_DARK : FAINT,
+      }}>
+        {ready ? '✓ READY' : joined ? 'NOT READY' : 'CONNECTING…'}
+      </span>
+    </div>
+  )
+}
+
+function WaitingRoom({ matchId, myMark, myAddr, oppAddr, oppJoined, iAmReady, oppReady, onReady, ranked, modeLabel }: {
+  matchId: string; myMark: 'X' | 'O'; myAddr: string | null; oppAddr: string | null
+  oppJoined: boolean; iAmReady: boolean; oppReady: boolean; onReady: () => void
+  ranked: boolean; modeLabel: string
+}) {
+  const status = !oppJoined ? 'Waiting for an opponent to join…'
+    : iAmReady && !oppReady ? 'Waiting for your opponent to be ready…'
+    : !iAmReady ? 'Hit Ready when you are — the match starts once both of you are.'
+    : 'Both ready — starting…'
+
+  return (
+    <motion.div
+      key="waitingroom"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 45, background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+    >
+      <motion.div
+        initial={{ scale: 0.96, y: 10 }} animate={{ scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+        style={{ width: '100%', maxWidth: 460, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ padding: '4px 10px', borderRadius: 999, background: ranked ? '#E8F7EE' : 'var(--mdd-bg-soft)', color: ranked ? GREEN_DARK : MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 0.3 }}>
+            {ranked ? 'RANKED' : 'CASUAL'}
+          </span>
+          <span style={{ padding: '4px 10px', borderRadius: 999, background: 'var(--mdd-bg-soft)', color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 0.3 }}>
+            {modeLabel}
+          </span>
+        </div>
+
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.8, margin: '0 0 6px', color: INK }}>Waiting Room</h2>
+          <p style={{ fontSize: 12, color: FAINT, margin: 0, fontFamily: 'ui-monospace, monospace' }}>{matchId}</p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+          <ReadySlot label="YOU"      addr={myAddr}  mark={myMark} ready={iAmReady} joined isYou />
+          <ReadySlot label="OPPONENT" addr={oppAddr} mark={myMark === 'X' ? 'O' : 'X'} ready={oppReady} joined={oppJoined} isYou={false} />
+        </div>
+
+        <p style={{ fontSize: 13.5, color: MUTED, margin: 0, textAlign: 'center', minHeight: 20 }}>{status}</p>
+
+        <button
+          onClick={onReady}
+          disabled={iAmReady}
+          style={{
+            appearance: 'none', border: 'none', width: '100%', padding: '15px',
+            background: iAmReady ? 'var(--mdd-bg-soft)' : BLUE,
+            color: iAmReady ? MUTED : '#fff',
+            borderRadius: 14, fontSize: 15, fontWeight: 600, fontFamily: 'inherit',
+            cursor: iAmReady ? 'default' : 'pointer',
+            boxShadow: iAmReady ? 'none' : '0 4px 14px rgba(0,113,227,0.25)',
+            transition: 'background 160ms ease',
+          }}
+        >
+          {iAmReady ? '✓ You are ready' : "I'm Ready"}
+        </button>
+
+        <a href="/lobby" style={{ fontSize: 13, color: MUTED, textDecoration: 'none' }}>← Leave match</a>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 interface LogEntry { q: string; correct: boolean; time: number }
 
 // ── Main Page ─────────────────────────────────────────────────────────
@@ -540,6 +643,18 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
 
   // Spectator viewer count (from server)
   const [viewerCount, setViewerCount] = useState(0)
+
+  // ── PvP ready-check ────────────────────────────────────────────────
+  // Both players must hit Ready before either board unlocks. Without this a
+  // player who is still connecting can miss the opponent's opening move and
+  // both screens end up showing "Opponent's turn".
+  // `readyPlayers` is the authoritative set pushed by the server.
+  const [readyPlayers, setReadyPlayers] = useState<string[]>([])
+  // Reactive mirror of the player addresses (the refs don't re-render the UI).
+  const [matchPlayers, setMatchPlayers] = useState<{ one: string | null; two: string | null }>({ one: null, two: null })
+  // Latch: once the match has started, a later disconnect must never bounce
+  // the player back into the waiting room mid-game.
+  const [gameStarted, setGameStarted] = useState(false)
 
   // Resign / forfeit-match confirm
   const [confirmResign, setConfirmResign] = useState(false)
@@ -620,6 +735,9 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     if (gameModeStr !== 'blitz' || isVsAI) { setBlitzPickLeft(null); return }
     if (gameOver || pendingCell !== null) { setBlitzPickLeft(null); return }
     if (currentPlayer !== myMark) { setBlitzPickLeft(null); return }
+    // Never run the auto-forfeit countdown behind the waiting room — the
+    // player can't reach the board yet, so it would forfeit their first turn.
+    if (!gameStarted) { setBlitzPickLeft(null); return }
 
     setBlitzPickLeft(8)
     const id = setInterval(() => {
@@ -639,7 +757,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     }, 1000)
     return () => clearInterval(id)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameModeStr, isVsAI, gameOver, pendingCell, currentPlayer, myMark, timeKey])
+  }, [gameModeStr, isVsAI, gameOver, pendingCell, currentPlayer, myMark, timeKey, gameStarted])
 
   // ── Config + WS setup ───────────────────────────────────────────────
   useEffect(() => {
@@ -747,6 +865,8 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             setApiQuestion(null); setApiSessionId(null)
             setEliminated([]); setPendingCell(null)
             setQuestionIndex(i => i + 1); setTimeKey(k => k + 1)
+          } else if (msg.type === 'ready_state') {
+            setReadyPlayers(Array.isArray(msg.ready) ? msg.ready.map((a: string) => String(a).toLowerCase()) : [])
           } else if (msg.type === 'state' && msg.match) {
             if (!receivedLiveEvent) {
               setBoard(msg.match.board); setCurrentPlayer(msg.match.currentPlayer)
@@ -756,6 +876,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               const p2 = typeof msg.match.playerTwo === 'string' ? msg.match.playerTwo.toLowerCase() : null
               if (p1) playerOneAddrRef.current = p1
               if (p2) playerTwoAddrRef.current = p2
+              setMatchPlayers({ one: p1, two: p2 })
               // Authoritatively derive myMark from the server's player list so a
               // stale sessionStorage value (e.g. from a race-condition in the lobby
               // polling path) can never put both players on the same side.
@@ -973,6 +1094,33 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       // remount. Queue the payload so it fires the moment the next ws opens.
       wsQueueRef.current.push(payload)
     }
+  }
+
+  // ── Ready-check derivation ─────────────────────────────────────────
+  const myAddrLower  = address?.toLowerCase() ?? null
+  const iAmReady     = !!myAddrLower && readyPlayers.includes(myAddrLower)
+  const oppJoined    = !!matchPlayers.one && !!matchPlayers.two
+  // Derive the opponent from the server's player list rather than from myMark,
+  // so a stale mark can never point at the wrong side.
+  const oppAddrLower = myAddrLower && matchPlayers.one === myAddrLower ? matchPlayers.two : matchPlayers.one
+  const oppReady     = !!oppAddrLower && readyPlayers.includes(oppAddrLower)
+  const bothReady    = oppJoined
+    && readyPlayers.includes(matchPlayers.one!)
+    && readyPlayers.includes(matchPlayers.two!)
+  // Waiting room only gates PvP. vs-AI never has a second human to wait for.
+  const showWaitingRoom = !isVsAI && !isLoading && !gameStarted && !gameOver
+
+  // Latch the start so a mid-match WS drop can't re-open the waiting room.
+  useEffect(() => {
+    if (bothReady) setGameStarted(true)
+  }, [bothReady])
+
+  function sendReady() {
+    if (!myAddrLower || iAmReady) return
+    // Optimistic: the server echoes the authoritative set straight back, but
+    // showing our own chip as ready immediately keeps the click responsive.
+    setReadyPlayers(prev => (prev.includes(myAddrLower) ? prev : [...prev, myAddrLower]))
+    sendWsEvent({ type: 'player_ready', player: myAddrLower })
   }
 
   function triggerExpand(currentBoard: CellValue[]) {
@@ -1344,7 +1492,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   const isMyTurn   = currentPlayer === myMark && !gameOver
   const isAITurn   = isVsAI && currentPlayer === 'O' && !gameOver
   const isOppTurn  = !isVsAI && currentPlayer !== myMark && !gameOver
-  const boardDisabled = gameOver || pendingCell !== null || isAITurn || isOppTurn || isShifting
+  const boardDisabled = gameOver || pendingCell !== null || isAITurn || isOppTurn || isShifting || showWaitingRoom
 
   const turnText = isShifting ? 'Board is shifting…'
     : isMyTurn ? (pendingCell !== null ? 'Answer to claim cell' : 'Your turn - select a cell')
@@ -1372,6 +1520,23 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             <p style={{ fontSize: 15, fontWeight: 500, color: MUTED }}>Connecting to match…</p>
             <p style={{ fontSize: 12, color: FAINT, fontFamily: 'ui-monospace, monospace' }}>{params.matchId}</p>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showWaitingRoom && (
+          <WaitingRoom
+            matchId={params.matchId}
+            myMark={myMark}
+            myAddr={myAddrLower}
+            oppAddr={oppAddrLower}
+            oppJoined={oppJoined}
+            iAmReady={iAmReady}
+            oppReady={oppReady}
+            onReady={sendReady}
+            ranked={ranked}
+            modeLabel={MODE_META[gameModeStr]?.label ?? gameModeStr}
+          />
         )}
       </AnimatePresence>
 

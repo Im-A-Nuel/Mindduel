@@ -18,6 +18,41 @@ const rooms = new Map<string, Set<RoomMember>>()
 // per-turn) and the late client gets stuck.
 const lastEvent = new Map<string, string>()
 
+// Ready-check state per match (PvP only). Both players must mark themselves
+// ready before either client starts the game, so a player who is still
+// loading/connecting can never miss the opponent's opening move.
+//
+// This lives server-side rather than being relayed peer-to-peer because a
+// `player_ready` sent before the opponent's socket opens would otherwise be
+// lost forever (broadcastFromPlayer only reaches CURRENTLY connected members).
+// Keeping it here lets us replay the set to late joiners and reconnects.
+//
+// NOT cleared when the room empties: a brief network blip on both sides would
+// otherwise reset an in-progress match back to the waiting room. GC'd by age.
+const readyByMatch = new Map<string, { players: Set<string>; touchedAt: number }>()
+
+setInterval(() => {
+  const cutoff = Date.now() - 6 * 60 * 60_000
+  for (const [k, v] of readyByMatch) {
+    if (v.touchedAt < cutoff) readyByMatch.delete(k)
+  }
+}, 30 * 60_000)
+
+function readyList(matchId: string): string[] {
+  return [...(readyByMatch.get(matchId)?.players ?? [])]
+}
+
+function markReady(matchId: string, player: string) {
+  const entry = readyByMatch.get(matchId) ?? { players: new Set<string>(), touchedAt: Date.now() }
+  entry.players.add(player.toLowerCase())
+  entry.touchedAt = Date.now()
+  readyByMatch.set(matchId, entry)
+}
+
+function readyPayload(matchId: string): string {
+  return JSON.stringify({ type: 'ready_state', ready: readyList(matchId) })
+}
+
 function getRoom(matchId: string): Set<RoomMember> {
   let r = rooms.get(matchId)
   if (!r) { r = new Set(); rooms.set(matchId, r) }
@@ -61,13 +96,22 @@ export async function wsRoutes(app: FastifyInstance) {
     const member: RoomMember = { socket, role }
     getRoom(matchId).add(member)
 
-    // Send current state on connect
+    // Replay in-memory state IMMEDIATELY — none of it needs the database, so
+    // it must not be serialized behind the getMatch() roundtrip below. The
+    // ready-check set especially: gating it on a slow DB reply would leave a
+    // client showing a stale "opponent not ready" for the length of the query.
+    //
+    // Replays the latest live turn-flip so a late joiner doesn't miss it, and
+    // the ready set so a client connecting after the opponent hit Ready still
+    // sees them as ready.
+    const cached = lastEvent.get(matchId)
+    if (cached) socket.send(cached)
+    socket.send(readyPayload(matchId))
+    socket.send(JSON.stringify({ type: 'viewer_count', count: spectatorCount(matchId) }))
+
+    // Match metadata is the only part that needs a DB read.
     void getMatch(matchId).then(match => {
       if (match) socket.send(JSON.stringify({ type: 'state', match }))
-      // Replay the latest live turn-flip so a late joiner doesn't miss it.
-      const cached = lastEvent.get(matchId)
-      if (cached) socket.send(cached)
-      socket.send(JSON.stringify({ type: 'viewer_count', count: spectatorCount(matchId) }))
     }).catch(() => {})
 
     // Tell everyone the viewer count changed
@@ -122,8 +166,21 @@ export async function wsRoutes(app: FastifyInstance) {
         const payload = raw!.toString()
         if (payload.length > MAX_PAYLOAD_BYTES) return  // drop oversized
         try {
-          const parsed = JSON.parse(payload) as { type?: string }
+          const parsed = JSON.parse(payload) as { type?: string; player?: unknown }
           if (parsed.type === 'pong') return  // heartbeat reply, don't broadcast
+          if (parsed.type === 'player_ready') {
+            // Ready-check: record server-side and fan the full set out to the
+            // WHOLE room (sender included) so every client converges on one
+            // authoritative view instead of tracking its own peer's state.
+            if (typeof parsed.player === 'string' && parsed.player.length > 0) {
+              markReady(matchId, parsed.player)
+              const out = readyPayload(matchId)
+              for (const m of rooms.get(matchId) ?? []) {
+                if (m.socket.readyState === 1) m.socket.send(out)
+              }
+            }
+            return  // never relay the raw player_ready
+          }
           if (parsed.type === 'board_updated') lastEvent.set(matchId, payload)
         } catch {
           return  // malformed JSON — drop instead of broadcast
