@@ -25,10 +25,10 @@ const GREEN_DARK = '#0A7A2D'
 
 // ── Data ─────────────────────────────────────────────────────────────
 const MODES = [
-  { id: 'classic',  name: 'Classic Duel',    desc: 'Standard 3×3, first to align 3.', tag: 'EASY',    tagBg: '#E8F7EE', tagColor: GREEN_DARK,  available: true },
-  { id: 'shifting', name: 'Shifting Board',  desc: 'Rows & columns shift every 3 turns.', tag: 'MEDIUM', tagBg: '#FFF4E0', tagColor: '#8A5A00', available: true },
-  { id: 'scaleup',  name: 'Scale Up',        desc: 'Board grows from 3×3 → 5×5.',      tag: 'HARD',    tagBg: '#FDECEB', tagColor: '#A81C13',   available: true },
-  { id: 'blitz',    name: 'Blitz',           desc: '5-second answers. No mercy.',       tag: 'INTENSE', tagBg: '#FDECEB', tagColor: '#A81C13',   available: true },
+  { id: 'classic',  name: 'Classic Duel',    desc: 'Standard 3×3, first to align 3.', tag: 'STANDARD',  tagBg: '#E8F7EE', tagColor: GREEN_DARK,  available: true },
+  { id: 'shifting', name: 'Shifting Board',  desc: 'Rows & columns shift every 3 turns.', tag: 'DYNAMIC',   tagBg: '#FFF4E0', tagColor: '#8A5A00', available: true },
+  { id: 'scaleup',  name: 'Scale Up',        desc: 'Board grows from 3×3 → 5×5.',      tag: 'EXPANDING', tagBg: '#FDECEB', tagColor: '#A81C13',   available: true },
+  { id: 'blitz',    name: 'Blitz',           desc: '5-second answers. No mercy.',       tag: 'INTENSE',   tagBg: '#FDECEB', tagColor: '#A81C13',   available: true },
 ] as const
 
 type ModeId = typeof MODES[number]['id']
