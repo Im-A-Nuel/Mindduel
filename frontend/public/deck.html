@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindDuel — Pitch Deck</title>
+<style>
+  :root{
+    --bg0:#0D0D1A; --bg1:#14142B; --border:#232345;
+    --ink:#F1F5F9; --muted:#94A3B8; --dim:#5B5B7A;
+    --purple:#8B5CF6; --purple-soft:#C4B5FD; --cyan:#22D3EE; --cyan-soft:#67E8F9;
+    --green:#10B981; --green-soft:#6EE7B7; --red:#F87171; --amber:#F59E0B;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Space Grotesk','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:
+      radial-gradient(1200px 700px at 12% -10%, rgba(139,92,246,0.16), transparent 60%),
+      radial-gradient(1000px 600px at 105% 10%, rgba(34,211,238,0.10), transparent 55%),
+      linear-gradient(160deg,var(--bg0) 0%,var(--bg1) 100%);
+    color:var(--ink); overflow:hidden;
+  }
+  h1,h2,h3{font-weight:700; letter-spacing:-0.02em; margin:0;}
+  p,li,span,div{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+  svg{display:block;}
+  #deck{position:relative; width:100vw; height:100vh;}
+  .slide{
+    position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center;
+    padding: clamp(28px,5vh,64px) clamp(28px,8vw,110px);
+    opacity:0; pointer-events:none; transform:translateX(28px) scale(0.99);
+    transition:opacity 420ms cubic-bezier(.22,1,.36,1), transform 420ms cubic-bezier(.22,1,.36,1);
+    max-height:100vh; overflow-y:auto;
+  }
+  .slide.active{opacity:1; pointer-events:auto; transform:translateX(0) scale(1);}
+  .slide.active .reveal{animation:rise 520ms cubic-bezier(.22,1,.36,1) both;}
+  .slide.active .reveal:nth-child(1){animation-delay:40ms;}
+  .slide.active .reveal:nth-child(2){animation-delay:110ms;}
+  .slide.active .reveal:nth-child(3){animation-delay:180ms;}
+  .slide.active .reveal:nth-child(4){animation-delay:250ms;}
+  @keyframes rise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+
+  .eyebrow{display:flex; align-items:center; gap:10px; color:var(--cyan); font-size:clamp(11px,1.1vw,13px); font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:clamp(10px,2vh,18px);}
+  .eyebrow .num{color:var(--dim); font-variant-numeric:tabular-nums;}
+  .eyebrow::before{content:''; width:18px; height:1.5px; background:var(--cyan); display:inline-block;}
+
+  .slide h1{font-size:clamp(40px,7vw,72px); background:linear-gradient(100deg,#fff 10%,var(--purple-soft) 60%,var(--cyan-soft) 100%); -webkit-background-clip:text; background-clip:text; color:transparent; line-height:1.03;}
+  .slide h2{font-size:clamp(26px,3.6vw,42px); color:#fff; margin-bottom:clamp(16px,3vh,26px); line-height:1.15; max-width:900px;}
+  .tagline{font-size:clamp(16px,2vw,23px); color:var(--muted); font-weight:400; margin-top:12px; max-width:640px;}
+  .lede{font-size:clamp(14px,1.3vw,16.5px); color:var(--muted); max-width:760px; line-height:1.65; margin-top:8px;}
+  strong{color:var(--ink); font-weight:600;}
+  em{color:var(--cyan-soft); font-style:normal; font-weight:600;}
+  code{background:rgba(255,255,255,0.07); padding:2px 8px; border-radius:6px; font-size:0.88em; color:var(--cyan-soft); font-family:'SF Mono',ui-monospace,monospace;}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:clamp(14px,2.5vh,24px);}
+  .box{background:rgba(255,255,255,0.025); border:1px solid var(--border); border-radius:18px; padding:clamp(18px,2.2vw,26px);}
+  .box h3{font-size:15px; letter-spacing:0.3px; margin-bottom:14px; display:flex; align-items:center; gap:9px;}
+  .box.bad h3{color:var(--red);} .box.good h3{color:var(--green-soft);}
+  .hic{width:16px; height:16px; flex-shrink:0;}
+
+  .plist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px;}
+  .plist li{display:flex; align-items:flex-start; gap:11px; font-size:14.5px; line-height:1.55; color:var(--ink);}
+  .plist.muted li{color:var(--muted);}
+  .plist .ic{flex-shrink:0; width:20px; height:20px; margin-top:1px; color:var(--purple-soft);}
+  .plist.bad .ic{color:var(--red);} .plist.good .ic{color:var(--green-soft);}
+
+  .flow{display:flex; align-items:stretch; gap:0; margin-top:clamp(20px,3.5vh,36px); flex-wrap:wrap;}
+  .fstep{flex:1; min-width:190px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding:18px 20px; position:relative;}
+  .fstep .fic{width:28px; height:28px; color:var(--cyan-soft); margin-bottom:10px;}
+  .fstep b{display:block; font-size:15px; color:#fff; margin-bottom:5px;}
+  .fstep span{font-size:12.5px; color:var(--muted); line-height:1.5; display:block;}
+  .farrow{display:flex; align-items:center; justify-content:center; width:34px; color:var(--dim); font-size:20px; flex-shrink:0;}
+
+  .row{display:flex; gap:12px; flex-wrap:wrap; margin-top:clamp(16px,2.5vh,26px);}
+  .pill{display:inline-flex; align-items:center; gap:8px; background:rgba(139,92,246,0.10); border:1px solid rgba(139,92,246,0.30); color:var(--purple-soft); padding:9px 16px 9px 12px; border-radius:999px; font-size:13px; font-weight:600;}
+  .pill svg{width:15px; height:15px; flex-shrink:0;}
+  .pill.cyan{background:rgba(34,211,238,0.08); border-color:rgba(34,211,238,0.28); color:var(--cyan-soft);}
+  .pill.green{background:rgba(16,185,129,0.08); border-color:rgba(16,185,129,0.28); color:var(--green-soft);}
+
+  .tiers{display:flex; gap:7px; margin-top:clamp(18px,3vh,30px); flex-wrap:wrap;}
+  .tier{padding:12px 10px; border-radius:12px; font-weight:700; font-size:13px; text-align:center; flex:1; min-width:96px; border:1px solid transparent;}
+  .tier small{display:block; font-weight:500; opacity:0.75; font-size:10.5px; margin-top:2px;}
+  .t1{background:rgba(120,53,15,0.22); color:#D9A441; border-color:rgba(217,164,65,0.2);}
+  .t2{background:rgba(148,163,184,0.14); color:#CBD5E1; border-color:rgba(148,163,184,0.2);}
+  .t3{background:rgba(245,158,11,0.16); color:#FBBF24; border-color:rgba(251,191,36,0.22);}
+  .t4{background:rgba(14,116,144,0.20); color:#38BDF8; border-color:rgba(56,189,248,0.22);}
+  .t5{background:rgba(55,48,163,0.24); color:#A5B4FC; border-color:rgba(165,180,252,0.22);}
+  .t6{background:rgba(124,58,237,0.24); color:#D8B4FE; border-color:rgba(216,180,254,0.24);}
+
+  .logo-row{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
+  .logo-row img{width:38px; height:38px; border-radius:11px; box-shadow:0 6px 20px rgba(139,92,246,0.35);}
+  .logo-row b{font-size:15px; color:var(--muted); font-weight:600; letter-spacing:0.2px;}
+  .meta{color:var(--dim); font-size:14px; margin-top:clamp(24px,4vh,44px);}
+  .cta{color:var(--green-soft); font-weight:700; font-size:clamp(15px,1.7vw,19px); margin-top:clamp(16px,2.5vh,24px); display:flex; align-items:center; gap:10px;}
+  .cta svg{width:18px; height:18px; flex-shrink:0;}
+  .quote{font-size:clamp(20px,2.6vw,30px); font-weight:600; color:#fff; max-width:820px; line-height:1.35; margin-top:clamp(16px,3vh,28px);}
+  .quote::before{content:'\201C'; color:var(--purple-soft);} .quote::after{content:'\201D'; color:var(--purple-soft);}
+
+  .stack{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:clamp(16px,2.5vh,26px);}
+  .stackcard{background:rgba(255,255,255,0.025); border:1px solid var(--border); border-radius:14px; padding:15px 17px; display:flex; gap:11px; align-items:flex-start;}
+  .stackcard .sic{width:19px; height:19px; color:var(--cyan-soft); flex-shrink:0; margin-top:2px;}
+  .stackcard b{color:#fff; font-size:12.5px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;}
+  .stackcard span{font-size:13px; color:var(--muted); line-height:1.5;}
+
+  #bar{position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--purple),var(--cyan)); transition:width 320ms cubic-bezier(.22,1,.36,1); z-index:30; box-shadow:0 0 12px rgba(139,92,246,0.6);}
+  #dots{position:fixed; bottom:26px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:30;}
+  #dots span{width:7px; height:7px; border-radius:50%; background:#2A2A4E; cursor:pointer; transition:all 220ms cubic-bezier(.22,1,.36,1);}
+  #dots span:hover{background:#4A4A7A;}
+  #dots span.on{background:linear-gradient(90deg,var(--purple),var(--cyan)); width:24px; border-radius:4px;}
+  #count{position:fixed; bottom:28px; right:34px; color:var(--dim); font-size:12.5px; font-variant-numeric:tabular-nums; z-index:30; letter-spacing:0.5px;}
+  #brand{position:fixed; top:26px; left:34px; display:flex; align-items:center; gap:9px; z-index:30; opacity:0.85;}
+  #brand img{width:22px; height:22px; border-radius:6px;}
+  #brand span{font-size:13px; font-weight:700; color:var(--muted); letter-spacing:0.2px;}
+  #hint{position:fixed; bottom:28px; left:34px; color:var(--dim); font-size:11.5px; z-index:30; letter-spacing:0.3px;}
+  .arrow{position:fixed; top:50%; transform:translateY(-50%); width:42px; height:42px; border-radius:50%;
+    background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--muted); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:17px; z-index:30; transition:all 160ms ease; user-select:none;}
+  .arrow:hover{background:rgba(139,92,246,0.16); color:#fff; border-color:var(--purple);}
+  #prev{left:22px;} #next{right:22px;}
+  @media (max-width:820px){
+    #brand,#hint{display:none;}
+    .grid2,.stack{grid-template-columns:1fr;}
+    .flow{flex-direction:column;}
+    .farrow{transform:rotate(90deg); width:100%; height:20px;}
+    .arrow{width:36px;height:36px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Icon sprite — stroked, 24x24, matches the app's icon style. Reused via <use>. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-x" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></g></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 12.5L9.5 18L20 6"/></symbol>
+<symbol id="i-dice" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/></g><g fill="currentColor" stroke="none"><circle cx="8.5" cy="8.5" r="1.3"/><circle cx="15.5" cy="8.5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="8.5" cy="15.5" r="1.3"/><circle cx="15.5" cy="15.5" r="1.3"/></g></symbol>
+<symbol id="i-brain" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5a6 6 0 0 1 4 10.5c-.6.6-.9 1.3-.9 2V16H8.9v-1c0-.7-.3-1.4-.9-2A6 6 0 0 1 12 2.5z"/><line x1="9.3" y1="19.2" x2="14.7" y2="19.2"/></g></symbol>
+<symbol id="i-chain" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M8 12.5l-2 2a3.2 3.2 0 0 0 4.5 4.5l2-2"/><path d="M16 11.5l2-2a3.2 3.2 0 0 0-4.5-4.5l-2 2"/></g></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5.5c0 4.7-3 8.4-7 9.5-4-1.1-7-4.8-7-9.5V6l7-3z"/><path d="M9 12l2.2 2.2L15.5 9.5"/></g></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 9.5h18"/></g><circle cx="16" cy="14.2" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-match" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/></g><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4z"/><path d="M7 5H4v1.5A3.5 3.5 0 0 0 7 10M17 5h3v1.5A3.5 3.5 0 0 1 17 10"/><line x1="12" y1="13" x2="12" y2="17"/><path d="M8.5 20.5h7l-1-3.5h-5l-1 3.5z"/></g></symbol>
+<symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-gas" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><line x1="6.2" y1="17.8" x2="17.8" y2="6.2"/></g></symbol>
+<symbol id="i-live" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8.5 15.5a5 5 0 0 1 0-7"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M5.8 18.2a9 9 0 0 1 0-12.4"/><path d="M18.2 5.8a9 9 0 0 1 0 12.4"/></g><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-contract" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2.5h7l4 4v14.5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1z"/><path d="M14 2.5V7h4"/><line x1="8.5" y1="12" x2="15.5" y2="12"/><line x1="8.5" y1="15.5" x2="15.5" y2="15.5"/></g></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="12" width="4.5" height="9" rx="1"/><rect x="9.7" y="7" width="4.5" height="14" rx="1"/><rect x="16.5" y="3" width="4.5" height="18" rx="1"/></g></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="11" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></g><circle cx="12" cy="16" r="1.4" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.2"/><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"/></g></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13 2L5 13.5h6L11 22l8-11.5h-6L13 2z"/></symbol>
+<symbol id="i-code" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6L3 12l6 6"/><path d="M15 6l6 6-6 6"/></g></symbol>
+<symbol id="i-server" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/></g><g fill="currentColor" stroke="none"><circle cx="7" cy="7" r="0.9"/><circle cx="7" cy="17" r="0.9"/></g></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/><path d="M4 11.5v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></g></symbol>
+<symbol id="i-socket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4.5 9.5a11 11 0 0 1 15 0"/><path d="M7.5 13a7 7 0 0 1 9 0"/><path d="M10.5 16.5a3 3 0 0 1 3 0"/></g><circle cx="12" cy="19.5" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M7 4.5v15l13-7.5-13-7.5z"/></symbol>
+<symbol id="i-github" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6H4.5a1.5 1.5 0 0 0-1.5 1.5v12A1.5 1.5 0 0 0 4.5 21h12a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M14 3h7v7"/><line x1="21" y1="3" x2="11" y2="13"/></g></symbol>
+</defs>
+</svg>
+
+<div id="bar"></div>
+<div id="brand"><img src="/icon-192.png" alt=""/><span>MindDuel</span></div>
+
+<div id="deck">
+
+  <!-- 1. Title -->
+  <section class="slide active">
+    <div class="logo-row reveal"><img src="/icon-192.png" alt="MindDuel"/><b>CELO PROOF OF SHIP</b></div>
+    <h1 class="reveal">MindDuel</h1>
+    <div class="tagline reveal">Prove Your Mind. Climb the On-Chain Ladder.</div>
+    <p class="lede reveal">Trivia-gated PvP Tic-Tac-Toe on Celo — two players, one board, every move gated by a trivia question. No bets, no luck — just a verifiable on-chain skill ranking.</p>
+    <div class="meta reveal">Imanuel · Solo Builder</div>
+  </section>
+
+  <!-- 2. Problem -> Solution -->
+  <section class="slide">
+    <div class="eyebrow reveal"><span class="num">01</span>&nbsp;The Problem → Our Solution</div>
+    <h2 class="reveal">Most on-chain games aren't games of skill</h2>
+    <div class="grid2 reveal">
+      <div class="box bad">
+        <h3><svg class="hic"><use href="#i-x"/></svg>The Problem</h3>
+        <ul class="plist bad muted">
+          <li><svg class="ic"><use href="#i-dice"/></svg>Most on-chain games are RNG dressed up — spin, flip, hope</li>
+          <li><svg class="ic"><use href="#i-dice"/></svg>Skill-based PvP barely exists — where it does, it's gated by gambling</li>
+          <li><svg class="ic"><use href="#i-dice"/></svg>"Ranked" ladders live in private databases you have to trust</li>
+          <li><svg class="ic"><use href="#i-dice"/></svg>No verifiable proof the better player actually won</li>
+        </ul>
+      </div>
+      <div class="box good">
+        <h3><svg class="hic"><use href="#i-check"/></svg>Our Solution</h3>
+        <ul class="plist good">
+          <li><svg class="ic"><use href="#i-brain"/></svg><strong>Knowledge gates every move</strong> — answer trivia correctly to place a mark</li>
+          <li><svg class="ic"><use href="#i-chain"/></svg>Three in a row wins — ranked results settle as a <em>transparent, on-chain Elo ladder</em></li>
+          <li><svg class="ic"><use href="#i-shield"/></svg>No staking. No betting. No trust required — just provable skill.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. How it works -->
+  <section class="slide">
+    <div class="eyebrow reveal"><span class="num">02</span>&nbsp;How It Works · Live Demo</div>
+    <h2 class="reveal">Connect → Match → Duel → Rank</h2>
+    <div class="flow reveal">
+      <div class="fstep"><svg class="fic"><use href="#i-wallet"/></svg><b>Connect</b><span>MiniPay auto-connects. Any injected wallet works on desktop.</span></div>
+      <div class="farrow">→</div>
+      <div class="fstep"><svg class="fic"><use href="#i-match"/></svg><b>Match</b><span>Create or join a Ranked match. Casual &amp; vs-AI for practice.</span></div>
+      <div class="farrow">→</div>
+      <div class="fstep"><svg class="fic"><use href="#i-brain"/></svg><b>Duel</b><span>Answer trivia → place X or O. Race to three in a row.</span></div>
+      <div class="farrow">→</div>
+      <div class="fstep"><svg class="fic"><use href="#i-trophy"/></svg><b>Rank</b><span>Winner gains Elo, loser drops — written on-chain by a relayer.</span></div>
+    </div>
+    <div class="row reveal">
+      <span class="pill"><svg><use href="#i-dot"/></svg>5 modes: Classic · Shifting · Scale Up · Blitz · vs-AI</span>
+      <span class="pill green"><svg><use href="#i-gas"/></svg>Gasless — relayer pays every CELO fee</span>
+      <span class="pill cyan"><svg><use href="#i-live"/></svg>Live on Celo mainnet, right now</span>
+    </div>
+  </section>
+
+  <!-- 4. On-chain ranking -->
+  <section class="slide">
+    <div class="eyebrow reveal"><span class="num">03</span>&nbsp;On-Chain Skill Ranking</div>
+    <h2 class="reveal">Verifiable Elo, not a private leaderboard</h2>
+    <ul class="plist reveal" style="max-width:760px;">
+      <li><svg class="ic"><use href="#i-contract"/></svg>Smart contract <code>MindDuelRanking.sol</code> (Foundry) holds every player's rating</li>
+      <li><svg class="ic"><use href="#i-chart"/></svg>Integer <strong>Elo</strong> — everyone starts at <strong>1000</strong>, K-factor <strong>32</strong></li>
+      <li><svg class="ic"><use href="#i-lock"/></svg><code>recordMatch(winner, loser, draw, matchId)</code> is <strong>owner-only &amp; idempotent</strong> — no double-counting, no tampering</li>
+      <li><svg class="ic"><use href="#i-eye"/></svg>Anyone can read ratings on-chain via viem or Celoscan</li>
+    </ul>
+    <div class="tiers reveal">
+      <div class="tier t1">Bronze</div>
+      <div class="tier t2">Silver<small>1000</small></div>
+      <div class="tier t3">Gold<small>1200</small></div>
+      <div class="tier t4">Platinum<small>1400</small></div>
+      <div class="tier t5">Diamond<small>1600</small></div>
+      <div class="tier t6">Master<small>1850</small></div>
+    </div>
+    <p class="lede reveal" style="margin-top:22px;">Ranked = on-chain ladder. Casual &amp; vs-AI never touch the chain.</p>
+  </section>
+
+  <!-- 5. Why Celo / MiniPay -->
+  <section class="slide">
+    <div class="eyebrow reveal"><span class="num">04</span>&nbsp;Why Celo · Why MiniPay</div>
+    <h2 class="reveal">Built for mobile-first, real users</h2>
+    <ul class="plist reveal" style="max-width:780px;">
+      <li><svg class="ic"><use href="#i-phone"/></svg><strong>MiniPay integration</strong> — auto-connect via <code>window.ethereum.isMiniPay</code>, zero install friction for millions of MiniPay users</li>
+      <li><svg class="ic"><use href="#i-gas"/></svg><strong>Gasless onboarding</strong> — the relayer (contract owner) submits <code>recordMatch()</code> and pays CELO gas, players never fund a wallet</li>
+      <li><svg class="ic"><use href="#i-bolt"/></svg><strong>Cheap, fast finality</strong> on Celo mainnet makes per-match on-chain writes practical</li>
+      <li><svg class="ic"><use href="#i-eye"/></svg><strong>Open &amp; verifiable</strong> — every ranked result is auditable on Celoscan</li>
+    </ul>
+    <div class="cta reveal"><svg><use href="#i-check"/></svg>Built for Celo Proof of Ship — a real, shipped product on mainnet.</div>
+  </section>
+
+  <!-- 6. Tech stack -->
+  <section class="slide">
+    <div class="eyebrow reveal"><span class="num">05</span>&nbsp;Tech Stack · Roadmap</div>
+    <h2 class="reveal">Full stack, shipped solo</h2>
+    <div class="stack reveal">
+      <div class="stackcard"><svg class="sic"><use href="#i-contract"/></svg><div><b>Smart Contract</b><span>Solidity + Foundry — <code>MindDuelRanking.sol</code>, integer Elo</span></div></div>
+      <div class="stackcard"><svg class="sic"><use href="#i-chain"/></svg><div><b>Chain</b><span>Celo mainnet (42220) · wagmi + viem · MiniPay</span></div></div>
+      <div class="stackcard"><svg class="sic"><use href="#i-code"/></svg><div><b>Frontend</b><span>Next.js 14 + TypeScript</span></div></div>
+      <div class="stackcard"><svg class="sic"><use href="#i-server"/></svg><div><b>Backend</b><span>Fastify + relayer (gasless <code>recordMatch</code>)</span></div></div>
+      <div class="stackcard"><svg class="sic"><use href="#i-db"/></svg><div><b>Data</b><span>Drizzle + Postgres — badges, history, trivia</span></div></div>
+      <div class="stackcard"><svg class="sic"><use href="#i-socket"/></svg><div><b>Real-time</b><span>WebSockets — board &amp; trivia sync</span></div></div>
+    </div>
+    <div class="row reveal">
+      <span class="pill"><svg><use href="#i-dot"/></svg>More modes &amp; trivia categories</span>
+      <span class="pill cyan"><svg><use href="#i-dot"/></svg>Single-elim tournaments</span>
+      <span class="pill green"><svg><use href="#i-dot"/></svg>Seasons &amp; leaderboard resets</span>
+    </div>
+  </section>
+
+  <!-- 7. Why me / close -->
+  <section class="slide">
+    <div class="eyebrow reveal"><span class="num">06</span>&nbsp;Why Me · Why Now</div>
+    <h2 class="reveal">One builder. Full stack. Working product on mainnet.</h2>
+    <p class="lede reveal">I shipped the <strong>Foundry ranking contract</strong>, <strong>Next.js frontend</strong>, <strong>Fastify relayer</strong> (gasless flow), <strong>MiniPay integration</strong>, and public docs — solo.</p>
+    <p class="lede reveal">Not a team. Not just a roadmap. A live game with a verifiable on-chain skill ladder you can play right now.</p>
+    <div class="row reveal">
+      <span class="pill"><svg><use href="#i-play"/></svg>Play — mindduel-celo.vercel.app</span>
+      <span class="pill cyan"><svg><use href="#i-github"/></svg>GitHub — Im-A-Nuel/Mindduel</span>
+      <span class="pill green"><svg><use href="#i-eye"/></svg>Verify — MindDuelRanking.sol on Celoscan</span>
+    </div>
+    <div class="quote reveal">The smarter player wins. Always — and now it's on-chain.</div>
+    <div class="meta reveal">Imanuel · Celo Proof of Ship</div>
+  </section>
+
+</div>
+
+<div id="prev" class="arrow">‹</div>
+<div id="next" class="arrow">›</div>
+<div id="dots"></div>
+<div id="count"></div>
+<div id="hint">← → · space · swipe</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  const countEl = document.getElementById('count');
+  const bar = document.getElementById('bar');
+  let i = 0;
+
+  slides.forEach((_, idx) => {
+    const d = document.createElement('span');
+    d.addEventListener('click', () => go(idx));
+    dotsEl.appendChild(d);
+  });
+
+  function render() {
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+    [...dotsEl.children].forEach((d, idx) => d.classList.toggle('on', idx === i));
+    countEl.textContent = String(i + 1).padStart(2,'0') + ' / ' + String(slides.length).padStart(2,'0');
+    bar.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+  function go(idx) { i = Math.max(0, Math.min(slides.length - 1, idx)); render(); }
+  function next() { go(i + 1); }
+  function prev() { go(i - 1); }
+
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('prev').addEventListener('click', prev);
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight',' ','PageDown'].includes(e.key)) { e.preventDefault(); next(); }
+    if (['ArrowLeft','PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(slides.length - 1);
+  });
+  let touchX = 0;
+  document.addEventListener('touchstart', e => touchX = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (dx < -50) next(); if (dx > 50) prev();
+  });
+
+  render();
+</script>
+</body>
+</html>
