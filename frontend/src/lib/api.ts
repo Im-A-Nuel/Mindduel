@@ -14,11 +14,22 @@ const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3001'
  * mixed content, so it could not have worked even pointed at the right host.
  *
  * https -> wss, http -> ws.
+ *
+ * An explicit NEXT_PUBLIC_WS_URL is honoured, but still force-upgraded to
+ * wss:// on an https page. A browser cannot open an insecure socket from a
+ * secure page under any circumstance, so `ws://` there is never a preference
+ * worth respecting - it is always a typo, and taking it literally just kills
+ * realtime with a mixed-content block.
  */
 function deriveWsUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_WS_URL?.trim()
-  if (explicit) return explicit.replace(/\/+$/, '')
-  return API.replace(/^http/, 'ws').replace(/\/+$/, '')
+  const base = explicit ? explicit : API.replace(/^http/, 'ws')
+  let url = base.replace(/\/+$/, '')
+
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && url.startsWith('ws://')) {
+    url = `wss://${url.slice('ws://'.length)}`
+  }
+  return url
 }
 
 export const WS_URL = deriveWsUrl()
@@ -33,12 +44,13 @@ if (typeof window !== 'undefined') {
     console.error(
       `[MindDuel] WebSocket URL "${WS_URL}" points at localhost but the app is served from ` +
       `${window.location.origin}. Realtime sync cannot work. Set NEXT_PUBLIC_BACKEND_URL ` +
-      `(and optionally NEXT_PUBLIC_WS_URL) to the deployed backend, then rebuild.`,
+      `to the deployed backend, then redeploy.`,
     )
-  } else if (window.location.protocol === 'https:' && WS_URL.startsWith('ws://')) {
-    console.error(
-      `[MindDuel] WebSocket URL "${WS_URL}" uses ws:// on an https page; browsers block this ` +
-      `as mixed content. Use wss://.`,
+  } else if (process.env.NEXT_PUBLIC_WS_URL?.trim().startsWith('ws://') && WS_URL.startsWith('wss://')) {
+    console.warn(
+      `[MindDuel] NEXT_PUBLIC_WS_URL is set to "${process.env.NEXT_PUBLIC_WS_URL}" (insecure ws://) ` +
+      `but this page is https, so it was upgraded to "${WS_URL}". Fix the env var to use wss:// ` +
+      `(or unset it - it is derived from NEXT_PUBLIC_BACKEND_URL).`,
     )
   }
 }
