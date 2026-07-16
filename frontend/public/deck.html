@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MindDuel — Pitch Deck</title>
+<title>MindDuel · Pitch Deck</title>
 <style>
   :root{
     --bg0:#0D0D1A; --bg1:#14142B; --border:#232345;
@@ -117,6 +117,20 @@
     display:flex; align-items:center; justify-content:center; font-size:17px; z-index:30; transition:all 160ms ease; user-select:none;}
   .arrow:hover{background:rgba(139,92,246,0.16); color:#fff; border-color:var(--purple);}
   #prev{left:22px;} #next{right:22px;}
+
+  .title-copy{max-width:600px; position:relative; z-index:1;}
+  .board-visual{position:absolute; right:clamp(20px,6vw,90px); top:50%; transform:translateY(-50%);
+    width:clamp(210px,25vw,330px); filter:drop-shadow(0 20px 50px rgba(139,92,246,0.28));}
+  .board-visual .cell{fill:rgba(255,255,255,0.02); stroke:var(--border); stroke-width:1.5;}
+  .board-visual .grid-line{stroke:var(--border); stroke-width:2; stroke-linecap:round;}
+  .board-visual .win-line{stroke:var(--green-soft); stroke-width:4; stroke-linecap:round;
+    filter:drop-shadow(0 0 8px rgba(110,231,183,0.7));}
+  .board-visual .mark-x{stroke:var(--purple-soft); stroke-width:6; stroke-linecap:round; fill:none;}
+  .board-visual .mark-o{stroke:var(--cyan-soft); stroke-width:6; fill:none;}
+  .board-visual .chip-bg{fill:rgba(16,185,129,0.14); stroke:rgba(110,231,183,0.4); stroke-width:1;}
+  .board-visual .chip-txt{fill:var(--green-soft); font:700 15px 'Space Grotesk',sans-serif;}
+
+  @media (max-width:980px){ .board-visual{display:none;} }
   @media (max-width:820px){
     #brand,#hint{display:none;}
     .grid2,.stack{grid-template-columns:1fr;}
@@ -128,7 +142,7 @@
 </head>
 <body>
 
-<!-- Icon sprite — stroked, 24x24, matches the app's icon style. Reused via <use>. -->
+<!-- Icon sprite: stroked, 24x24, matches the app's icon style. Reused via <use>. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <defs>
 <symbol id="i-x" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></g></symbol>
@@ -165,11 +179,26 @@
 
   <!-- 1. Title -->
   <section class="slide active">
-    <div class="logo-row reveal"><img src="/icon-192.png" alt="MindDuel"/><b>CELO PROOF OF SHIP</b></div>
-    <h1 class="reveal">MindDuel</h1>
-    <div class="tagline reveal">Prove Your Mind. Climb the On-Chain Ladder.</div>
-    <p class="lede reveal">Trivia-gated PvP Tic-Tac-Toe on Celo — two players, one board, every move gated by a trivia question. No bets, no luck — just a verifiable on-chain skill ranking.</p>
-    <div class="meta reveal">Imanuel · Solo Builder</div>
+    <div class="title-copy">
+      <div class="logo-row reveal"><img src="/icon-192.png" alt="MindDuel"/><b>CELO PROOF OF SHIP</b></div>
+      <h1 class="reveal">MindDuel</h1>
+      <div class="tagline reveal">Prove Your Mind. Climb the On-Chain Ladder.</div>
+      <p class="lede reveal">Trivia-gated PvP Tic-Tac-Toe on Celo. Two players, one board, every move gated by a trivia question. No bets, no luck, just a verifiable on-chain skill ranking.</p>
+      <div class="meta reveal">Imanuel</div>
+    </div>
+
+    <svg class="board-visual reveal" viewBox="0 0 300 340" aria-hidden="true">
+      <line class="grid-line" x1="100" y1="12" x2="100" y2="288"/>
+      <line class="grid-line" x1="200" y1="12" x2="200" y2="288"/>
+      <line class="grid-line" x1="12" y1="100" x2="288" y2="100"/>
+      <line class="grid-line" x1="12" y1="200" x2="288" y2="200"/>
+      <path class="mark-x" d="M25 25 L75 75 M75 25 L25 75"/>
+      <circle class="mark-o" cx="150" cy="150" r="34"/>
+      <path class="mark-x" d="M225 225 L275 275 M275 225 L225 275"/>
+      <line class="win-line" x1="30" y1="30" x2="270" y2="270"/>
+      <rect class="chip-bg" x="150" y="304" width="100" height="30" rx="10"/>
+      <text class="chip-txt" x="200" y="324" text-anchor="middle">+16 PTS</text>
+    </svg>
   </section>
 
   <!-- 2. Problem -> Solution -->
@@ -180,8 +209,8 @@
       <div class="box bad">
         <h3><svg class="hic"><use href="#i-x"/></svg>The Problem</h3>
         <ul class="plist bad muted">
-          <li><svg class="ic"><use href="#i-dice"/></svg>Most on-chain games are RNG dressed up — spin, flip, hope</li>
-          <li><svg class="ic"><use href="#i-dice"/></svg>Skill-based PvP barely exists — where it does, it's gated by gambling</li>
+          <li><svg class="ic"><use href="#i-dice"/></svg>Most on-chain games are RNG dressed up: spin, flip, hope</li>
+          <li><svg class="ic"><use href="#i-dice"/></svg>Skill-based PvP barely exists, and where it does, it's gated by gambling</li>
           <li><svg class="ic"><use href="#i-dice"/></svg>"Ranked" ladders live in private databases you have to trust</li>
           <li><svg class="ic"><use href="#i-dice"/></svg>No verifiable proof the better player actually won</li>
         </ul>
@@ -189,9 +218,9 @@
       <div class="box good">
         <h3><svg class="hic"><use href="#i-check"/></svg>Our Solution</h3>
         <ul class="plist good">
-          <li><svg class="ic"><use href="#i-brain"/></svg><strong>Knowledge gates every move</strong> — answer trivia correctly to place a mark</li>
-          <li><svg class="ic"><use href="#i-chain"/></svg>Three in a row wins — ranked results settle as a <em>transparent, on-chain Elo ladder</em></li>
-          <li><svg class="ic"><use href="#i-shield"/></svg>No staking. No betting. No trust required — just provable skill.</li>
+          <li><svg class="ic"><use href="#i-brain"/></svg><strong>Knowledge gates every move</strong>: answer trivia correctly to place a mark</li>
+          <li><svg class="ic"><use href="#i-chain"/></svg>Three in a row wins. Ranked results settle as a <em>transparent, on-chain Elo ladder</em></li>
+          <li><svg class="ic"><use href="#i-shield"/></svg>No staking. No betting. No trust required, just provable skill.</li>
         </ul>
       </div>
     </div>
@@ -208,11 +237,11 @@
       <div class="farrow">→</div>
       <div class="fstep"><svg class="fic"><use href="#i-brain"/></svg><b>Duel</b><span>Answer trivia → place X or O. Race to three in a row.</span></div>
       <div class="farrow">→</div>
-      <div class="fstep"><svg class="fic"><use href="#i-trophy"/></svg><b>Rank</b><span>Winner gains Elo, loser drops — written on-chain by a relayer.</span></div>
+      <div class="fstep"><svg class="fic"><use href="#i-trophy"/></svg><b>Rank</b><span>Winner gains Elo, loser drops, written on-chain by a relayer.</span></div>
     </div>
     <div class="row reveal">
       <span class="pill"><svg><use href="#i-dot"/></svg>5 modes: Classic · Shifting · Scale Up · Blitz · vs-AI</span>
-      <span class="pill green"><svg><use href="#i-gas"/></svg>Gasless — relayer pays every CELO fee</span>
+      <span class="pill green"><svg><use href="#i-gas"/></svg>Gasless: relayer pays every CELO fee</span>
       <span class="pill cyan"><svg><use href="#i-live"/></svg>Live on Celo mainnet, right now</span>
     </div>
   </section>
@@ -223,8 +252,8 @@
     <h2 class="reveal">Verifiable Elo, not a private leaderboard</h2>
     <ul class="plist reveal" style="max-width:760px;">
       <li><svg class="ic"><use href="#i-contract"/></svg>Smart contract <code>MindDuelRanking.sol</code> (Foundry) holds every player's rating</li>
-      <li><svg class="ic"><use href="#i-chart"/></svg>Integer <strong>Elo</strong> — everyone starts at <strong>1000</strong>, K-factor <strong>32</strong></li>
-      <li><svg class="ic"><use href="#i-lock"/></svg><code>recordMatch(winner, loser, draw, matchId)</code> is <strong>owner-only &amp; idempotent</strong> — no double-counting, no tampering</li>
+      <li><svg class="ic"><use href="#i-chart"/></svg>Integer <strong>Elo</strong>: everyone starts at <strong>1000</strong>, K-factor <strong>32</strong></li>
+      <li><svg class="ic"><use href="#i-lock"/></svg><code>recordMatch(winner, loser, draw, matchId)</code> is <strong>owner-only &amp; idempotent</strong>: no double-counting, no tampering</li>
       <li><svg class="ic"><use href="#i-eye"/></svg>Anyone can read ratings on-chain via viem or Celoscan</li>
     </ul>
     <div class="tiers reveal">
@@ -243,25 +272,25 @@
     <div class="eyebrow reveal"><span class="num">04</span>&nbsp;Why Celo · Why MiniPay</div>
     <h2 class="reveal">Built for mobile-first, real users</h2>
     <ul class="plist reveal" style="max-width:780px;">
-      <li><svg class="ic"><use href="#i-phone"/></svg><strong>MiniPay integration</strong> — auto-connect via <code>window.ethereum.isMiniPay</code>, zero install friction for millions of MiniPay users</li>
-      <li><svg class="ic"><use href="#i-gas"/></svg><strong>Gasless onboarding</strong> — the relayer (contract owner) submits <code>recordMatch()</code> and pays CELO gas, players never fund a wallet</li>
+      <li><svg class="ic"><use href="#i-phone"/></svg><strong>MiniPay integration</strong>: auto-connect via <code>window.ethereum.isMiniPay</code>, zero install friction for millions of MiniPay users</li>
+      <li><svg class="ic"><use href="#i-gas"/></svg><strong>Gasless onboarding</strong>: the relayer (contract owner) submits <code>recordMatch()</code> and pays CELO gas, players never fund a wallet</li>
       <li><svg class="ic"><use href="#i-bolt"/></svg><strong>Cheap, fast finality</strong> on Celo mainnet makes per-match on-chain writes practical</li>
-      <li><svg class="ic"><use href="#i-eye"/></svg><strong>Open &amp; verifiable</strong> — every ranked result is auditable on Celoscan</li>
+      <li><svg class="ic"><use href="#i-eye"/></svg><strong>Open &amp; verifiable</strong>: every ranked result is auditable on Celoscan</li>
     </ul>
-    <div class="cta reveal"><svg><use href="#i-check"/></svg>Built for Celo Proof of Ship — a real, shipped product on mainnet.</div>
+    <div class="cta reveal"><svg><use href="#i-check"/></svg>Built for Celo Proof of Ship: a real, shipped product on mainnet.</div>
   </section>
 
   <!-- 6. Tech stack -->
   <section class="slide">
     <div class="eyebrow reveal"><span class="num">05</span>&nbsp;Tech Stack · Roadmap</div>
-    <h2 class="reveal">Full stack, shipped solo</h2>
+    <h2 class="reveal">Full stack, end to end</h2>
     <div class="stack reveal">
-      <div class="stackcard"><svg class="sic"><use href="#i-contract"/></svg><div><b>Smart Contract</b><span>Solidity + Foundry — <code>MindDuelRanking.sol</code>, integer Elo</span></div></div>
+      <div class="stackcard"><svg class="sic"><use href="#i-contract"/></svg><div><b>Smart Contract</b><span>Solidity + Foundry: <code>MindDuelRanking.sol</code>, integer Elo</span></div></div>
       <div class="stackcard"><svg class="sic"><use href="#i-chain"/></svg><div><b>Chain</b><span>Celo mainnet (42220) · wagmi + viem · MiniPay</span></div></div>
       <div class="stackcard"><svg class="sic"><use href="#i-code"/></svg><div><b>Frontend</b><span>Next.js 14 + TypeScript</span></div></div>
       <div class="stackcard"><svg class="sic"><use href="#i-server"/></svg><div><b>Backend</b><span>Fastify + relayer (gasless <code>recordMatch</code>)</span></div></div>
-      <div class="stackcard"><svg class="sic"><use href="#i-db"/></svg><div><b>Data</b><span>Drizzle + Postgres — badges, history, trivia</span></div></div>
-      <div class="stackcard"><svg class="sic"><use href="#i-socket"/></svg><div><b>Real-time</b><span>WebSockets — board &amp; trivia sync</span></div></div>
+      <div class="stackcard"><svg class="sic"><use href="#i-db"/></svg><div><b>Data</b><span>Drizzle + Postgres: badges, history, trivia</span></div></div>
+      <div class="stackcard"><svg class="sic"><use href="#i-socket"/></svg><div><b>Real-time</b><span>WebSockets: board &amp; trivia sync</span></div></div>
     </div>
     <div class="row reveal">
       <span class="pill"><svg><use href="#i-dot"/></svg>More modes &amp; trivia categories</span>
@@ -270,18 +299,18 @@
     </div>
   </section>
 
-  <!-- 7. Why me / close -->
+  <!-- 7. Close -->
   <section class="slide">
-    <div class="eyebrow reveal"><span class="num">06</span>&nbsp;Why Me · Why Now</div>
-    <h2 class="reveal">One builder. Full stack. Working product on mainnet.</h2>
-    <p class="lede reveal">I shipped the <strong>Foundry ranking contract</strong>, <strong>Next.js frontend</strong>, <strong>Fastify relayer</strong> (gasless flow), <strong>MiniPay integration</strong>, and public docs — solo.</p>
-    <p class="lede reveal">Not a team. Not just a roadmap. A live game with a verifiable on-chain skill ladder you can play right now.</p>
+    <div class="eyebrow reveal"><span class="num">06</span>&nbsp;Why Now</div>
+    <h2 class="reveal">Full stack. Working product on mainnet.</h2>
+    <p class="lede reveal">The <strong>Foundry ranking contract</strong>, <strong>Next.js frontend</strong>, <strong>Fastify relayer</strong> (gasless flow), and <strong>MiniPay integration</strong> are all shipped and live.</p>
+    <p class="lede reveal">Not just a roadmap. A live game with a verifiable on-chain skill ladder you can play right now.</p>
     <div class="row reveal">
-      <span class="pill"><svg><use href="#i-play"/></svg>Play — mindduel-celo.vercel.app</span>
-      <span class="pill cyan"><svg><use href="#i-github"/></svg>GitHub — Im-A-Nuel/Mindduel</span>
-      <span class="pill green"><svg><use href="#i-eye"/></svg>Verify — MindDuelRanking.sol on Celoscan</span>
+      <span class="pill"><svg><use href="#i-play"/></svg>Play · mindduel-celo.vercel.app</span>
+      <span class="pill cyan"><svg><use href="#i-github"/></svg>GitHub · Im-A-Nuel/Mindduel</span>
+      <span class="pill green"><svg><use href="#i-eye"/></svg>Verify · MindDuelRanking.sol on Celoscan</span>
     </div>
-    <div class="quote reveal">The smarter player wins. Always — and now it's on-chain.</div>
+    <div class="quote reveal">The smarter player wins. Always, and now it's on-chain.</div>
     <div class="meta reveal">Imanuel · Celo Proof of Ship</div>
   </section>
 
