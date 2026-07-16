@@ -199,12 +199,19 @@ export async function queueMatch(
 }
 
 /**
- * Authoritative match snapshot. Used by the game page's waiting room as a
- * fallback poll so a missed/stale WebSocket `state` can never leave a player
- * stuck on "waiting for opponent" when the opponent has in fact joined.
+ * Authoritative match snapshot. Two consumers:
+ * - the game page's waiting room, as a fallback poll so a missed/stale
+ *   WebSocket `state` can never strand a player on "waiting for opponent";
+ * - the result page, to pick up the on-chain points deltas, which only exist
+ *   once the relayer's recordMatch tx has been mined (several seconds after
+ *   the game ends, i.e. long after the result screen first renders).
  */
 export async function getMatchState(matchId: string): Promise<{
   matchId: string; playerOne: string; playerTwo: string | null; status: string
+  winner: string | null
+  winnerDelta: number | null
+  loserDelta: number | null
+  txHash: string | null
 } | null> {
   const res = await fetchWithTimeout(`${API}/api/match/${encodeURIComponent(matchId)}`)
   if (!res.ok) return null

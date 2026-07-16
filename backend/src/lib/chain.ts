@@ -3,6 +3,7 @@ import {
   createWalletClient,
   http,
   keccak256,
+  parseEventLogs,
   toBytes,
   type Account,
 } from 'viem'
@@ -23,6 +24,17 @@ const CONTRACT = (process.env.RANKING_CONTRACT_ADDRESS ?? '').trim() as `0x${str
 const RELAYER_PK = (process.env.RELAYER_PRIVATE_KEY ?? '').trim()
 
 const RANKING_ABI = [
+  {
+    type: 'event', name: 'MatchRecorded',
+    inputs: [
+      { name: 'matchId', type: 'bytes32', indexed: true },
+      { name: 'winner', type: 'address', indexed: true },
+      { name: 'loser', type: 'address', indexed: true },
+      { name: 'draw', type: 'bool', indexed: false },
+      { name: 'winnerPoints', type: 'uint256', indexed: false },
+      { name: 'loserPoints', type: 'uint256', indexed: false },
+    ],
+  },
   {
     type: 'function', name: 'recordMatch', stateMutability: 'nonpayable',
     inputs: [
@@ -133,6 +145,14 @@ export async function recordMatchOnChain(args: {
   const beforeL = await readPoints(args.loser)
 
   let txHash: string | null = null
+  // Post-tx points taken from the MatchRecorded event rather than a follow-up
+  // RPC read. Forno is load-balanced, so a read issued immediately after the
+  // receipt can be served by a node that hasn't applied that block yet and
+  // return the PRE-tx points — which made the delta compute as 0 and get
+  // persisted as "±0 this match" even though the ladder moved correctly
+  // on-chain. The receipt's own logs cannot be stale.
+  let eventW: number | null = null
+  let eventL: number | null = null
   try {
     const { request } = await publicClient.simulateContract({
       account: relayerAccount(),
@@ -142,8 +162,15 @@ export async function recordMatchOnChain(args: {
       args: [args.winner as `0x${string}`, args.loser as `0x${string}`, args.draw, key],
     })
     const hash = await walletClient().writeContract(request)
-    await publicClient.waitForTransactionReceipt({ hash })
+    const receipt = await publicClient.waitForTransactionReceipt({ hash })
     txHash = hash
+
+    const events = parseEventLogs({ abi: RANKING_ABI, eventName: 'MatchRecorded', logs: receipt.logs })
+    const ours = events.find(ev => ev.args.matchId === key)
+    if (ours) {
+      eventW = Number(ours.args.winnerPoints)
+      eventL = Number(ours.args.loserPoints)
+    }
   } catch (e) {
     // AlreadySettled (idempotent replay) or transient — fall through to read
     // current on-chain points so the caller still gets accurate values.
@@ -153,8 +180,10 @@ export async function recordMatchOnChain(args: {
     }
   }
 
-  const afterW = await readPoints(args.winner)
-  const afterL = await readPoints(args.loser)
+  // Fall back to a fresh read only when the event is unavailable (replay of an
+  // already-settled match, or a failed submission).
+  const afterW = eventW ?? await readPoints(args.winner)
+  const afterL = eventL ?? await readPoints(args.loser)
 
   return {
     txHash,

@@ -384,19 +384,27 @@ export interface HistoryRow {
 }
 
 export async function getHistoryForPlayer(playerId: string, limit = 50): Promise<HistoryRow[]> {
+  // Addresses are compared case-insensitively: wallets hand us EIP-55
+  // checksummed addresses while rows may have been written lowercase (or vice
+  // versa), and an exact match silently returned an EMPTY history for the
+  // checksummed form.
+  const pid = playerId.toLowerCase()
   const rows = await db.select().from(matches)
-    .where(or(eq(matches.playerOne, playerId), eq(matches.playerTwo, playerId)))
+    .where(or(
+      sql`lower(${matches.playerOne}) = ${pid}`,
+      sql`lower(${matches.playerTwo}) = ${pid}`,
+    ))
     .orderBy(desc(matches.createdAt))
     .limit(limit)
 
   return rows.map((r): HistoryRow => {
-    const isPlayerOne = r.playerOne === playerId
+    const isPlayerOne = r.playerOne?.toLowerCase() === pid
     const opponent    = isPlayerOne ? r.playerTwo : r.playerOne
 
     let result: HistoryRow['result'] = 'pending'
     let pointsDelta = 0
     if (r.status === 'finished') {
-      if (r.winner === playerId) {
+      if (r.winner?.toLowerCase() === pid) {
         result = 'win'
         pointsDelta = r.winnerDelta ?? 0
       } else if (r.winner === null) {

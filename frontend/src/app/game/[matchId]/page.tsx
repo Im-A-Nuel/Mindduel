@@ -485,35 +485,75 @@ function ReadySlot({ label, addr, mark, ready, joined, isYou }: {
   label: string; addr: string | null; mark: 'X' | 'O'; ready: boolean; joined: boolean; isYou: boolean
 }) {
   const color = isYou ? BLUE : RED
+  const statusText = ready ? 'Ready' : joined ? 'Not ready' : 'Connecting'
   return (
-    <div style={{
-      flex: '1 1 0', minWidth: 0, padding: '20px 18px', borderRadius: 18,
-      background: 'var(--mdd-card)',
-      border: `1.5px solid ${ready ? GREEN_DARK : 'var(--mdd-border-strong)'}`,
-      boxShadow: ready ? `0 4px 18px ${GREEN_DARK}22` : '0 1px 3px rgba(0,0,0,0.05)',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-      transition: 'border-color 200ms ease, box-shadow 200ms ease',
-    }}>
-      <div style={{
-        width: 42, height: 42, borderRadius: 12, background: color,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      }}>
-        {mark === 'X'
-          ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#fff" strokeWidth="3.2" strokeLinecap="round"/></svg>
-          : <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5" stroke="#fff" strokeWidth="3.2"/></svg>}
+    <motion.div
+      layout
+      animate={{
+        borderColor: ready ? GREEN : 'var(--mdd-border-strong)',
+        boxShadow: ready ? `0 6px 22px ${GREEN}33` : '0 1px 3px rgba(0,0,0,0.05)',
+      }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        flex: '1 1 0', minWidth: 0, padding: '22px 16px', borderRadius: 20,
+        background: 'var(--mdd-card)', borderWidth: 1.5, borderStyle: 'solid',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 11,
+      }}
+    >
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <motion.div
+          animate={ready ? { scale: [1, 1.08, 1] } : {}}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          style={{
+            width: 46, height: 46, borderRadius: 14, background: color,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            opacity: joined ? 1 : 0.35,
+          }}
+        >
+          {mark === 'X'
+            ? <svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#fff" strokeWidth="3.2" strokeLinecap="round"/></svg>
+            : <svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5" stroke="#fff" strokeWidth="3.2"/></svg>}
+        </motion.div>
+        <AnimatePresence>
+          {ready && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+              style={{
+                position: 'absolute', right: -5, bottom: -5, width: 20, height: 20, borderRadius: 10,
+                background: GREEN, border: '2.5px solid var(--mdd-card)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.5 9L10 3" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.8, color: MUTED }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 600, color: INK, fontVariantNumeric: 'tabular-nums' }}>
-        {addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : 'waiting to join…'}
+
+      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: FAINT }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: joined ? INK : FAINT, fontVariantNumeric: 'tabular-nums' }}>
+        {addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : 'Waiting to join'}
       </span>
-      <span style={{
-        padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700, letterSpacing: 0.3,
-        background: ready ? '#E8F7EE' : 'var(--mdd-bg-soft)',
-        color: ready ? GREEN_DARK : FAINT,
-      }}>
-        {ready ? '✓ READY' : joined ? 'NOT READY' : 'CONNECTING…'}
-      </span>
-    </div>
+
+      <motion.span
+        layout
+        animate={{
+          background: ready ? '#E8F7EE' : 'var(--mdd-bg-soft)',
+          color: ready ? GREEN_DARK : FAINT,
+        }}
+        transition={{ duration: 0.25 }}
+        style={{
+          padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+        }}
+      >
+        {!joined && (
+          <span style={{ width: 8, height: 8, borderRadius: 4, border: `1.5px solid ${FAINT}`, borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+        )}
+        {statusText}
+      </motion.span>
+    </motion.div>
   )
 }
 
@@ -522,61 +562,116 @@ function WaitingRoom({ matchId, myMark, myAddr, oppAddr, oppJoined, iAmReady, op
   oppJoined: boolean; iAmReady: boolean; oppReady: boolean; onReady: () => void
   ranked: boolean; modeLabel: string
 }) {
-  const status = !oppJoined ? 'Waiting for an opponent to join…'
-    : iAmReady && !oppReady ? 'Waiting for your opponent to be ready…'
-    : !iAmReady ? 'Hit Ready when you are — the match starts once both of you are.'
-    : 'Both ready — starting…'
+  const [confirmLeave, setConfirmLeave] = useState(false)
+
+  const status = !oppJoined ? 'Waiting for an opponent to join'
+    : iAmReady && !oppReady ? 'Waiting for your opponent to get ready'
+    : !iAmReady ? 'Hit Ready when you are. The match starts once both of you are.'
+    : 'Both ready. Starting the match…'
 
   return (
     <motion.div
       key="waitingroom"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
       style={{ position: 'fixed', inset: 0, zIndex: 45, background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
     >
       <motion.div
-        initial={{ scale: 0.96, y: 10 }} animate={{ scale: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 320, damping: 26 }}
-        style={{ width: '100%', maxWidth: 460, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}
+        initial={{ scale: 0.97, y: 12, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+        style={{ width: '100%', maxWidth: 480, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ padding: '4px 10px', borderRadius: 999, background: ranked ? '#E8F7EE' : 'var(--mdd-bg-soft)', color: ranked ? GREEN_DARK : MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 0.3 }}>
+          <span style={{ padding: '4px 11px', borderRadius: 999, background: ranked ? '#E8F7EE' : 'var(--mdd-bg-soft)', color: ranked ? GREEN_DARK : MUTED, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6 }}>
             {ranked ? 'RANKED' : 'CASUAL'}
           </span>
-          <span style={{ padding: '4px 10px', borderRadius: 999, background: 'var(--mdd-bg-soft)', color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 0.3 }}>
+          <span style={{ padding: '4px 11px', borderRadius: 999, background: 'var(--mdd-bg-soft)', color: MUTED, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6 }}>
             {modeLabel}
           </span>
         </div>
 
         <div style={{ textAlign: 'center' }}>
-          <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.8, margin: '0 0 6px', color: INK }}>Waiting Room</h2>
-          <p style={{ fontSize: 12, color: FAINT, margin: 0, fontFamily: 'ui-monospace, monospace' }}>{matchId}</p>
+          <h2 style={{ fontSize: 27, fontWeight: 700, letterSpacing: -0.8, margin: '0 0 5px', color: INK }}>Waiting Room</h2>
+          <p style={{ fontSize: 11.5, color: FAINT, margin: 0, fontFamily: 'ui-monospace, monospace', letterSpacing: 0.4 }}>{matchId}</p>
         </div>
 
-        <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+        <div style={{ display: 'flex', gap: 10, width: '100%', alignItems: 'center' }}>
           <ReadySlot label="YOU"      addr={myAddr}  mark={myMark} ready={iAmReady} joined isYou />
+          <span style={{ fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: 1, flexShrink: 0 }}>VS</span>
           <ReadySlot label="OPPONENT" addr={oppAddr} mark={myMark === 'X' ? 'O' : 'X'} ready={oppReady} joined={oppJoined} isYou={false} />
         </div>
 
-        <p style={{ fontSize: 13.5, color: MUTED, margin: 0, textAlign: 'center', minHeight: 20 }}>{status}</p>
+        <div style={{ minHeight: 22, display: 'flex', alignItems: 'center' }}>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={status}
+              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2 }}
+              style={{ fontSize: 13.5, color: MUTED, margin: 0, textAlign: 'center' }}
+            >
+              {status}
+            </motion.p>
+          </AnimatePresence>
+        </div>
 
-        <button
+        <motion.button
           onClick={onReady}
           disabled={iAmReady}
-          style={{
-            appearance: 'none', border: 'none', width: '100%', padding: '15px',
+          whileHover={iAmReady ? {} : { scale: 1.015 }}
+          whileTap={iAmReady ? {} : { scale: 0.985 }}
+          animate={{
             background: iAmReady ? 'var(--mdd-bg-soft)' : BLUE,
             color: iAmReady ? MUTED : '#fff',
+          }}
+          transition={{ duration: 0.22 }}
+          style={{
+            appearance: 'none', border: 'none', width: '100%', padding: '15px',
             borderRadius: 14, fontSize: 15, fontWeight: 600, fontFamily: 'inherit',
             cursor: iAmReady ? 'default' : 'pointer',
-            boxShadow: iAmReady ? 'none' : '0 4px 14px rgba(0,113,227,0.25)',
-            transition: 'background 160ms ease',
+            boxShadow: iAmReady ? 'none' : '0 6px 18px rgba(0,113,227,0.28)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}
         >
-          {iAmReady ? '✓ You are ready' : "I'm Ready"}
-        </button>
+          {iAmReady && (
+            <svg width="15" height="15" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.5 9L10 3" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          )}
+          {iAmReady ? 'You are ready' : "I'm Ready"}
+        </motion.button>
 
-        <a href="/lobby" style={{ fontSize: 13, color: MUTED, textDecoration: 'none' }}>← Leave match</a>
+        <motion.button
+          onClick={() => setConfirmLeave(true)}
+          whileHover={{ scale: 1.015, borderColor: '#FCC9C5' }}
+          whileTap={{ scale: 0.985 }}
+          style={{
+            appearance: 'none', width: '100%', padding: '12px',
+            background: 'var(--mdd-card)', color: MUTED,
+            border: '1.5px solid var(--mdd-border-strong)',
+            borderRadius: 14, fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Leave match
+        </motion.button>
       </motion.div>
+
+      <ConfirmDialog
+        open={confirmLeave}
+        title="Leave this match?"
+        message={ranked
+          ? 'Your opponent will be left waiting. This match will not affect your ranking.'
+          : 'Your opponent will be left waiting in the room.'}
+        confirmLabel="Leave match"
+        cancelLabel="Stay"
+        tone="danger"
+        onConfirm={() => { window.location.href = '/lobby' }}
+        onCancel={() => setConfirmLeave(false)}
+      />
     </motion.div>
   )
 }
@@ -1003,13 +1098,25 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     // Compute the result handoff for /result and report to the backend.
     // The frontend NEVER sends a transaction: the backend relayer records
     // ranked PvP results on-chain and returns the points deltas + tx hash.
-    const writeResult = (pointsDelta: number, newPoints: number | null, txHash: string | null) => {
+    // `settling` tells /result the on-chain deltas aren't known YET. The
+    // relayer's recordMatch tx takes seconds to mine, but the player reaches
+    // the result screen immediately - it used to read this payload once on
+    // mount and so always rendered the placeholder ±0, even though the chain
+    // write landed correctly moments later. /result polls until settled.
+    const writeResult = (
+      pointsDelta: number,
+      newPoints: number | null,
+      txHash: string | null,
+      settling = false,
+    ) => {
       const payload = {
         result: resultStr,
         ranked: effectiveRanked,
         pointsDelta,
         newPoints,
         txHash,
+        settling,
+        matchId: params.matchId,
         mode: modeLabel,
         opponent: isVsAI ? 'MindDuel AI' : (opponentAddr ?? null),
       }
@@ -1032,7 +1139,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     // Ranked PvP - only the winner (or either side on a draw) reports; the
     // backend's finish is idempotent. We still write a local result first so
     // the result page renders instantly, then patch deltas from the response.
-    writeResult(0, null, null)
+    writeResult(0, null, null, true)
     // Report the ACTUAL winner address (not just "me") so the loser's client
     // records the same outcome - the backend is idempotent per matchId, so both
     // sides reporting the same winner records the on-chain result exactly once
@@ -1058,7 +1165,12 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
         pointsDelta = res.loserDelta ?? 0
         newPoints   = res.loserPoints ?? null
       }
-      writeResult(pointsDelta, newPoints, res.txHash ?? null)
+      // Both clients report the same finish; the loser's call can land while
+      // the winner's is still mining and get back the not-yet-saved (0/null)
+      // settlement. Only stop /result polling once we have a definitive
+      // answer, otherwise let it keep asking the server.
+      const settled = !!res.txHash || isDraw
+      writeResult(pointsDelta, newPoints, res.txHash ?? null, !settled)
       if (res.txHash) toast('Ranked result recorded on-chain ✓', 'success')
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps

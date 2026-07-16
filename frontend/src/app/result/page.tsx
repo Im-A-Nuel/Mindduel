@@ -10,6 +10,7 @@ import { BottomTabBar } from '@/components/layout/BottomTabBar'
 import { ShareButton } from '@/components/ShareButton'
 import { IconRobot, IconCrosshair, IconBolt, IconHandshake } from '@/components/ui/StateIcons'
 import { CELO_EXPLORER, tierForPoints } from '@/lib/constants'
+import { getMatchState } from '@/lib/api'
 
 const BLUE       = '#0071E3'
 const RED        = '#FF3B30'
@@ -32,6 +33,9 @@ interface SessionResult {
   txHash:      string | null
   mode:        string
   opponent:    string | null
+  /** True while the relayer's on-chain recordMatch is still in flight. */
+  settling?:   boolean
+  matchId?:    string
 }
 
 /** Optional per-question match log, written under `mddLastMatch`. */
@@ -173,14 +177,17 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
   const txHash      = result?.txHash ?? null
   const isVsAI      = result?.mode === 'vs-ai'
 
+  // On-chain settlement still in flight: show a pending state rather than a
+  // misleading ±0 that the poll is about to replace.
+  const settling   = !!result?.settling && ranked
   const deltaColor = pointsDelta > 0 ? GREEN_DARK : pointsDelta < 0 ? RED : MUTED
   const tier       = newPoints != null ? tierForPoints(newPoints) : null
 
   const shareText = win
-    ? `I just won on MindDuel${ranked && tier && newPoints != null ? ` and climbed to ${tier.label} (${newPoints} pts)` : ''} — trivia-gated PvP on Celo. Think you can beat me?`
+    ? `I just won on MindDuel${ranked && tier && newPoints != null ? ` and climbed to ${tier.label} (${newPoints} pts)` : ''}. Trivia-gated PvP on Celo. Think you can beat me?`
     : draw
-      ? 'Hard-fought draw on MindDuel — trivia-gated PvP on Celo. Come play.'
-      : 'Just played MindDuel — trivia-gated PvP on Celo. Come climb the ranks.'
+      ? 'Hard-fought draw on MindDuel. Trivia-gated PvP on Celo. Come play.'
+      : 'Just played MindDuel. Trivia-gated PvP on Celo. Come climb the ranks.'
 
   const correct = log.filter(q => q.correct).length
   const total   = log.length
@@ -230,9 +237,12 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
               {ranked ? (
                 <ResultRow
                   label="Points"
-                  value={formatDelta(pointsDelta)}
-                  color={deltaColor}
-                  big
+                  value={settling ? 'Recording…' : formatDelta(pointsDelta)}
+                  color={settling ? MUTED : deltaColor}
+                  big={!settling}
+                  badge={settling ? (
+                    <span style={{ width: 13, height: 13, borderRadius: '50%', border: `2px solid ${MUTED}`, borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+                  ) : undefined}
                 />
               ) : (
                 <ResultRow label="Mode" value="Casual · no points" color={MUTED} />
@@ -276,7 +286,11 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
                 <IconBolt size={20} color="#fff" bg="linear-gradient(135deg, #35D07F, #1B8F5A)" />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>Ranked win!</div>
-                  <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>Your points climbed {formatDelta(pointsDelta)}. Keep winning to climb the ladder.</div>
+                  <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>
+                    {settling
+                      ? 'Recording your points on Celo. This takes a few seconds.'
+                      : `Your points climbed ${formatDelta(pointsDelta)}. Keep winning to climb the ladder.`}
+                  </div>
                 </div>
               </div>
             ) : win ? (
@@ -303,7 +317,11 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
                   <svg width="20" height="20" viewBox="0 0 18 18" fill="none"><path d="M9 2L11 6.5L16 7L12.5 10.5L13.5 15.5L9 13L4.5 15.5L5.5 10.5L2 7L7 6.5L9 2Z" fill={BLUE}/></svg>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{ranked ? `Points ${formatDelta(pointsDelta)} this match` : 'Casual match - no points lost'}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>
+                    {!ranked ? 'Casual match · no points lost'
+                      : settling ? 'Recording your points on Celo…'
+                      : `Points ${formatDelta(pointsDelta)} this match`}
+                  </div>
                   <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>The questions get easier with practice. Rematch to win your points back.</div>
                 </div>
               </div>
@@ -354,6 +372,40 @@ function ResultPageInner() {
       } catch { /* invalid */ }
     }
   }, [])
+
+  // Ranked deltas only exist once the relayer's recordMatch tx is mined, which
+  // is several seconds AFTER this screen first renders. The game page hands off
+  // `settling: true` and we poll the authoritative match record until the
+  // settlement lands, then swap the placeholder ±0 for the real delta.
+  const settling = !!result?.settling && !!result?.matchId && !!result?.ranked
+  useEffect(() => {
+    if (!settling || !result?.matchId) return
+    let cancelled = false
+    let tries = 0
+    const id = setInterval(async () => {
+      tries++
+      // ~40s ceiling: well past Celo finality. Give up quietly rather than
+      // poll a stuck match forever.
+      if (tries > 20) { clearInterval(id); return }
+      try {
+        const m = await getMatchState(result.matchId!)
+        if (cancelled || !m) return
+        if (m.winnerDelta == null && m.loserDelta == null) return  // not settled yet
+        const delta = result.result === 'win' ? (m.winnerDelta ?? 0)
+          : result.result === 'loss' ? (m.loserDelta ?? 0)
+          : 0
+        clearInterval(id)
+        setResult(prev => {
+          if (!prev) return prev
+          const next: SessionResult = { ...prev, pointsDelta: delta, txHash: m.txHash ?? prev.txHash, settling: false }
+          // Persist so a refresh of /result doesn't fall back to ±0.
+          try { sessionStorage.setItem('mddResult', JSON.stringify(next)) } catch { /* quota */ }
+          return next
+        })
+      } catch { /* transient - next tick retries */ }
+    }, 2000)
+    return () => { cancelled = true; clearInterval(id) }
+  }, [settling, result?.matchId, result?.result])
 
   const raw = searchParams.get('r')
   // Result handoff uses 'loss'; URL param and ResultKind use 'lose'.
