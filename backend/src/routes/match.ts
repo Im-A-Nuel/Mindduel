@@ -9,6 +9,7 @@ import {
   dequeue,
   queueLength,
 } from '../lib/match-store.js'
+import { broadcastToMatch } from './ws.js'
 
 const createBodySchema = z.object({
   playerOne: z.string().min(1),
@@ -66,6 +67,12 @@ export async function matchRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Match not found, already started, or join code invalid' })
     }
 
+    // Notify anyone already connected to the room (typically the creator,
+    // who opened /game and connected WS before this join happened) that the
+    // match is now active — without this, their client never learns the
+    // opponent's address or re-syncs turn state until their next own action.
+    broadcastToMatch(match.matchId, { type: 'state', match })
+
     return {
       matchId: match.matchId,
       status: match.status,
@@ -98,6 +105,15 @@ export async function matchRoutes(app: FastifyInstance) {
 
     const { playerId, mode, ranked, categories } = parsed.data
     const result = await enqueue(playerId, mode, ranked, categories ?? null)
+
+    // Same reasoning as /match/join: if the OTHER paired player's client is
+    // already sitting connected to this matchId's WS room (e.g. reused a
+    // pending match they created earlier), tell it the match just went
+    // active so it isn't stuck on a pre-pairing snapshot.
+    if (result.status === 'matched' && result.matchId) {
+      const match = await getMatch(result.matchId)
+      if (match) broadcastToMatch(match.matchId, { type: 'state', match })
+    }
 
     return {
       ...result,
