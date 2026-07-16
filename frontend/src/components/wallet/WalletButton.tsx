@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAccount, useBalance } from 'wagmi'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWallet } from '@/hooks/useWallet'
@@ -29,6 +30,19 @@ export function WalletButton({ className }: WalletButtonProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [copied, setCopied] = useState(false)
   const [confirmDisconnect, setConfirmDisconnect] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
+
+  function toggleMenu() {
+    setShowMenu(v => {
+      const next = !v
+      if (next && triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect()
+        setMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
+      }
+      return next
+    })
+  }
 
   if (!isConnected || !address) {
     return (
@@ -70,9 +84,10 @@ export function WalletButton({ className }: WalletButtonProps) {
   return (
     <div style={{ position: 'relative' }}>
       <motion.button
+        ref={triggerRef}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.97 }}
-        onClick={() => setShowMenu(v => !v)}
+        onClick={toggleMenu}
         className={`wallet-chip ${className ?? ''}`}
         style={{
           appearance: 'none', border: 'none',
@@ -93,25 +108,26 @@ export function WalletButton({ className }: WalletButtonProps) {
         </svg>
       </motion.button>
 
-      <AnimatePresence>
-        {showMenu && (
-          <>
-            <div
-              onClick={() => setShowMenu(false)}
-              style={{ position: 'fixed', inset: 0, zIndex: 49 }}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.96 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className="glass-elevated"
-              style={{
-                position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-                width: 260, borderRadius: 16,
-                overflow: 'hidden', zIndex: 50,
-              }}
-            >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showMenu && menuPos && (
+            <>
+              <div
+                onClick={() => setShowMenu(false)}
+                style={{ position: 'fixed', inset: 0, zIndex: 999 }}
+              />
+              <motion.div
+                initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                className="glass-elevated"
+                style={{
+                  position: 'fixed', top: menuPos.top, right: menuPos.right,
+                  width: 260, borderRadius: 16,
+                  overflow: 'hidden', zIndex: 1000,
+                }}
+              >
               <div style={{ padding: '14px 16px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <span style={{ fontSize: 11, color: MUTED, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>Balance</span>
@@ -176,10 +192,12 @@ export function WalletButton({ className }: WalletButtonProps) {
                   Disconnect
                 </button>
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <ConfirmDialog
         open={confirmDisconnect}
