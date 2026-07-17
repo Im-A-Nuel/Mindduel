@@ -832,6 +832,15 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   const [presenceKnown, setPresenceKnown] = useState(false)
   /** Live seconds left on the trivia question, lifted out of TriviaCard. */
   const [questionTimeLeft, setQuestionTimeLeft] = useState<number | null>(null)
+  /**
+   * When the opponent's answer clock runs out, as a timestamp on OUR clock.
+   * The opponent's timer only exists in their browser, so they broadcast its
+   * duration and we count down locally from the moment it arrives - deriving
+   * this from their Date.now() would inherit whatever clock skew they have.
+   */
+  const [oppTurnEndsAt, setOppTurnEndsAt] = useState<number | null>(null)
+  /** The duration that clock started from, so the bar has something to fill against. */
+  const [oppTimerTotal, setOppTimerTotal] = useState(0)
 
   // Resign / forfeit-match confirm
   const [confirmResign, setConfirmResign] = useState(false)
@@ -1046,6 +1055,18 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             setApiQuestion(null); setApiSessionId(null)
             setEliminated([]); setPendingCell(null)
             setQuestionIndex(i => i + 1); setTimeKey(k => k + 1)
+            // Their clock is done the moment the turn flips.
+            setOppTurnEndsAt(null); setOppTimerTotal(0)
+          } else if (msg.type === 'turn_timer') {
+            const d = Number(msg.duration)
+            if (Number.isFinite(d) && d > 0) {
+              setOppTurnEndsAt(Date.now() + d * 1000)
+              // Extra Time can push the clock above where it started, so keep
+              // the bar's reference at the largest value seen this turn.
+              setOppTimerTotal(prev => (d > prev ? d : prev))
+            } else {
+              setOppTurnEndsAt(null)
+            }
           } else if (msg.type === 'ready_state') {
             setReadyPlayers(Array.isArray(msg.ready) ? msg.ready.map((a: string) => String(a).toLowerCase()) : [])
           } else if (msg.type === 'presence') {
@@ -1461,6 +1482,44 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     return () => clearInterval(id)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVsAI, gameStarted, iAmReady, bothReady, myAddrLower])
+
+  // Tell the opponent how long our answer clock has left, so their "waiting"
+  // panel can show a real countdown instead of an open-ended spinner. Only on
+  // the two moments the value is not simply "one second less than before":
+  // when the question starts, and when an Extra Time hint stretches it. That
+  // keeps this to ~1-2 messages per question rather than one per second.
+  const prevQTimeRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (isVsAI) return
+    const prev = prevQTimeRef.current
+    prevQTimeRef.current = questionTimeLeft
+    if (questionTimeLeft === null) return
+    const started  = prev === null
+    const extended = prev !== null && questionTimeLeft > prev
+    if (started || extended) sendWsEvent({ type: 'turn_timer', duration: questionTimeLeft })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questionTimeLeft, isVsAI])
+
+  // A stale opponent clock must never linger into our own turn or past the end
+  // of the match: the turn can also flip via resign or a forfeited turn, which
+  // do not necessarily carry a fresh timer.
+  useEffect(() => {
+    if (gameOver || currentPlayer === myMark) { setOppTurnEndsAt(null); setOppTimerTotal(0) }
+  }, [gameOver, currentPlayer, myMark])
+
+  // Tick the opponent's clock down on our own timeline.
+  const [oppSecondsLeft, setOppSecondsLeft] = useState<number | null>(null)
+  useEffect(() => {
+    if (oppTurnEndsAt === null) { setOppSecondsLeft(null); return }
+    const tick = () => {
+      const s = Math.max(0, Math.ceil((oppTurnEndsAt - Date.now()) / 1000))
+      setOppSecondsLeft(s)
+    }
+    tick()
+    // Sub-second so the displayed number never lags a real second behind.
+    const id = setInterval(tick, 250)
+    return () => clearInterval(id)
+  }, [oppTurnEndsAt])
 
   // Final-seconds countdown shown large over the board. Driven by whichever
   // clock is actually running against this player: the trivia timer once a
@@ -2110,7 +2169,29 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                   {[0, 1, 2].map(i => (<motion.span key={i} animate={{ opacity: [0.2, 0.9, 0.2] }} transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.28 }} style={{ width: 10, height: 10, borderRadius: 5, background: FAINT, display: 'inline-block' }} />))}
                 </div>
                 <p style={{ fontSize: 15, fontWeight: 600, color: MUTED }}>Opponent&apos;s turn</p>
-                <p style={{ fontSize: 12, color: FAINT, fontFamily: 'ui-monospace, monospace' }}>Waiting for their answer…</p>
+
+                {oppSecondsLeft !== null ? (
+                  <div style={{ width: '100%', maxWidth: 260, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                      <span style={{ fontSize: 34, fontWeight: 800, letterSpacing: -1.2, color: oppSecondsLeft <= 5 ? RED : INK, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                        {oppSecondsLeft}
+                      </span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: oppSecondsLeft <= 5 ? RED : FAINT }}>s</span>
+                    </div>
+                    <div style={{ width: '100%', height: 4, background: 'var(--mdd-bg-soft)', borderRadius: 999, overflow: 'hidden' }}>
+                      <motion.div
+                        animate={{ width: `${Math.max(0, Math.min(100, (oppSecondsLeft / Math.max(1, oppTimerTotal)) * 100))}%` }}
+                        transition={{ duration: 0.25, ease: 'linear' }}
+                        style={{ height: '100%', background: oppSecondsLeft <= 5 ? RED : BLUE, borderRadius: 999 }}
+                      />
+                    </div>
+                    <p style={{ fontSize: 12, color: FAINT }}>
+                      {oppSecondsLeft > 0 ? 'until your turn at the latest' : 'their time is up…'}
+                    </p>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: 12, color: FAINT, fontFamily: 'ui-monospace, monospace' }}>Waiting for their answer…</p>
+                )}
               </motion.div>
 
             ) : !gameOver && pendingCell === null ? (
