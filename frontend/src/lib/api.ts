@@ -262,6 +262,9 @@ export async function queueMatch(
  */
 export async function getMatchState(matchId: string): Promise<{
   matchId: string; playerOne: string; playerTwo: string | null; status: string
+  joinCode: string
+  ranked: boolean
+  mode: string
   winner: string | null
   winnerDelta: number | null
   loserDelta: number | null

@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { getAIMove, type AIDifficulty } from '@/lib/ai'
 import { sounds } from '@/lib/sounds'
 import { WalletButton } from '@/components/wallet/WalletButton'
-import { fetchTrivia, revealTrivia, peekTrivia, TriviaSessionExpiredError, WS_URL, reportMatchFinish, reportVsAiResult, getMatchState, type TriviaQuestion } from '@/lib/api'
+import { fetchTrivia, revealTrivia, peekTrivia, TriviaSessionExpiredError, WS_URL, reportMatchFinish, reportVsAiResult, getMatchState, joinMatch, type TriviaQuestion } from '@/lib/api'
 import { useWallet } from '@/hooks/useWallet'
 import { SoundToggle } from '@/components/SoundToggle'
 import { IconRobot, IconCrosshair } from '@/components/ui/StateIcons'
@@ -304,7 +304,7 @@ function AnswerBtn({ label, letterLabel, state, onClick, eliminated }: { label: 
   }
   const c = colorMap[state]
   return (
-    <button onClick={onClick} disabled={eliminated} style={{ appearance: 'none', border: `1.5px solid ${c.border}`, background: c.bg, color: c.color, opacity: eliminated ? 0.32 : 1, padding: '12px 14px', borderRadius: 14, fontSize: 14, fontWeight: 600, textAlign: 'left', cursor: eliminated ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 10, transition: 'all 140ms ease', textDecoration: eliminated ? 'line-through' : 'none', width: '100%' }}>
+    <button onClick={onClick} disabled={eliminated} onCopy={e => e.preventDefault()} onContextMenu={e => e.preventDefault()} style={{ appearance: 'none', border: `1.5px solid ${c.border}`, background: c.bg, color: c.color, opacity: eliminated ? 0.32 : 1, padding: '12px 14px', borderRadius: 14, fontSize: 14, fontWeight: 600, textAlign: 'left', cursor: eliminated ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 10, transition: 'all 140ms ease', textDecoration: eliminated ? 'line-through' : 'none', width: '100%', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}>
       <span style={{ width: 22, height: 22, borderRadius: 11, background: c.circleBg, color: c.circleColor, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: state === 'default' ? '0 0 0 0.5px rgba(0,0,0,0.08)' : 'none' }}>
         {state === 'correct' ? '✓' : state === 'wrong' ? '✕' : letterLabel}
       </span>
@@ -393,7 +393,22 @@ function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout
           )}
         </div>
       )}
-      <p style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.35, color: INK, margin: '0 0 14px', letterSpacing: -0.3 }}>{question.question}</p>
+      {/* Question + answers are non-selectable so they can't be dragged out
+          into a search box mid-match. This is a deterrent, not protection:
+          the text is still in the DOM and in the network response, so anyone
+          who opens devtools can read it. Real anti-cheat would have to keep
+          the question server-side. */}
+      <p
+        onCopy={e => e.preventDefault()}
+        onContextMenu={e => e.preventDefault()}
+        onDragStart={e => e.preventDefault()}
+        style={{
+          fontSize: 17, fontWeight: 600, lineHeight: 1.35, color: INK, margin: '0 0 14px', letterSpacing: -0.3,
+          userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none',
+        }}
+      >
+        {question.question}
+      </p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {question.options.map((opt, i) => {
           let state: 'default' | 'selected' | 'correct' | 'wrong' = 'default'
@@ -1056,6 +1071,20 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                 one: p1 ?? prev.one,
                 two: p2 ?? prev.two,
               }))
+              // The SERVER owns whether this match is ranked and which mode it
+              // is. sessionStorage only reflects what THIS browser last chose,
+              // so a player who reached the match any other way (a shared URL,
+              // a second tab) could otherwise sit in a ranked match believing
+              // it was casual - and report it as casual when it finished.
+              if (typeof msg.match.ranked === 'boolean') {
+                setRanked(msg.match.ranked)
+                sessionStorage.setItem('mddRanked', msg.match.ranked ? '1' : '0')
+              }
+              if (typeof msg.match.mode === 'string' && msg.match.mode) {
+                setGameModeStr(msg.match.mode)
+                gameModeRef.current = msg.match.mode
+                sessionStorage.setItem('mddMode', msg.match.mode)
+              }
               // Authoritatively derive myMark from the server's player list so a
               // stale sessionStorage value (e.g. from a race-condition in the lobby
               // polling path) can never put both players on the same side.
@@ -1351,16 +1380,27 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
     return () => clearTimeout(id)
   }, [startCountdown])
 
+  // Guards the seat-claim below so a slow/failed join can't be retried in a
+  // loop by the poll.
+  const seatClaimRef = useRef(false)
+
   // Fallback poll: while the waiting room is up and we still believe we're
   // alone, ask the server directly. The WebSocket `state` push is the fast
   // path, but a dropped/stale message must not strand the match creator on
   // "waiting for an opponent" forever (previously only a manual page refresh
   // recovered from that). Stops as soon as the opponent is known.
+  //
+  // It also claims the free seat when we are not actually in this match yet.
+  // Opening /game/<id> is a completely natural way to share a match (it is the
+  // URL in the address bar), but on its own it joined nothing: the visitor sat
+  // in a waiting room of a match whose playerTwo stayed null, so the ready
+  // check could never pass and the game could never start.
   useEffect(() => {
     if (isVsAI || gameStarted || oppJoined) return
     if (params.matchId.startsWith('vs-ai-')) return
     let cancelled = false
-    const id = setInterval(async () => {
+
+    async function sync() {
       try {
         const m = await getMatchState(params.matchId)
         if (cancelled || !m) return
@@ -1369,10 +1409,44 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
         if (p1) playerOneAddrRef.current = p1
         if (p2) playerTwoAddrRef.current = p2
         setMatchPlayers(prev => ({ one: p1 ?? prev.one, two: p2 ?? prev.two }))
+        if (typeof m.ranked === 'boolean') setRanked(m.ranked)
+
+        const me = addressRef.current?.toLowerCase()
+        const seatFree = m.status === 'waiting' && !p2
+        const iAmNotIn = !!me && p1 !== me
+        if (!seatClaimRef.current && seatFree && iAmNotIn && m.joinCode) {
+          seatClaimRef.current = true
+          const joined = await joinMatch(m.joinCode, me!)
+          if (cancelled) return
+          if (joined) {
+            // Mirror the lobby's handoff so the rest of the page behaves
+            // identically to arriving through the normal join flow.
+            sessionStorage.setItem('mddMyMark', 'O')
+            sessionStorage.setItem('mddVsAI', '0')
+            sessionStorage.setItem('mddMode', joined.mode)
+            sessionStorage.setItem('mddRanked', joined.ranked ? '1' : '0')
+            if (joined.difficulty) sessionStorage.setItem('mddDifficulty', joined.difficulty)
+            if (joined.categories?.length) sessionStorage.setItem('mddCategories', JSON.stringify(joined.categories))
+            setMyMark('O')
+            setRanked(joined.ranked)
+            setGameModeStr(joined.mode)
+            gameModeRef.current = joined.mode
+            setMatchPlayers({ one: p1, two: me! })
+            playerTwoAddrRef.current = me!
+            toast('Joined the match.', 'success')
+          } else {
+            // Someone else took the seat between the read and the join.
+            seatClaimRef.current = false
+          }
+        }
       } catch { /* transient - next tick retries */ }
-    }, 2000)
+    }
+
+    void sync()
+    const id = setInterval(sync, 2000)
     return () => { cancelled = true; clearInterval(id) }
-  }, [isVsAI, gameStarted, oppJoined, params.matchId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVsAI, gameStarted, oppJoined, params.matchId, myAddrLower])
 
   // Self-heal: while we're ready but the match hasn't started, re-announce
   // periodically. The server answers every `player_ready` by fanning the FULL

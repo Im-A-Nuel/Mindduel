@@ -142,10 +142,15 @@ export async function wsRoutes(app: FastifyInstance) {
     socket.send(readyPayload(matchId))
     socket.send(JSON.stringify({ type: 'viewer_count', count: spectatorCount(matchId) }))
 
-    // Match metadata is the only part that needs a DB read.
+    // Match metadata is the only part that needs a DB read. A failure here is
+    // not cosmetic: `state` is how a client learns who its opponent is, and
+    // there is no retry, so swallowing the error silently left the client to
+    // rely entirely on its HTTP poll with nothing logged to explain why.
     void getMatch(matchId).then(match => {
       if (match) socket.send(JSON.stringify({ type: 'state', match }))
-    }).catch(() => {})
+    }).catch(err => {
+      app.log.error({ err: String(err), matchId }, 'ws: failed to load match state on connect')
+    })
 
     // Tell everyone the viewer count changed
     broadcastViewerCount(matchId)
