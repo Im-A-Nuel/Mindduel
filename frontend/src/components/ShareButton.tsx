@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useToast } from '@/components/ui/Toast'
+import { sounds } from '@/lib/sounds'
 
 const INK = 'var(--mdd-ink)'
 
@@ -27,6 +28,7 @@ export function ShareButton({
   const toast = useToast()
 
   async function onShare() {
+    sounds.tap()
     const shareUrl = url ?? (typeof window !== 'undefined' ? window.location.origin : 'https://mindduel-celo.vercel.app')
     const shareText = text ?? 'Play MindDuel — trivia-gated PvP with on-chain ranking on Celo.'
 
