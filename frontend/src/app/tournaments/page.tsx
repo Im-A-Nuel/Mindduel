@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useWallet } from '@/hooks/useWallet'
 import { NavBar } from '@/components/layout/NavBar'
+import { sounds } from '@/lib/sounds'
 import { useToast } from '@/components/ui/Toast'
 import {
   listTournaments,
@@ -43,6 +44,7 @@ export default function TournamentsPage() {
   async function handleCreate() {
     if (!address) { toast('Connect wallet first', 'warning'); return }
     if (!name.trim()) { toast('Tournament name is required', 'warning'); return }
+    sounds.click()
 
     setCreating(true)
     try {
@@ -61,6 +63,7 @@ export default function TournamentsPage() {
 
   async function handleJoin(t: TournamentSummary) {
     if (!address) { toast('Connect wallet first', 'warning'); return }
+    sounds.click()
     try {
       const r = await joinTournamentApi(t.tournamentId, address)
       if (r.started) {
@@ -112,7 +115,7 @@ export default function TournamentsPage() {
               <label style={{ fontSize: 11, fontWeight: 600, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 }}>Type</label>
               <div style={{ display: 'flex', gap: 4, marginTop: 4, padding: 4, background: 'rgba(0,0,0,0.05)', borderRadius: 10 }}>
                 {([[true, 'Ranked'], [false, 'Casual']] as [boolean, string][]).map(([val, label]) => (
-                  <button key={label} type="button" onClick={() => setRanked(val)}
+                  <button key={label} type="button" onClick={() => { if (ranked !== val) sounds.select(); setRanked(val) }}
                     style={{ appearance: 'none', border: 'none', flex: 1, padding: '6px 0', borderRadius: 8, background: ranked === val ? 'var(--mdd-card)' : 'transparent', color: ranked === val ? INK : MUTED, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', boxShadow: ranked === val ? '0 1px 2px rgba(0,0,0,0.06)' : 'none', transition: 'all 120ms ease' }}>
                     {label}
                   </button>
