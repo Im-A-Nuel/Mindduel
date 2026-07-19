@@ -676,7 +676,7 @@ function WaitingRoom({ matchId, myMark, myAddr, oppAddr, oppJoined, iAmReady, op
         </div>
 
         <motion.button
-          onClick={onReady}
+          onClick={() => { if (!iAmReady) { sounds.click(); onReady() } }}
           disabled={iAmReady}
           whileHover={iAmReady ? {} : { scale: 1.015 }}
           whileTap={iAmReady ? {} : { scale: 0.985 }}
@@ -700,7 +700,7 @@ function WaitingRoom({ matchId, myMark, myAddr, oppAddr, oppJoined, iAmReady, op
         </motion.button>
 
         <motion.button
-          onClick={() => setConfirmLeave(true)}
+          onClick={() => { sounds.back(); setConfirmLeave(true) }}
           whileHover={{ scale: 1.015, borderColor: '#FCC9C5' }}
           whileTap={{ scale: 0.985 }}
           style={{
