@@ -128,6 +128,45 @@ class SoundEngine {
     setTimeout(() => this.tone(440, 0.18, 'triangle', 0.10), 170)
     setTimeout(() => this.tone(440, 0.20, 'triangle', 0.08), 340)
   }
+
+  // ── Generic UI cues ────────────────────────────────────────────────
+  // Kept short and quiet so they add texture without becoming annoying on
+  // rapid interaction. All are safe to call from click handlers (a user
+  // gesture, which also unlocks the AudioContext).
+
+  /** Primary action confirm - Ready, Start, Create, Join, Play Again. */
+  click() {
+    this.tone(540, 0.05, 'sine', 0.11)
+    setTimeout(() => this.tone(720, 0.07, 'sine', 0.10), 42)
+  }
+
+  /** Light tap - secondary buttons, nav, selecting an option. */
+  tap() {
+    this.tone(620, 0.035, 'sine', 0.07)
+  }
+
+  /** Selection cue - picking a mode / match type. A touch brighter than tap. */
+  select() {
+    this.tone(680, 0.045, 'triangle', 0.09)
+    setTimeout(() => this.tone(910, 0.05, 'triangle', 0.07), 40)
+  }
+
+  /** Back / cancel / leave - a soft descending pair. */
+  back() {
+    this.tone(480, 0.05, 'sine', 0.08)
+    setTimeout(() => this.tone(360, 0.07, 'sine', 0.07), 46)
+  }
+
+  /** UI toggle (theme, sound-on) - a single soft blip. Distinct from mute's own toggle(). */
+  uiToggle() {
+    this.tone(760, 0.04, 'square', 0.06)
+  }
+
+  /** Copy-to-clipboard confirmation. */
+  copy() {
+    this.tone(880, 0.04, 'sine', 0.08)
+    setTimeout(() => this.tone(1170, 0.06, 'sine', 0.07), 45)
+  }
 }
 
 export const sounds = new SoundEngine()
