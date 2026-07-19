@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { IconDice } from '@/components/ui/StateIcons'
+import { sounds } from '@/lib/sounds'
 
 const INK        = 'var(--mdd-ink)'
 const MUTED      = 'var(--mdd-muted)'
@@ -60,6 +61,7 @@ export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }
       setError(`Bio must be ${BIO_MAX} characters or fewer.`)
       return
     }
+    sounds.click()
     onSave({
       displayName: trimmedName,
       bio: bio.trim(),
@@ -68,15 +70,18 @@ export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }
   }
 
   function attemptClose() {
+    sounds.back()
     if (isDirty) setConfirmDiscard(true)
     else onClose()
   }
 
   function handleResetSeed() {
+    sounds.tap()
     setAvatarSeed(defaultSeed)
   }
 
   function handleRandomSeed() {
+    sounds.tap()
     setAvatarSeed(Math.random().toString(36).slice(2, 12))
   }
 
