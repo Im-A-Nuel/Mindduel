@@ -2033,7 +2033,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               <button
                 onClick={() => {
                   const url = `${window.location.origin}/spectate/${params.matchId}`
-                  navigator.clipboard.writeText(url).then(() => toast('Watch link copied - share it!', 'success')).catch(() => toast('Could not copy link', 'error'))
+                  navigator.clipboard.writeText(url).then(() => { sounds.copy(); toast('Watch link copied - share it!', 'success') }).catch(() => toast('Could not copy link', 'error'))
                 }}
                 title="Copy spectator link"
                 className="game-nav-share"
@@ -2044,7 +2044,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             )}
             {!gameOver && (
               <button
-                onClick={() => setConfirmResign(true)}
+                onClick={() => { sounds.back(); setConfirmResign(true) }}
                 title="Resign this match"
                 style={{ appearance: 'none', border: '1.5px solid #FCC9C5', background: 'var(--mdd-card)', color: '#A81C13', padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
               >
