@@ -6,6 +6,7 @@ import { WalletButton } from '@/components/wallet/WalletButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { BottomTabBar } from './BottomTabBar'
 import { useNetworkCheck } from '@/hooks/useNetworkCheck'
+import { sounds } from '@/lib/sounds'
 
 const BLUE  = '#0071E3'
 const INK        = 'var(--mdd-ink)'
@@ -42,6 +43,7 @@ export function NavBar({ active }: { active: NavActive }) {
                   <Link
                     key={id}
                     href={href}
+                    onClick={() => { if (!isActive) sounds.tap() }}
                     style={{ textDecoration: 'none', position: 'relative', fontSize: 14, fontWeight: isActive ? 600 : 500, color: isActive ? INK : MUTED }}
                   >
                     {label}

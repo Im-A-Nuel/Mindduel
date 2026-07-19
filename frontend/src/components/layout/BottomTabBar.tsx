@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import type { NavActive } from './NavBar'
+import { sounds } from '@/lib/sounds'
 
 const BLUE = '#0071E3'
 const MUTED = '#8E8E93'
@@ -34,6 +35,7 @@ export function BottomTabBar({ active }: { active: NavActive }) {
           <Link
             key={tab.id}
             href={tab.href}
+            onClick={() => { if (!isActive) sounds.tap() }}
             style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, textDecoration: 'none', color: isActive ? BLUE : MUTED }}
           >
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none">{tab.icon}</svg>
