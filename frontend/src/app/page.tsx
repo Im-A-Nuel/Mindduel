@@ -8,6 +8,7 @@ import { WalletButton } from '@/components/wallet/WalletButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { fetchLiveStats, type LiveStats } from '@/lib/api'
 import { getTotalCheckIns } from '@/lib/contract'
+import { sounds } from '@/lib/sounds'
 
 const BLUE       = '#0071E3'
 const RED        = '#FF3B30'
@@ -713,7 +714,7 @@ function ModeCard({ visual, name, desc, tag, tagBg, tagColor, available, accentC
         </div>
         <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.5, margin: 0 }}>{desc}</p>
         {available ? (
-          <Link href="/lobby" style={{ marginTop: 'auto', paddingTop: 16 }}>
+          <Link href="/lobby" onClick={() => sounds.tap()} style={{ marginTop: 'auto', paddingTop: 16 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: accentColor, borderRadius: 10, fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', boxShadow: `0 3px 10px ${accentColor}44` }}>
               Play Now
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 6.5h8M7 3l3.5 3.5L7 10"/></svg>
@@ -822,7 +823,7 @@ export default function LandingPage() {
             <ThemeToggle />
             <WalletButton />
             {/* Play Now - always visible */}
-            <Link href="/lobby" className="lp-play-now">
+            <Link href="/lobby" className="lp-play-now" onClick={() => sounds.click()}>
               <button style={{ appearance: 'none', border: 'none', background: BLUE, color: '#fff', padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 2px 8px rgba(0,113,227,0.22)', whiteSpace: 'nowrap' }}>
                 Play Now
               </button>
@@ -1098,7 +1099,7 @@ export default function LandingPage() {
             <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.66)', margin: '0 0 32px', lineHeight: 1.5 }}>
               Connect your wallet and prove your mind is worth more than your opponent&apos;s.
             </p>
-            <Link href="/lobby">
+            <Link href="/lobby" onClick={() => sounds.click()}>
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
