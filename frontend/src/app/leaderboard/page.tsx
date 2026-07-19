@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { NavBar } from '@/components/layout/NavBar'
 import { fetchLeaderboard } from '@/lib/api'
+import { sounds } from '@/lib/sounds'
 import { tierForPoints } from '@/lib/constants'
 import { SkeletonRows } from '@/components/ui/SkeletonRow'
 import { StateIconAlert, StateIconTrophy } from '@/components/ui/StateIcons'
@@ -137,7 +138,7 @@ export default function LeaderboardPage() {
             {([['alltime', 'All Time'], ['week', 'This Week'], ['today', 'Today']] as [Period, string][]).map(([id, label]) => (
               <button
                 key={id}
-                onClick={() => setPeriod(id)}
+                onClick={() => { if (period !== id) sounds.tap(); setPeriod(id) }}
                 style={{ appearance: 'none', border: 'none', padding: '7px 14px', borderRadius: 8, background: period === id ? 'var(--mdd-card)' : 'transparent', color: period === id ? INK : MUTED, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', boxShadow: period === id ? '0 1px 2px rgba(0,0,0,0.06)' : 'none', transition: 'all 120ms ease' }}
               >
                 {label}
