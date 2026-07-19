@@ -1,6 +1,7 @@
 'use client'
 
 import { useTheme } from '@/components/ThemeProvider'
+import { sounds } from '@/lib/sounds'
 
 const INK        = 'var(--mdd-ink)'
 
@@ -16,7 +17,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   return (
     <button
       type="button"
-      onClick={toggle}
+      onClick={() => { sounds.uiToggle(); toggle() }}
       aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
       title={isDark ? 'Light mode' : 'Dark mode'}
       className={className}

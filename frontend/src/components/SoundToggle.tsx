@@ -24,7 +24,12 @@ export function SoundToggle({ className }: { className?: string }) {
   return (
     <button
       type="button"
-      onClick={() => sounds.toggle()}
+      onClick={() => {
+        sounds.toggle()
+        // Chirp only when turning sound back ON, so muting stays silent while
+        // unmuting gives an audible confirmation that it worked.
+        if (!sounds.isMuted()) sounds.uiToggle()
+      }}
       aria-label={muted ? 'Unmute sound effects' : 'Mute sound effects'}
       title={muted ? 'Unmute sound effects' : 'Mute sound effects'}
       className={className}
