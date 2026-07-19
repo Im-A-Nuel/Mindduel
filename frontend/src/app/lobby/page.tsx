@@ -13,6 +13,7 @@ import { useIsOnline } from '@/components/NetworkStatus'
 import { useNetworkCheck } from '@/hooks/useNetworkCheck'
 import { CheckInButton } from '@/components/CheckInButton'
 import { ShareButton } from '@/components/ShareButton'
+import { sounds } from '@/lib/sounds'
 import { useSwitchChain } from 'wagmi'
 import { CELO_CHAIN_ID } from '@/lib/constants'
 
@@ -737,7 +738,7 @@ export default function LobbyPage() {
             <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none' }} className="mode-scroll">
               {MODES.map(m => (
                 <div key={m.id} style={{ scrollSnapAlign: 'start', flex: '1 1 150px', minWidth: 150, display: 'flex' }}>
-                  <ModeCard mode={m} selected={selectedMode === m.id} onClick={() => setSelectedMode(m.id)} />
+                  <ModeCard mode={m} selected={selectedMode === m.id} onClick={() => { sounds.select(); setSelectedMode(m.id) }} />
                 </div>
               ))}
             </div>
@@ -808,7 +809,7 @@ export default function LobbyPage() {
           {/* Match Type - Casual / Ranked / vs AI */}
           <Card>
             <SectionTitle hint="No staking">Match Type</SectionTitle>
-            <MatchTypeToggle value={matchType} onChange={setMatchType} rankedDisabled={!isConnected} />
+            <MatchTypeToggle value={matchType} onChange={(v) => { sounds.select(); setMatchType(v) }} rankedDisabled={!isConnected} />
             <p style={{ margin: '12px 2px 0', fontSize: 12, color: MUTED, lineHeight: 1.5 }}>
               {matchType === 'ranked'
                 ? 'Ranked results are recorded on-chain - winning adds points, losing subtracts them. No tokens are staked.'
