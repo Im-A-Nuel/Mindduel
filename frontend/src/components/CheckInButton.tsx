@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useCheckIn } from '@/hooks/useCheckIn'
 import { useWallet } from '@/hooks/useWallet'
 import { useToast } from '@/components/ui/Toast'
+import { sounds } from '@/lib/sounds'
 
 const GREEN_DARK = '#0A7A2D'
 const BLUE = '#0071E3'
@@ -28,8 +29,10 @@ export function CheckInButton() {
 
   async function onClick() {
     if (checkedInToday || isPending) return
+    sounds.click()
     try {
       await checkIn()
+      sounds.correct()
       toast('Checked in on-chain ✓', 'success')
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Check-in failed'
