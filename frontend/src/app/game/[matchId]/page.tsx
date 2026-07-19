@@ -1724,6 +1724,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
 
   async function handleCellClick(i: number) {
     if (gameOver || board[i] || pendingCell !== null || currentPlayer !== myMark) return
+    sounds.tap()  // cell picked; a question is about to open
     setPendingCell(i)
 
     if (!isVsAI) {
