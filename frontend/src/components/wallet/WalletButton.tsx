@@ -8,6 +8,7 @@ import { useWallet } from '@/hooks/useWallet'
 import { useMiniPay } from '@/hooks/useMiniPay'
 import { CELO_EXPLORER } from '@/lib/constants'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { sounds } from '@/lib/sounds'
 
 const INK        = 'var(--mdd-ink)'
 const MUTED      = 'var(--mdd-muted)'
@@ -34,6 +35,7 @@ export function WalletButton({ className }: WalletButtonProps) {
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
 
   function toggleMenu() {
+    sounds.tap()
     setShowMenu(v => {
       const next = !v
       if (next && triggerRef.current) {
@@ -49,7 +51,7 @@ export function WalletButton({ className }: WalletButtonProps) {
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.97 }}
-        onClick={() => connect()}
+        onClick={() => { sounds.click(); connect() }}
         disabled={isConnecting}
         className={`wallet-chip ${className ?? ''}`}
         style={{
@@ -160,6 +162,7 @@ export function WalletButton({ className }: WalletButtonProps) {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(address)
+                    sounds.copy()
                     setCopied(true)
                     setTimeout(() => setCopied(false), 1200)
                   }}
@@ -179,7 +182,7 @@ export function WalletButton({ className }: WalletButtonProps) {
                 </button>
                 <div style={{ height: 0.5, background: 'rgba(0,0,0,0.06)', margin: '4px 0' }} />
                 <button
-                  onClick={() => { setShowMenu(false); setConfirmDisconnect(true) }}
+                  onClick={() => { sounds.back(); setShowMenu(false); setConfirmDisconnect(true) }}
                   style={{ appearance: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 12px', background: 'transparent', borderRadius: 10, textAlign: 'left', fontSize: 13, fontWeight: 500, color: RED, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 120ms ease' }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#FDECEB')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
