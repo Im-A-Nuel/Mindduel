@@ -111,32 +111,68 @@ function expandBoard(board: CellValue[], oldSize: number): CellValue[] {
   return next
 }
 
-function shiftBoardCells(board: CellValue[], shiftIdx: number, size: number): CellValue[] {
-  const next = [...board]
-  const target = shiftIdx % (size * 2)
-  const right = shiftIdx % 2 === 0
-
-  if (target < size) {
-    const r = target
-    const row = Array.from({ length: size }, (_, c) => next[r * size + c])
+/** Rotate one row (dir 'row') or column (dir 'col') by one, in place, on `arr`. */
+function rotateLine(arr: CellValue[], line: number, dir: 'row' | 'col', size: number, right: boolean) {
+  if (dir === 'row') {
+    const r = line
+    const row = Array.from({ length: size }, (_, c) => arr[r * size + c])
     if (right) {
-      next[r * size] = row[size - 1]
-      for (let c = 1; c < size; c++) next[r * size + c] = row[c - 1]
+      arr[r * size] = row[size - 1]
+      for (let c = 1; c < size; c++) arr[r * size + c] = row[c - 1]
     } else {
-      next[r * size + size - 1] = row[0]
-      for (let c = 0; c < size - 1; c++) next[r * size + c] = row[c + 1]
+      arr[r * size + size - 1] = row[0]
+      for (let c = 0; c < size - 1; c++) arr[r * size + c] = row[c + 1]
     }
   } else {
-    const col = target - size
-    const column = Array.from({ length: size }, (_, r) => next[r * size + col])
+    const col = line
+    const column = Array.from({ length: size }, (_, r) => arr[r * size + col])
     if (right) {
-      next[col] = column[size - 1]
-      for (let r = 1; r < size; r++) next[r * size + col] = column[r - 1]
+      arr[col] = column[size - 1]
+      for (let r = 1; r < size; r++) arr[r * size + col] = column[r - 1]
     } else {
-      next[(size - 1) * size + col] = column[0]
-      for (let r = 0; r < size - 1; r++) next[r * size + col] = column[r + 1]
+      arr[(size - 1) * size + col] = column[0]
+      for (let r = 0; r < size - 1; r++) arr[r * size + col] = column[r + 1]
     }
   }
+}
+
+/** True when a row/column holds at least one mark, i.e. rotating it moves something. */
+function lineHasMark(board: CellValue[], line: number, dir: 'row' | 'col', size: number): boolean {
+  for (let i = 0; i < size; i++) {
+    const idx = dir === 'row' ? line * size + i : i * size + line
+    if (board[idx] !== null) return true
+  }
+  return false
+}
+
+/**
+ * Shift one row or column by one. The row/column and direction come from
+ * `shiftIdx` so the animation feels varied, but the earlier version rotated
+ * a line chosen blindly - if that line happened to be empty, the rotation was
+ * a no-op and the board visibly "didn't shift" (the reported bug). Now, if the
+ * derived line has no marks, scan deterministically for the next line (across
+ * both orientations) that does, so a shift always moves a real piece. Stays a
+ * pure function of (board, shiftIdx, size), so both clients agree.
+ */
+function shiftBoardCells(board: CellValue[], shiftIdx: number, size: number): CellValue[] {
+  const next = [...board]
+  const lineCount = size * 2  // rows 0..size-1, then cols 0..size-1
+  const start = shiftIdx % lineCount
+  const right = shiftIdx % 2 === 0
+
+  for (let step = 0; step < lineCount; step++) {
+    const target = (start + step) % lineCount
+    const dir: 'row' | 'col' = target < size ? 'row' : 'col'
+    const line = target < size ? target : target - size
+    if (lineHasMark(next, line, dir, size)) {
+      rotateLine(next, line, dir, size, right)
+      return next
+    }
+  }
+  // Board entirely empty (a shift never fires before 3 pieces, so unreachable):
+  // rotate the derived line anyway.
+  const dir: 'row' | 'col' = start < size ? 'row' : 'col'
+  rotateLine(next, start < size ? start : start - size, dir, size, right)
   return next
 }
 
