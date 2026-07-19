@@ -366,6 +366,7 @@ export default function LobbyPage() {
       return
     }
 
+    sounds.click()
     setMatchmaking(true)
     setMatchmakingPhase('creating')
     saveCommonSession()
@@ -417,6 +418,7 @@ export default function LobbyPage() {
       return
     }
     setJoinError('')
+    sounds.click()
     setJoining(true)
     try {
       // We don't yet know if the target match is ranked; use the wallet address
