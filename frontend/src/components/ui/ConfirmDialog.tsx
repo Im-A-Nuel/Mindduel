@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState, ReactNode } from 'react'
+import { useEffect, useState, ReactNode, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { sounds } from '@/lib/sounds'
 
 const INK        = 'var(--mdd-ink)'
 const MUTED      = 'var(--mdd-muted)'
@@ -51,6 +52,12 @@ export function ConfirmDialog({
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
+  // Play a cue then fire the handler. Wrapped so keyboard (Enter/Esc), the
+  // buttons, and the backdrop all sound the same. Confirm uses click, cancel
+  // and dismissal use back.
+  const confirm = useCallback(() => { sounds.click(); onConfirm() }, [onConfirm])
+  const cancel  = useCallback(() => { sounds.back();  onCancel()  }, [onCancel])
+
   // Lock body scroll while open
   useEffect(() => {
     if (!open || typeof document === 'undefined') return
@@ -63,12 +70,12 @@ export function ConfirmDialog({
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.preventDefault(); onCancel() }
-      else if (e.key === 'Enter') { e.preventDefault(); onConfirm() }
+      if (e.key === 'Escape') { e.preventDefault(); cancel() }
+      else if (e.key === 'Enter') { e.preventDefault(); confirm() }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [open, onCancel, onConfirm])
+  }, [open, cancel, confirm])
 
   const t = TONES[tone]
 
@@ -81,7 +88,7 @@ export function ConfirmDialog({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.16 }}
-          onClick={onCancel}
+          onClick={cancel}
           style={{
             position: 'fixed', inset: 0, zIndex: 200,
             background: 'rgba(0,0,0,0.45)',
@@ -139,7 +146,7 @@ export function ConfirmDialog({
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {!hideCancel && (
                 <button
-                  onClick={onCancel}
+                  onClick={cancel}
                   style={{
                     appearance: 'none', border: '1.5px solid rgba(0,0,0,0.10)',
                     background: 'var(--mdd-card)', color: INK,
@@ -153,7 +160,7 @@ export function ConfirmDialog({
                 </button>
               )}
               <button
-                onClick={onConfirm}
+                onClick={confirm}
                 autoFocus
                 style={{
                   appearance: 'none', border: 'none',
