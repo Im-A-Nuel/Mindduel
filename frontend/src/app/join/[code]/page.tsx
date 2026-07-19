@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { joinMatch, getGuestId, getMatchForPlayer } from '@/lib/api'
+import { sounds } from '@/lib/sounds'
 import { useWallet } from '@/hooks/useWallet'
 import { useMiniPay } from '@/hooks/useMiniPay'
 import { WalletButton } from '@/components/wallet/WalletButton'
@@ -85,6 +86,7 @@ export default function JoinByLinkPage({ params }: { params: { code: string } })
       // the same trivia pool.
       if (result.difficulty) sessionStorage.setItem('mddDifficulty', result.difficulty)
       sessionStorage.setItem('mddCategories', JSON.stringify(result.categories ?? []))
+      sounds.click()
       router.replace(`/game/${result.matchId}`)
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -163,7 +165,7 @@ export default function JoinByLinkPage({ params }: { params: { code: string } })
           )}
 
           {phase === 'error' && (
-            <a href="/lobby" style={{ width: '100%', textDecoration: 'none' }}>
+            <a href="/lobby" onClick={() => sounds.tap()} style={{ width: '100%', textDecoration: 'none' }}>
               <button style={{ appearance: 'none', border: 'none', width: '100%', padding: '14px', background: BLUE, color: '#fff', borderRadius: 14, fontSize: 15, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,113,227,0.25)' }}>
                 Go to Lobby
               </button>
