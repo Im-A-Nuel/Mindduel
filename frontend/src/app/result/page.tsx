@@ -11,6 +11,7 @@ import { ShareButton } from '@/components/ShareButton'
 import { IconRobot, IconCrosshair, IconBolt, IconHandshake } from '@/components/ui/StateIcons'
 import { CELO_EXPLORER, tierForPoints } from '@/lib/constants'
 import { getMatchState } from '@/lib/api'
+import { sounds } from '@/lib/sounds'
 
 const BLUE       = '#0071E3'
 const RED        = '#FF3B30'
@@ -329,12 +330,12 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
 
             {/* CTAs */}
             <div className={win || draw ? undefined : 'result-ctas-lose'} style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
-              <a href="/lobby" style={{ flex: 1, minWidth: 140 }}>
+              <a href="/lobby" style={{ flex: 1, minWidth: 140 }} onClick={() => sounds.click()}>
                 <button style={{ appearance: 'none', border: 'none', width: '100%', padding: '14px', background: BLUE, color: '#fff', borderRadius: 14, fontSize: 15, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,113,227,0.25)' }}>
                   {win ? 'Play Again' : 'Rematch'}
                 </button>
               </a>
-              <a href="/leaderboard" className={win || draw ? undefined : 'result-back-btn-lose'} style={{ display: 'block' }}>
+              <a href="/leaderboard" className={win || draw ? undefined : 'result-back-btn-lose'} style={{ display: 'block' }} onClick={() => sounds.tap()}>
                 <button style={{ appearance: 'none', border: '1.5px solid rgba(0,0,0,0.10)', padding: '14px 22px', background: 'var(--mdd-card)', color: INK, borderRadius: 14, fontSize: 15, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   View Leaderboard
                 </button>
