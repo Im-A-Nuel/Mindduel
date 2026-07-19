@@ -400,6 +400,7 @@ function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout
 
   function pick(i: number) {
     if (selectedIdx !== null || eliminated.includes(i) || disabled) return
+    sounds.tap()  // tactile feedback on selection, before the correct/wrong reveal
     onPickAnswer(i)
   }
 
