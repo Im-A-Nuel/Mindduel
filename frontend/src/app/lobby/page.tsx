@@ -222,7 +222,7 @@ function SectionTitle({ children, hint }: { children: React.ReactNode; hint?: st
 function JoinCodeModal({ code, matchId, onStart }: { code: string; matchId: string; onStart: () => void }) {
   const [copied, setCopied] = useState(false)
   function copyCode() {
-    navigator.clipboard.writeText(code).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+    navigator.clipboard.writeText(code).then(() => { sounds.copy(); setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
   // Invite link: opening it joins the match and lands the opponent straight in
   // the waiting room, so they never have to type the code into the lobby.
@@ -252,7 +252,7 @@ function JoinCodeModal({ code, matchId, onStart }: { code: string; matchId: stri
             style={{ flex: 1, borderRadius: 12, padding: '12px', justifyContent: 'center', fontSize: 14 }}
           />
         </div>
-        <button onClick={onStart} style={{ width: '100%', appearance: 'none', border: 'none', background: BLUE, color: '#fff', padding: '13px', borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,113,227,0.25)', marginBottom: 12 }}>
+        <button onClick={() => { sounds.click(); onStart() }} style={{ width: '100%', appearance: 'none', border: 'none', background: BLUE, color: '#fff', padding: '13px', borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,113,227,0.25)', marginBottom: 12 }}>
           Start Game →
         </button>
         <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>Share the link and your opponent lands straight in the room. The code works too.</p>
