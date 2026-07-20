@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { usePersistentState } from '@/lib/prefs'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWallet } from '@/hooks/useWallet'
@@ -272,10 +273,11 @@ export default function LobbyPage() {
   const [liveStats, setLiveStats]   = useState<LiveStats | null>(null)
   const [statsError, setStatsError] = useState(false)
 
-  const [selectedMode, setSelectedMode] = useState<ModeId>('classic')
-  const [matchType, setMatchType]       = useState<'casual' | 'ranked' | 'ai'>('ranked')
-  const [cats, setCats]                 = useState<string[]>(['General Knowledge', 'Crypto & Web3'])
-  const [difficulty, setDifficulty]     = useState<AIDifficulty>('hard')
+  // Remembered across visits (Celo feedback: "ingat pilihan user").
+  const [selectedMode, setSelectedMode] = usePersistentState<ModeId>('lobbyMode', 'classic')
+  const [matchType, setMatchType]       = usePersistentState<'casual' | 'ranked' | 'ai'>('lobbyMatchType', 'ranked')
+  const [cats, setCats]                 = usePersistentState<string[]>('lobbyCategories', ['General Knowledge', 'Crypto & Web3'])
+  const [difficulty, setDifficulty]     = usePersistentState<AIDifficulty>('lobbyDifficulty', 'hard')
   const [matchmaking, setMatchmaking]   = useState(false)
   const [matchmakingPhase, setMatchmakingPhase] = useState<'idle' | 'creating' | 'waiting'>('idle')
 
