@@ -97,3 +97,15 @@ export const HINTS = [
 
 export const TURN_TIMEOUT_SECONDS = 86400
 export const BLITZ_TIMEOUT_SECONDS = 300
+
+// ── Support / contact ─────────────────────────────────────────────────
+// Single source of truth: the support page, the terms page and the footer
+// all read these, so a channel is never listed in one place and stale in
+// another.
+export const SUPPORT_EMAIL    = 'putrafaot@gmail.com'
+export const SUPPORT_TELEGRAM = 'imanuelPF'
+export const SUPPORT_TELEGRAM_URL = `https://t.me/${SUPPORT_TELEGRAM}`
+export const GITHUB_REPO_URL  = 'https://github.com/Im-A-Nuel/Mindduel'
+
+/** Shown on the terms page so players can see whether it has changed. */
+export const TERMS_LAST_UPDATED = '17 July 2026'
