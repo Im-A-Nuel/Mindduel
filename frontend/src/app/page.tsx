@@ -932,16 +932,16 @@ export default function LandingPage() {
       {/* ── Features ─────────────────────────────────────────────────── */}
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '80px 28px' }}>
         <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: 'center', marginBottom: 48 }}>
-          <h2 style={{ fontSize: 34, fontWeight: 700, letterSpacing: -1.2, margin: '0 0 10px' }}>Not Just Another Game</h2>
-          <p style={{ fontSize: 15, color: MUTED, margin: 0 }}>Every mechanic is trustless, skill-based, and provably fair - recorded on Celo.</p>
+          <h2 style={{ fontSize: 34, fontWeight: 700, letterSpacing: -1.2, margin: '0 0 10px' }}>Why You&apos;ll Like It</h2>
+          <p style={{ fontSize: 15, color: MUTED, margin: 0 }}>Quick matches, real opponents, and a ranking that rewards the sharper player.</p>
         </motion.div>
         <div className="lp-features" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          <FeatureCard delay={0}    visual={<VisualSkillMoves/>}        icon={<IconTarget/>}   title="Skill-Based Moves"   desc="You can only place a piece if you answer the trivia correctly. Strategy alone isn't enough." />
-          <FeatureCard delay={0.08} visual={<VisualOnChainRanking/>}    icon={<IconLock/>}     title="On-Chain Ranking"    desc="Every ranked result is recorded by a smart contract on Celo. No staking, no custody - just a tamper-proof points ladder." />
-          <FeatureCard delay={0.16} visual={<VisualInstantSettlement/>} icon={<IconZap/>}      title="Instant Finality"    desc="Celo's fast finality means your new points and rank are confirmed on-chain the moment the game ends." />
-          <FeatureCard delay={0.24} visual={<VisualAchievementBadges/>} icon={<IconMedal/>}    title="On-Chain Badges"     desc="Win streaks and milestones earn achievement badges tied to your wallet - First Blood, Pentakill, Flawless Victory." />
-          <FeatureCard delay={0.32} visual={<VisualHintSystem/>}        icon={<IconBulb/>}     title="Free Hint System"    desc="Stuck on a question? Use free hints each match - eliminate options, reveal categories, buy time." />
-          <FeatureCard delay={0.40} visual={<VisualGaslessMiniPay/>}    icon={<IconWallet/>}   title="Gasless via MiniPay" desc="A backend relayer pays every CELO gas fee and submits your ranked result. Connect and play - you never sign a transaction." />
+          <FeatureCard delay={0}    visual={<VisualSkillMoves/>}        icon={<IconTarget/>}   title="Think to Win"        desc="You only claim a square if you answer its question right. Being clever with the board is not enough on its own." />
+          <FeatureCard delay={0.08} visual={<VisualOnChainRanking/>}    icon={<IconLock/>}     title="Rankings You Can Trust" desc="Every ranked result is recorded publicly, so nobody can quietly edit the leaderboard. Your wins stay yours." />
+          <FeatureCard delay={0.16} visual={<VisualGaslessMiniPay/>}    icon={<IconWallet/>}   title="Always Free"         desc="No entry fee, no deposit, nothing to buy. You never pay to play a match, win or lose." />
+          <FeatureCard delay={0.24} visual={<VisualAchievementBadges/>} icon={<IconMedal/>}    title="Earn Badges"         desc="Win streaks and milestones unlock badges: First Blood, Pentakill, Flawless Victory." />
+          <FeatureCard delay={0.32} visual={<VisualHintSystem/>}        icon={<IconBulb/>}     title="Free Hints"          desc="Stuck on a question? Every match gives you free hints: remove wrong answers, reveal the category, or buy time." />
+          <FeatureCard delay={0.40} visual={<VisualInstantSettlement/>} icon={<IconZap/>}      title="Instant Results"     desc="Your points and new rank update the moment the match ends. No waiting around." />
         </div>
       </section>
 
