@@ -913,11 +913,11 @@ export default function LandingPage() {
       <section style={{ background: 'var(--mdd-card)', borderTop: '0.5px solid rgba(0,0,0,0.06)', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
         <div className="lp-stats" style={{ maxWidth: 1120, margin: '0 auto', padding: '28px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 24, textAlign: 'center' }}>
           {([
-            { label: 'Players Ranked', value: liveStats?.playersRanked ?? null },
-            { label: 'Matches Played', value: liveStats?.matchesPlayed ?? null },
-            { label: 'On-chain Check-ins', value: checkIns },
-            { label: 'Ranked Matches (24h)', value: liveStats?.rankedLast24h ?? null },
-            { label: 'Active Matches', value: liveStats ? liveStats.activeMatches + liveStats.waitingMatches : null },
+            { label: 'Players', value: liveStats?.playersRanked ?? null },
+            { label: 'Matches played', value: liveStats?.matchesPlayed ?? null },
+            { label: 'Daily check-ins', value: checkIns },
+            { label: 'Matches today', value: liveStats?.rankedLast24h ?? null },
+            { label: 'Playing now', value: liveStats ? liveStats.activeMatches + liveStats.waitingMatches : null },
           ] as { label: string; value: number | null }[]).map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: i * 0.1 }} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div className="lp-stat-num" style={{ fontSize: 32, fontWeight: 700, letterSpacing: -1, color: INK }}>
@@ -953,7 +953,7 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: BLUE, letterSpacing: 1.2, marginBottom: 12, textTransform: 'uppercase' }}>Step by step</div>
             <h2 style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1.3, margin: '0 0 10px', lineHeight: 1.08 }}>How It Works</h2>
-            <p style={{ fontSize: 15, color: MUTED, margin: '0 0 48px', lineHeight: 1.55 }}>From wallet connection to a higher rank in under 5 minutes.</p>
+            <p style={{ fontSize: 15, color: MUTED, margin: '0 0 48px', lineHeight: 1.55 }}>Your first match takes about two minutes.</p>
 
             {/* Timeline */}
             <div style={{ position: 'relative' }}>
@@ -961,10 +961,10 @@ export default function LandingPage() {
               <div style={{ position: 'absolute', left: 21, top: 44, bottom: 24, width: 1.5, background: 'linear-gradient(to bottom, #C7DFF7 0%, #EAF3FE 100%)', zIndex: 0 }}/>
 
               {[
-                { num: '1', title: 'Connect Your Wallet', desc: 'MiniPay or any Celo wallet. No account needed - your wallet is your identity.', active: true },
-                { num: '2', title: 'Pick Ranked or Casual', desc: 'Choose a mode. Ranked matches move your points; casual is just for fun. No staking, ever.', active: false },
-                { num: '3', title: 'Answer to Move',      desc: 'Each turn, answer a trivia question correctly to place your piece on the board.', active: false },
-                { num: '4', title: 'Win & Climb',         desc: 'First to align 3 wins. Your new points are written on-chain instantly - and your rank updates.', active: false },
+                { num: '1', title: 'Open and play',       desc: 'No sign-up form and no password. Play as a guest, or connect a wallet to save your rank.', active: true },
+                { num: '2', title: 'Pick your match',     desc: 'Ranked moves your position on the leaderboard. Casual and vs-AI are just for fun.', active: false },
+                { num: '3', title: 'Answer to claim',     desc: 'Pick a square, answer its question correctly, and the square is yours.', active: false },
+                { num: '4', title: 'Win and climb',       desc: 'First to line up three wins. Your points update straight away.', active: false },
               ].map((s, i) => (
                 <motion.div
                   key={s.num}
