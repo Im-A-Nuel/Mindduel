@@ -842,7 +842,7 @@ export default function LandingPage() {
         >
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'var(--mdd-card)', borderRadius: 999, boxShadow: '0 0 0 0.5px rgba(0,0,0,0.08)', alignSelf: 'flex-start' }}>
             <div style={{ width: 7, height: 7, borderRadius: 4, background: GREEN }} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>Celo · MiniPay · On-Chain Ranked</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>Free to play · No sign-up</span>
           </div>
 
           <div>
@@ -853,7 +853,7 @@ export default function LandingPage() {
           </div>
 
           <p style={{ fontSize: 17, color: MUTED, lineHeight: 1.55, margin: 0, maxWidth: 440 }}>
-            Trivia-gated Tic Tac Toe on Celo. Answer correctly to move. No staking - pure skill. Every win earns on-chain points and climbs the ranked ladder.
+            Tic Tac Toe with a twist: answer a quick question to claim each square. Beat your opponent, climb the leaderboard.
           </p>
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -873,17 +873,10 @@ export default function LandingPage() {
             </a>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: FAINT }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: GREEN }} />Built on Celo</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: BLUE }} />No staking</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: '#AF52DE' }} />Pure skill</div>
-          </div>
-
-          {/* Ranked ladder note */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-            <span style={{ fontSize: 11.5, color: FAINT, lineHeight: 1.4, maxWidth: 360 }}>
-              Free to play · MiniPay-ready · Every ranked win is recorded on-chain as points - no tokens at risk.
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: FAINT, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: GREEN }} />Free forever</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: BLUE }} />Play in seconds</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: '#AF52DE' }} />Skill only, no luck</div>
           </div>
         </motion.div>
 
@@ -908,9 +901,9 @@ export default function LandingPage() {
             </div>
             <DemoBoard />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, fontSize: 12, color: MUTED, fontWeight: 500 }}>
-              <span>Ranked</span>
+              <span>Ranked match</span>
               <span style={{ color: GREEN_DARK, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>+25 pts</span>
-              <span>Celo</span>
+              <span>Winner</span>
             </div>
           </div>
         </motion.div>
