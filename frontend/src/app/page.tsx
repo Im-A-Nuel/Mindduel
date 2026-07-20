@@ -994,7 +994,7 @@ export default function LandingPage() {
             </div>
           </motion.div>
 
-          {/* ── Right: dark terminal card ── */}
+          {/* ── Right: what one turn looks like ── */}
           <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
             <div style={{
               background: '#04091C',
@@ -1002,44 +1002,44 @@ export default function LandingPage() {
               overflow: 'hidden',
               boxShadow: '0 8px 48px rgba(0,0,0,0.18), 0 2px 12px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(255,255,255,0.04)',
             }}>
-              {/* Terminal title bar */}
-              <div style={{ padding: '13px 18px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#FF5F57' }}/>
-                  <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#FFBD2E' }}/>
-                  <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#28C840' }}/>
-                </div>
-                <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11, color: 'rgba(255,255,255,0.28)', marginLeft: 8, letterSpacing: 0.2 }}>MindDuelRanking.sol · celo</span>
+              <div style={{ padding: '15px 20px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.2 }}>One turn, start to finish</span>
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5 }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#28C840', animation: 'liveDotPulse 2s ease-in-out infinite' }}/>
                   <span style={{ fontSize: 10, fontWeight: 600, color: '#28C840', letterSpacing: 0.5 }}>LIVE</span>
                 </div>
               </div>
 
-              {/* Instructions */}
               <div style={{ padding: '6px 0 6px' }}>
                 {[
-                  { label: 'startMatch',    desc: 'Registers a ranked match on-chain',       color: '#34D399', accent: '#064E3B' },
-                  { label: 'commitAnswer',  desc: 'Stores hash(answer + nonce)',             color: '#60A5FA', accent: '#1E3A5F' },
-                  { label: 'revealAnswer',  desc: 'Verifies hash, executes move if correct', color: '#C084FC', accent: '#3B1F5E' },
-                  { label: 'recordResult',  desc: 'Updates points & rank, triggers NFT mint', color: '#FBBF24', accent: '#451A03' },
+                  { step: 'Tap a square',   desc: 'Pick where you want to play',              color: '#34D399', accent: '#064E3B' },
+                  { step: 'A question pops up', desc: 'Four options, a few seconds on the clock', color: '#60A5FA', accent: '#1E3A5F' },
+                  { step: 'Answer it right', desc: 'The square is yours. Get it wrong and you lose the turn', color: '#C084FC', accent: '#3B1F5E' },
+                  { step: 'Line up three',  desc: 'You win the match and your points go up',   color: '#FBBF24', accent: '#451A03' },
                 ].map((item, i) => (
                   <motion.div
-                    key={item.label}
+                    key={item.step}
                     initial={{ opacity: 0, y: 14 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-80px" }}
                     transition={{ delay: 0.12 + i * 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 14,
+                      display: 'flex', alignItems: 'flex-start', gap: 13,
                       padding: '15px 20px',
                       borderBottom: i < 3 ? '0.5px solid rgba(255,255,255,0.05)' : 'none',
                       borderLeft: `3px solid ${item.accent}`,
                     }}
                   >
-                    <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12.5, fontWeight: 600, color: item.color, flexShrink: 0, minWidth: 136 }}>{item.label}</span>
-                    <span style={{ color: 'rgba(255,255,255,0.16)', fontSize: 13, flexShrink: 0 }}>→</span>
-                    <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.42)', lineHeight: 1.45 }}>{item.desc}</span>
+                    <span style={{
+                      width: 22, height: 22, borderRadius: 11, flexShrink: 0, marginTop: 1,
+                      background: item.accent, color: item.color,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 11, fontWeight: 700,
+                    }}>{i + 1}</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: item.color, marginBottom: 3 }}>{item.step}</div>
+                      <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.42)', lineHeight: 1.45 }}>{item.desc}</div>
+                    </div>
                   </motion.div>
                 ))}
               </div>
