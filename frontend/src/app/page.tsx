@@ -1054,13 +1054,13 @@ export default function LandingPage() {
         <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: 'center', marginBottom: 52 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: BLUE, letterSpacing: 1.2, marginBottom: 12, textTransform: 'uppercase' }}>Multiplayer</div>
           <h2 style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1.3, margin: '0 0 10px' }}>Game Modes</h2>
-          <p style={{ fontSize: 15, color: MUTED }}>Classic strategy meets dynamic chaos - all settled on-chain.</p>
+          <p style={{ fontSize: 15, color: MUTED }}>Start with Classic. Try the others when you want a bigger challenge.</p>
         </motion.div>
         <div className="lp-modes" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-          <ModeCard visual={<ModeVisualClassic/>}  name="Classic Duel"   desc="Standard 3×3 Tic Tac Toe. Answer trivia to place your piece - first to align 3 wins the points."    tag="EASY"      tagBg="#E8F7EE" tagColor={GREEN_DARK} available accentColor={BLUE} delay={0} />
-          <ModeCard visual={<ModeVisualShifting/>} name="Shifting Board" desc="Every 3 rounds the board shifts - cells rotate and change position, forcing you to adapt your strategy." tag="MEDIUM"    tagBg="#FFF4E0" tagColor="#8A5A00"    available accentColor={BLUE} delay={0.1} />
-          <ModeCard visual={<ModeVisualScaleUp/>}  name="Scale Up"       desc="The board grows as the game progresses: 3×3 opens, earns moves unlock 4×4, then 5×5 - more pieces, more chaos."   tag="HARD"      tagBg="#FDECEB" tagColor="#A81C13"    available accentColor={BLUE} delay={0.2} />
-          <ModeCard visual={<ModeVisualBlitz/>}    name="Blitz"          desc="5 seconds to answer per turn. No extensions, no mercy. One wrong move and your opponent owns the board."            tag="INTENSE"   tagBg="#FDECEB" tagColor="#A81C13"    available accentColor={BLUE} delay={0.3} />
+          <ModeCard visual={<ModeVisualClassic/>}  name="Classic Duel"   desc="The normal 3×3 board. Answer a question to claim a square, and line up three to win."    tag="EASY"      tagBg="#E8F7EE" tagColor={GREEN_DARK} available accentColor={BLUE} delay={0} />
+          <ModeCard visual={<ModeVisualShifting/>} name="Shifting Board" desc="Every few turns the squares slide around, so the board you planned for is not the one you get." tag="MEDIUM"    tagBg="#FFF4E0" tagColor="#8A5A00"    available accentColor={BLUE} delay={0.1} />
+          <ModeCard visual={<ModeVisualScaleUp/>}  name="Scale Up"       desc="The board keeps growing as you play: 3×3, then 4×4, then 5×5. More squares, more ways to win."   tag="HARD"      tagBg="#FDECEB" tagColor="#A81C13"    available accentColor={BLUE} delay={0.2} />
+          <ModeCard visual={<ModeVisualBlitz/>}    name="Blitz"          desc="Five seconds per question. No hints, no extra time. Think fast or lose the turn."            tag="INTENSE"   tagBg="#FDECEB" tagColor="#A81C13"    available accentColor={BLUE} delay={0.3} />
         </div>
       </section>
 
@@ -1090,7 +1090,7 @@ export default function LandingPage() {
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h2 style={{ fontSize: 40, fontWeight: 700, letterSpacing: -1.5, color: '#fff', margin: '0 0 12px' }}>Ready to Duel?</h2>
             <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.66)', margin: '0 0 32px', lineHeight: 1.5 }}>
-              Connect your wallet and prove your mind is worth more than your opponent&apos;s.
+              Jump into a match and prove your mind is worth more than your opponent&apos;s.
             </p>
             <Link href="/lobby" onClick={() => sounds.click()}>
               <motion.button
