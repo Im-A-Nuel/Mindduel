@@ -1,8 +1,10 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
-import { RANKING_CONTRACT_ADDRESS, CELO_EXPLORER } from '@/lib/constants'
+import { RANKING_CONTRACT_ADDRESS, CELO_EXPLORER, GITHUB_REPO_URL } from '@/lib/constants'
+import { sounds } from '@/lib/sounds'
 
 /**
  * Routes where the footer is hidden - full-screen / immersive surfaces
@@ -17,8 +19,14 @@ const FAINT      = 'var(--mdd-faint)'
 const GREEN  = '#34C759'
 const BLUE   = '#0071E3'
 
-const REPO_URL = 'https://github.com/Im-A-Nuel/Mindduel'
-const DOCS_URL = 'https://mindduel.gitbook.io/mindduel-docs'
+const REPO_URL = GITHUB_REPO_URL
+
+/** Internal help pages, ordered plain-language first. */
+const NAV_LINKS = [
+  { href: '/how-it-works', label: 'How it works' },
+  { href: '/support',      label: 'Support' },
+  { href: '/terms',        label: 'Terms & Privacy' },
+] as const
 
 function shortPk(pk: string): string {
   return pk.slice(0, 6) + '…' + pk.slice(-4)
@@ -79,19 +87,17 @@ export function Footer() {
         </div>
 
         {/* Right: links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <a
-            href={DOCS_URL}
-            target="_blank" rel="noopener noreferrer"
-            style={{ color: MUTED, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
-            title="MindDuel Documentation"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-            </svg>
-            Docs
-          </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          {NAV_LINKS.map(l => (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => sounds.tap()}
+              style={{ color: MUTED, textDecoration: 'none', fontSize: 12 }}
+            >
+              {l.label}
+            </Link>
+          ))}
           <a
             href={REPO_URL}
             target="_blank" rel="noopener noreferrer"
