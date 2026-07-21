@@ -958,7 +958,13 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-stats { grid-template-columns: repeat(3, 1fr) !important; padding: 16px 12px !important; gap: 8px !important; }
   .lp-stats .lp-stat-num { font-size: 22px !important; }
   .lp-stats .lp-stat-lbl { font-size: 10px !important; }
-  .lp-features { grid-template-columns: 1fr !important; }
+  .lp-features { grid-template-columns: 1fr !important; gap: 10px !important; }
+  /* Mobile keeps the message but drops the heavy, crypto-flavoured card art:
+     a clean icon + title + one-liner list instead of six tall visuals. */
+  .lp-feature-visual { display: none !important; }
+  .lp-feature-body { padding: 16px 18px !important; }
+  .lp-features-sec { padding: 44px 20px !important; }
+  .lp-features-head { margin-bottom: 24px !important; }
   .lp-how { grid-template-columns: 1fr !important; padding: 40px 20px !important; gap: 32px !important; }
   .lp-modes { grid-template-columns: repeat(2, 1fr) !important; }
 }

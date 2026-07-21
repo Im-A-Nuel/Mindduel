@@ -475,8 +475,8 @@ function FeatureCard({ visual, icon, title, desc, delay }: {
         overflow: 'hidden',
       }}
     >
-      <div style={{ height: 192, position: 'relative', overflow: 'hidden' }}>{visual}</div>
-      <div style={{ padding: '18px 22px 22px' }}>
+      <div className="lp-feature-visual" style={{ height: 192, position: 'relative', overflow: 'hidden' }}>{visual}</div>
+      <div className="lp-feature-body" style={{ padding: '18px 22px 22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: '#E5F0FD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {icon}
@@ -931,8 +931,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ─────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '80px 28px' }}>
-        <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: 'center', marginBottom: 48 }}>
+      <section className="lp-features-sec" style={{ maxWidth: 1120, margin: '0 auto', padding: '80px 28px' }}>
+        <motion.div className="lp-features-head" initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: 'center', marginBottom: 48 }}>
           <h2 style={{ fontSize: 34, fontWeight: 700, letterSpacing: -1.2, margin: '0 0 10px' }}>Why You&apos;ll Like It</h2>
           <p style={{ fontSize: 15, color: MUTED, margin: 0 }}>Quick matches, real opponents, and a ranking that rewards the sharper player.</p>
         </motion.div>
