@@ -44,7 +44,7 @@ function Section({ title, children, delay = 0 }: { title: string; children: Reac
 export default function TermsPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--mdd-bg)', color: INK, fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif" }}>
-      <NavBar active="play" />
+      <NavBar active="play" showBottomTab={false} />
 
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px 80px' }}>
         <motion.div

@@ -58,7 +58,7 @@ function QA({ q, a }: { q: string; a: React.ReactNode }) {
 export default function HowItWorksPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--mdd-bg)', color: INK, fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif" }}>
-      <NavBar active="play" />
+      <NavBar active="play" showBottomTab={false} />
 
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px 80px' }}>
         <motion.div

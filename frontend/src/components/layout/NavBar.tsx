@@ -22,7 +22,7 @@ const NAV_ITEMS: { label: string; id: NavActive; href: string }[] = [
   { label: 'Profile',     id: 'profile',     href: '/profile'      },
 ]
 
-export function NavBar({ active }: { active: NavActive }) {
+export function NavBar({ active, showBottomTab = true }: { active: NavActive; showBottomTab?: boolean }) {
   return (
     <>
       <nav className="glass-nav" style={{ height: 64, position: 'sticky', top: 0, zIndex: 10 }}>
@@ -64,7 +64,7 @@ export function NavBar({ active }: { active: NavActive }) {
           </div>
         </div>
       </nav>
-      <BottomTabBar active={active} />
+      {showBottomTab && <BottomTabBar active={active} />}
     </>
   )
 }
