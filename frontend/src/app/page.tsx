@@ -835,6 +835,7 @@ export default function LandingPage() {
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="lp-hero" style={{ maxWidth: 1120, margin: '0 auto', padding: '80px 28px 60px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }}>
         <motion.div
+          className="lp-hero-copy"
           initial={{ opacity: 0, y: 36 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -887,7 +888,7 @@ export default function LandingPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div style={{ background: 'var(--mdd-card)', borderRadius: 24, padding: 24, boxShadow: '0 4px 32px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.05)', maxWidth: 340, margin: '0 auto' }}>
+          <div className="lp-demo-card" style={{ background: 'var(--mdd-card)', borderRadius: 24, padding: 24, boxShadow: '0 4px 32px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.05)', maxWidth: 340, margin: '0 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 24, height: 24, borderRadius: 12, background: '#E5F0FD', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: BLUE }}>X</div>

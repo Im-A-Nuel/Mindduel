@@ -944,11 +944,17 @@ html[data-theme="dark"] [style*="background: white"] {
 @media (max-width: 767px) {
   .lp-hero {
     grid-template-columns: 1fr !important;
-    padding: 40px 20px 36px !important;
-    gap: 32px !important;
+    /* First screen shows the whole hero (demo board -> headline -> CTAs ->
+       trust row); the stats/features start only after a scroll. */
+    min-height: calc(100dvh - 64px);
+    align-content: center;
+    padding: 12px 20px 20px !important;
+    gap: 16px !important;
   }
-  .lp-hero-h1 { font-size: 38px !important; letter-spacing: -1.2px !important; }
+  .lp-hero-copy { gap: 14px !important; }
+  .lp-hero-h1 { font-size: 33px !important; letter-spacing: -1.1px !important; }
   .lp-hero-demo { order: -1; }
+  .lp-demo-card { padding: 16px !important; max-width: 300px !important; }
   .lp-stats { grid-template-columns: repeat(3, 1fr) !important; padding: 16px 12px !important; gap: 8px !important; }
   .lp-stats .lp-stat-num { font-size: 22px !important; }
   .lp-stats .lp-stat-lbl { font-size: 10px !important; }
