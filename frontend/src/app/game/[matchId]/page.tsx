@@ -318,6 +318,20 @@ function HintIcon({ id }: { id: HintId }) {
   }
 }
 
+// Tailwind's mobile breakpoint (<768px). SSR-safe: reports false until mounted
+// so server and first client paint agree, then resolves to the real viewport.
+function useIsMobile(breakpoint = 767): boolean {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`)
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [breakpoint])
+  return isMobile
+}
+
 function HintPill({ id, label, onClick, disabled, loading = false }: { id: HintId; label: string; onClick: () => void; disabled: boolean; loading?: boolean }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{ appearance: 'none', border: 'none', background: 'var(--mdd-card)', borderRadius: 999, padding: '6px 11px 6px 7px', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.06)', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.45 : 1, fontFamily: 'inherit', transition: 'all 140ms ease' }}>
@@ -350,7 +364,7 @@ function AnswerBtn({ label, letterLabel, state, onClick, eliminated }: { label: 
 }
 
 // ── TriviaCard - controlled ───────────────────────────────────────────
-function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout, disabled, eliminated, timeKey, extraTimeBumps, firstLetterHint, categoryHint, onTimeLeft }: {
+function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout, disabled, eliminated, timeKey, extraTimeBumps, firstLetterHint, categoryHint, onTimeLeft, compact = false }: {
   question: DisplayQuestion
   selectedIdx: number | null
   correctIdx: number | null
@@ -364,6 +378,8 @@ function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout
   categoryHint: string | null
   /** Lifts the live countdown so the board can mirror the final seconds. */
   onTimeLeft?: (secondsLeft: number | null) => void
+  /** Tighter paddings/fonts so the whole card fits a mobile bottom sheet. */
+  compact?: boolean
 }) {
   const [timeLeft, setTimeLeft] = useState(question.timeLimit)
   const revealed = correctIdx !== null
@@ -408,12 +424,12 @@ function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout
   const urgent = timeLeft <= 5
 
   return (
-    <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
+    <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: compact ? '14px 16px' : '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: 0.5 }}>ANSWER TO CLAIM CELL</span>
         <span style={{ fontSize: 12, fontWeight: 700, color: urgent ? RED : MUTED, fontVariantNumeric: 'tabular-nums' }}>{timeLeft.toFixed(0)}s</span>
       </div>
-      <div style={{ height: 4, background: 'var(--mdd-bg-soft)', borderRadius: 999, overflow: 'hidden', marginBottom: 14 }}>
+      <div style={{ height: 4, background: 'var(--mdd-bg-soft)', borderRadius: 999, overflow: 'hidden', marginBottom: compact ? 10 : 14 }}>
         <div style={{ width: `${timerPct}%`, height: '100%', background: urgent ? RED : BLUE, transition: 'width 0.9s linear, background 200ms ease', borderRadius: 999 }} />
       </div>
       {(categoryHint || firstLetterHint) && (
@@ -440,7 +456,7 @@ function TriviaCard({ question, selectedIdx, correctIdx, onPickAnswer, onTimeout
         onContextMenu={e => e.preventDefault()}
         onDragStart={e => e.preventDefault()}
         style={{
-          fontSize: 17, fontWeight: 600, lineHeight: 1.35, color: INK, margin: '0 0 14px', letterSpacing: -0.3,
+          fontSize: compact ? 15.5 : 17, fontWeight: 600, lineHeight: 1.35, color: INK, margin: compact ? '0 0 10px' : '0 0 14px', letterSpacing: -0.3,
           userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none',
         }}
       >
@@ -812,6 +828,11 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>('X')
   const [winLine, setWinLine]             = useState<WinLine>(null)
   const [winner, setWinner]               = useState<GameWinner | null>(null)
+
+  // On phones the board and the trivia panel stack, so the question sits below
+  // the fold. When true we surface the active question as a bottom sheet over
+  // the board instead, so the player can answer without scrolling.
+  const isMobile = useIsMobile()
 
   // Trivia state
   const [pendingCell, setPendingCell]       = useState<number | null>(null)
@@ -2246,7 +2267,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                 )}
               </motion.div>
 
-            ) : !gameOver ? (
+            ) : !gameOver && !isMobile ? (
               <motion.div key={`trivia-${questionIndex}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ type: 'spring', stiffness: 320, damping: 28, delay: 0.05 }}>
                 {triviaFetching ? (
                   <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '40px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
@@ -2273,8 +2294,8 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             ) : null}
           </AnimatePresence>
 
-          {/* Power-ups */}
-          {!gameOver && (
+          {/* Power-ups (desktop; on mobile they live in the question sheet) */}
+          {!gameOver && !isMobile && (
             <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, padding: '0 2px' }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: 0.5 }}>POWER-UPS</span>
@@ -2336,6 +2357,87 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
           </div>
         </div>
       </div>
+
+      {/* ── Mobile question sheet ─────────────────────────────────────────
+          On phones the trivia panel stacks below the board, so answering used
+          to mean scrolling. Instead we pop the active question up as a compact
+          bottom sheet over the board: it slides in when a cell is picked and
+          slides away the moment the answer resolves (pendingCell -> null). The
+          desktop two-column layout is untouched. */}
+      <AnimatePresence>
+        {isMobile && pendingCell !== null && !gameOver && (
+          <>
+            <motion.div
+              key="qsheet-backdrop"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{ position: 'fixed', inset: 0, zIndex: 30, background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(2px)' }}
+            />
+            <motion.div
+              key="qsheet"
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 340, damping: 32 }}
+              style={{
+                position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 31,
+                background: 'var(--mdd-card)', borderRadius: '22px 22px 0 0',
+                boxShadow: '0 -10px 40px rgba(0,0,0,0.22)',
+                padding: '10px 14px calc(14px + env(safe-area-inset-bottom))',
+                maxHeight: '92vh', overflowY: 'auto',
+                display: 'flex', flexDirection: 'column', gap: 12,
+              }}
+            >
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--mdd-border-strong)', margin: '2px auto 2px', flexShrink: 0 }} />
+
+              {triviaFetching ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '32px 0' }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', border: `3px solid ${BLUE}`, borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+                  <p style={{ fontSize: 13, color: MUTED }}>Loading question…</p>
+                </div>
+              ) : (
+                <>
+                  <TriviaCard
+                    question={effectiveQ}
+                    selectedIdx={triviaSelectedIdx}
+                    correctIdx={triviaCorrectIdx}
+                    onPickAnswer={handlePickAnswer}
+                    onTimeout={handleTimeout}
+                    disabled={pendingCell === null}
+                    eliminated={eliminated}
+                    timeKey={timeKey}
+                    extraTimeBumps={extraTimeBumps}
+                    firstLetterHint={firstLetterHint}
+                    categoryHint={categoryHint}
+                    onTimeLeft={setQuestionTimeLeft}
+                    compact
+                  />
+
+                  {/* Hints, right under the question so nothing needs scrolling */}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 2px' }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: 0.5 }}>POWER-UPS</span>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: hintsLeft > 0 ? GREEN_DARK : MUTED }}>
+                        {hintsLeft > 0 ? `${hintsLeft} free hint${hintsLeft === 1 ? '' : 's'} left` : 'no hints left'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {(['eliminate2', 'category', 'first-letter', 'extra-time', 'skip'] as HintId[]).map(id => (
+                        <HintPill
+                          key={id}
+                          id={id}
+                          label={HINT_LABEL[id]}
+                          onClick={() => useHint(id)}
+                          disabled={hintsLeft <= 0 || applyingHint !== null || (pendingCell === null && id !== 'extra-time')}
+                          loading={applyingHint === id}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <ConfirmDialog
         open={confirmResign}
