@@ -2148,9 +2148,10 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 14px', background: ranked && !isVsAI ? '#E8F7EE' : 'var(--mdd-bg-soft)', borderRadius: 999, whiteSpace: 'nowrap' }}>
-                <span style={{ fontSize: 11, color: ranked && !isVsAI ? GREEN_DARK : MUTED, fontWeight: 600, letterSpacing: 0.3, textTransform: 'uppercase' }}>Mode</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: ranked && !isVsAI ? GREEN_DARK : MUTED, letterSpacing: -0.3 }}>{isVsAI ? 'Practice' : ranked ? 'Ranked' : 'Casual'}</span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 12px', background: ranked && !isVsAI ? '#E8F7EE' : 'var(--mdd-bg-soft)', borderRadius: 999, whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', color: ranked && !isVsAI ? GREEN_DARK : FAINT }}>Mode</span>
+                <span style={{ width: 3, height: 3, borderRadius: 2, background: ranked && !isVsAI ? GREEN_DARK : FAINT, opacity: 0.45 }} />
+                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: -0.2, color: ranked && !isVsAI ? GREEN_DARK : INK }}>{isVsAI ? 'Practice' : ranked ? 'Ranked' : 'Casual'}</span>
               </div>
             </div>
           </div>
@@ -2188,13 +2189,26 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
           {isMobile && !gameOver && pendingCell === null && isMyTurn && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginBottom: 10 }}>
               <p style={{ fontSize: 12.5, color: MUTED, margin: 0, textAlign: 'center', lineHeight: 1.4 }}>
-                Tap a square to claim it — answer the question to place your piece.
+                Tap a square to claim it, then answer the question to place your piece.
               </p>
               {blitzPickLeft !== null && (
                 <span style={{ fontSize: 11.5, fontWeight: 700, color: blitzPickLeft <= 3 ? '#A81C13' : '#8A5A00', background: blitzPickLeft <= 3 ? '#FDECEB' : '#FFF4E0', padding: '4px 10px', borderRadius: 999, letterSpacing: 0.4 }}>
                   BLITZ · {blitzPickLeft}s LEFT TO PICK
                 </span>
               )}
+            </div>
+          )}
+
+          {/* Mobile: opponent countdown under the pill (the full opp card is
+              desktop-only, so the turn pill + this bar aren't redundant). */}
+          {isMobile && isOppTurn && oppSecondsLeft !== null && (
+            <div style={{ width: '100%', maxWidth: 260, margin: '0 auto 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12.5, color: MUTED }}>
+                <strong style={{ color: oppSecondsLeft <= 5 ? RED : INK, fontVariantNumeric: 'tabular-nums' }}>{oppSecondsLeft}s</strong> until your turn at the latest
+              </span>
+              <div style={{ width: '100%', height: 4, background: 'var(--mdd-bg-soft)', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.max(0, Math.min(100, (oppSecondsLeft / Math.max(1, oppTimerTotal)) * 100))}%`, height: '100%', background: oppSecondsLeft <= 5 ? RED : BLUE, borderRadius: 999, transition: 'width 0.25s linear' }} />
+              </div>
             </div>
           )}
 
@@ -2259,7 +2273,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
         <div className="game-right-panel" style={{ flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 16, overflow: 'hidden' }}>
 
           <AnimatePresence mode="wait">
-            {isAITurn ? (
+            {isAITurn && !isMobile ? (
               <motion.div key="ai" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ type: 'spring', stiffness: 320, damping: 28 }} style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '28px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
                 <IconRobot size={28} color="#0071E3" bg="#E5F0FD" />
                 <div style={{ textAlign: 'center' }}>
@@ -2271,7 +2285,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                 <p style={{ fontSize: 12, color: MUTED }}>Calculating optimal move…</p>
               </motion.div>
 
-            ) : isOppTurn ? (
+            ) : isOppTurn && !isMobile ? (
               <motion.div key="opp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ type: 'spring', stiffness: 320, damping: 28 }} style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '32px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[0, 1, 2].map(i => (<motion.span key={i} animate={{ opacity: [0.2, 0.9, 0.2] }} transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.28 }} style={{ width: 10, height: 10, borderRadius: 5, background: FAINT, display: 'inline-block' }} />))}
