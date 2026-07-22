@@ -981,4 +981,7 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-cta-sec { padding: 0 20px 52px !important; }
   .lp-cta-card { padding: 40px 22px !important; }
   .lp-cta-h2 { font-size: 28px !important; letter-spacing: -1px !important; }
+  /* Nav already shows the wallet button; the hero's Start Playing covers the
+     rest, so drop the second nav CTA on mobile to de-clutter the bar. */
+  .lp-play-now { display: none !important; }
 }
