@@ -954,7 +954,7 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: BLUE, letterSpacing: 1.2, marginBottom: 12, textTransform: 'uppercase' }}>Step by step</div>
             <h2 style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1.3, margin: '0 0 10px', lineHeight: 1.08 }}>How It Works</h2>
-            <p style={{ fontSize: 15, color: MUTED, margin: '0 0 48px', lineHeight: 1.55 }}>Your first match takes about two minutes.</p>
+            <p className="lp-how-lead" style={{ fontSize: 15, color: MUTED, margin: '0 0 48px', lineHeight: 1.55 }}>Your first match takes about two minutes.</p>
 
             {/* Timeline */}
             <div style={{ position: 'relative' }}>

@@ -966,6 +966,7 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-features-sec { padding: 44px 20px !important; }
   .lp-features-head { margin-bottom: 24px !important; }
   .lp-how { grid-template-columns: 1fr !important; padding: 40px 20px !important; gap: 32px !important; }
+  .lp-how-lead { margin-bottom: 28px !important; }
   .lp-how-oneturn { display: none !important; }
   .lp-modes-sec { padding: 48px 20px !important; }
   .lp-modes-head { margin-bottom: 28px !important; }
