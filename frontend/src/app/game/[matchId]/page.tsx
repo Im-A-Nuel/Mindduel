@@ -903,6 +903,9 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   // Resign / forfeit-match confirm
   const [confirmResign, setConfirmResign] = useState(false)
 
+  // Mobile: the leaderboard collapses to a button that opens this popup.
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
+
   // Ranked flag is read from sessionStorage after mount to avoid SSR/CSR
   // hydration mismatch (server has no sessionStorage). '1' => ranked.
   const [ranked, setRanked] = useState(false)
@@ -1989,6 +1992,37 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   const modeMeta = MODE_META[gameModeStr] ?? MODE_META.classic
   const placedCount = board.filter(c => c !== null).length
 
+  // Leaderboard rows, shared by the desktop inline card and the mobile popup.
+  const leaderboardRows = (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+      {LEADERBOARD.map(staticP => {
+        // Replace placeholder addrs with the live wallet addresses for
+        // this match so the recording shows real on-chain identities.
+        const meAddr = address
+        const oppAddr = isVsAI ? null : (myMark === 'X' ? playerTwoAddrRef.current : playerOneAddrRef.current)
+        const fmt = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
+        const p = (staticP as { you?: boolean }).you && meAddr
+          ? { ...staticP, addr: fmt(meAddr) }
+          : (staticP as { opponent?: boolean }).opponent && oppAddr
+          ? { ...staticP, addr: fmt(oppAddr) }
+          : staticP
+        return (
+        <div key={p.rank} style={{ display: 'flex', alignItems: 'center', padding: (p as { you?: boolean }).you ? '9px 8px' : '9px 4px', borderTop: p.rank !== 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', background: (p as { you?: boolean }).you ? '#F5F9FF' : 'transparent', borderRadius: (p as { you?: boolean }).you ? 10 : 0 }}>
+          <span style={{ width: 22, fontSize: 12, fontWeight: 700, color: p.rank <= 3 ? INK : FAINT, fontVariantNumeric: 'tabular-nums' }}>{p.rank}</span>
+          <div style={{ width: 24, height: 24, borderRadius: 12, marginRight: 10, background: (p as { opponent?: boolean }).opponent ? '#FFE5E2' : (p as { you?: boolean }).you ? '#E5F0FD' : 'var(--mdd-bg-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: (p as { opponent?: boolean }).opponent ? RED : (p as { you?: boolean }).you ? BLUE : MUTED }}>
+            {(p as { opponent?: boolean }).opponent ? 'O' : (p as { you?: boolean }).you ? 'X' : ''}
+          </div>
+          <span style={{ flex: 1, fontSize: 13, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: (p as { you?: boolean }).you ? BLUE : INK }}>
+            {p.addr}{(p as { you?: boolean }).you && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 600, color: BLUE, background: '#E5F0FD', padding: '1px 5px', borderRadius: 4, letterSpacing: 0.3 }}>YOU</span>}
+          </span>
+          <span style={{ fontSize: 12, color: MUTED, marginRight: 14, fontVariantNumeric: 'tabular-nums' }}>{p.wins}W</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: GREEN_DARK, fontVariantNumeric: 'tabular-nums' }}>{p.pts}</span>
+        </div>
+        )
+      })}
+    </div>
+  )
+
   return (
     <div style={{ minHeight: '100vh', background: BG, fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif", color: INK, display: 'flex', flexDirection: 'column' }}>
 
@@ -2318,43 +2352,38 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             </div>
           )}
 
-          {/* Live Leaderboard */}
-          <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>Live Leaderboard</span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: GREEN, background: '#E8F7EE', padding: '2px 6px', borderRadius: 6, letterSpacing: 0.3 }}>LIVE</span>
-              </div>
-              <a href="/leaderboard" style={{ fontSize: 12, color: MUTED, cursor: 'pointer', textDecoration: 'none' }}>View all →</a>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-              {LEADERBOARD.map(staticP => {
-                // Replace placeholder addrs with the live wallet addresses for
-                // this match so the recording shows real on-chain identities.
-                const meAddr = address
-                const oppAddr = isVsAI ? null : (myMark === 'X' ? playerTwoAddrRef.current : playerOneAddrRef.current)
-                const fmt = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
-                const p = (staticP as { you?: boolean }).you && meAddr
-                  ? { ...staticP, addr: fmt(meAddr) }
-                  : (staticP as { opponent?: boolean }).opponent && oppAddr
-                  ? { ...staticP, addr: fmt(oppAddr) }
-                  : staticP
-                return (
-                <div key={p.rank} style={{ display: 'flex', alignItems: 'center', padding: (p as { you?: boolean }).you ? '9px 8px' : '9px 4px', borderTop: p.rank !== 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', background: (p as { you?: boolean }).you ? '#F5F9FF' : 'transparent', borderRadius: (p as { you?: boolean }).you ? 10 : 0 }}>
-                  <span style={{ width: 22, fontSize: 12, fontWeight: 700, color: p.rank <= 3 ? INK : FAINT, fontVariantNumeric: 'tabular-nums' }}>{p.rank}</span>
-                  <div style={{ width: 24, height: 24, borderRadius: 12, marginRight: 10, background: (p as { opponent?: boolean }).opponent ? '#FFE5E2' : (p as { you?: boolean }).you ? '#E5F0FD' : 'var(--mdd-bg-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: (p as { opponent?: boolean }).opponent ? RED : (p as { you?: boolean }).you ? BLUE : MUTED }}>
-                    {(p as { opponent?: boolean }).opponent ? 'O' : (p as { you?: boolean }).you ? 'X' : ''}
-                  </div>
-                  <span style={{ flex: 1, fontSize: 13, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: (p as { you?: boolean }).you ? BLUE : INK }}>
-                    {p.addr}{(p as { you?: boolean }).you && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 600, color: BLUE, background: '#E5F0FD', padding: '1px 5px', borderRadius: 4, letterSpacing: 0.3 }}>YOU</span>}
-                  </span>
-                  <span style={{ fontSize: 12, color: MUTED, marginRight: 14, fontVariantNumeric: 'tabular-nums' }}>{p.wins}W</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: GREEN_DARK, fontVariantNumeric: 'tabular-nums' }}>{p.pts}</span>
+          {/* Live Leaderboard - desktop inline card */}
+          {!isMobile && (
+            <div style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>Live Leaderboard</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: GREEN, background: '#E8F7EE', padding: '2px 6px', borderRadius: 6, letterSpacing: 0.3 }}>LIVE</span>
                 </div>
-                )
-              })}
+                <a href="/leaderboard" style={{ fontSize: 12, color: MUTED, cursor: 'pointer', textDecoration: 'none' }}>View all →</a>
+              </div>
+              {leaderboardRows}
             </div>
-          </div>
+          )}
+
+          {/* Live Leaderboard - mobile: collapse to a button, open in a popup */}
+          {isMobile && (
+            <button
+              onClick={() => { sounds.tap(); setShowLeaderboard(true) }}
+              style={{ appearance: 'none', fontFamily: 'inherit', width: '100%', cursor: 'pointer', background: 'var(--mdd-card)', border: 'none', borderRadius: 16, padding: '13px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}
+            >
+              <span style={{ width: 34, height: 34, borderRadius: 10, background: '#E5F0FD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: BLUE }}>
+                <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
+                  <rect x="3" y="9" width="4" height="9" rx="1" stroke="currentColor" strokeWidth="1.6" />
+                  <rect x="9" y="5" width="4" height="13" rx="1" stroke="currentColor" strokeWidth="1.6" />
+                  <rect x="15" y="12" width="4" height="6" rx="1" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              </span>
+              <span style={{ flex: 1, textAlign: 'left', fontSize: 14, fontWeight: 600, color: INK }}>Live Leaderboard</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: GREEN, background: '#E8F7EE', padding: '2px 6px', borderRadius: 6, letterSpacing: 0.3 }}>LIVE</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+            </button>
+          )}
         </div>
       </div>
 
@@ -2434,6 +2463,49 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                   </div>
                 </>
               )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Mobile leaderboard popup ──────────────────────────────────── */}
+      <AnimatePresence>
+        {showLeaderboard && (
+          <>
+            <motion.div
+              key="lb-backdrop"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setShowLeaderboard(false)}
+              style={{ position: 'fixed', inset: 0, zIndex: 32, background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(3px)' }}
+            />
+            <motion.div
+              key="lb-sheet"
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 340, damping: 32 }}
+              style={{
+                position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 33,
+                background: 'var(--mdd-card)', borderRadius: '22px 22px 0 0',
+                boxShadow: '0 -10px 40px rgba(0,0,0,0.22)',
+                padding: '10px 16px calc(16px + env(safe-area-inset-bottom))',
+                maxHeight: '80vh', overflowY: 'auto',
+              }}
+            >
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--mdd-border-strong)', margin: '2px auto 12px' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: INK }}>Live Leaderboard</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: GREEN, background: '#E8F7EE', padding: '2px 6px', borderRadius: 6, letterSpacing: 0.3 }}>LIVE</span>
+                </div>
+                <a href="/leaderboard" style={{ fontSize: 12, color: MUTED, textDecoration: 'none' }}>View all →</a>
+              </div>
+              {leaderboardRows}
+              <button
+                onClick={() => { sounds.back(); setShowLeaderboard(false) }}
+                style={{ appearance: 'none', border: 'none', width: '100%', marginTop: 14, padding: '13px', background: 'var(--mdd-bg)', color: INK, borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}
+              >
+                Close
+              </button>
             </motion.div>
           </>
         )}
