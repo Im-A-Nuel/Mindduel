@@ -970,4 +970,5 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-modes-sec { padding: 48px 20px !important; }
   .lp-modes-head { margin-bottom: 28px !important; }
   .lp-modes { grid-template-columns: repeat(2, 1fr) !important; }
+  .lp-cta-sec { padding: 0 20px 52px !important; }
 }
