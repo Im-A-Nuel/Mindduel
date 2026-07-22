@@ -975,6 +975,9 @@ html[data-theme="dark"] [style*="background: white"] {
   /* One column so each mode's board art and description are legible instead
      of squeezed into a half-width card. */
   .lp-modes { grid-template-columns: 1fr !important; gap: 12px !important; }
+  /* Drop the per-card Play Now (four of them) on mobile - the hero and the
+     closing CTA already cover it; keeps each mode card short. */
+  .lp-mode-cta { display: none !important; }
   .lp-cta-sec { padding: 0 20px 52px !important; }
   .lp-cta-card { padding: 40px 22px !important; }
   .lp-cta-h2 { font-size: 28px !important; letter-spacing: -1px !important; }

@@ -714,7 +714,7 @@ function ModeCard({ visual, name, desc, tag, tagBg, tagColor, available, accentC
         </div>
         <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.5, margin: 0 }}>{desc}</p>
         {available ? (
-          <Link href="/lobby" onClick={() => sounds.tap()} style={{ marginTop: 'auto', paddingTop: 16 }}>
+          <Link href="/lobby" className="lp-mode-cta" onClick={() => sounds.tap()} style={{ marginTop: 'auto', paddingTop: 16 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: accentColor, borderRadius: 10, fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', boxShadow: `0 3px 10px ${accentColor}44` }}>
               Play Now
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 6.5h8M7 3l3.5 3.5L7 10"/></svg>
