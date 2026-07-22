@@ -2183,6 +2183,21 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             </motion.div>
           </div>
 
+          {/* Mobile: one compact line in place of the big "Pick a cell" card,
+              sitting right above the board so it never eats a screen below it. */}
+          {isMobile && !gameOver && pendingCell === null && isMyTurn && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <p style={{ fontSize: 12.5, color: MUTED, margin: 0, textAlign: 'center', lineHeight: 1.4 }}>
+                Tap a square to claim it — answer the question to place your piece.
+              </p>
+              {blitzPickLeft !== null && (
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: blitzPickLeft <= 3 ? '#A81C13' : '#8A5A00', background: blitzPickLeft <= 3 ? '#FDECEB' : '#FFF4E0', padding: '4px 10px', borderRadius: 999, letterSpacing: 0.4 }}>
+                  BLITZ · {blitzPickLeft}s LEFT TO PICK
+                </span>
+              )}
+            </div>
+          )}
+
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ position: 'relative', width: 'min(460px, 100%)', aspectRatio: '1 / 1' }}>
               <motion.div
@@ -2287,7 +2302,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                 )}
               </motion.div>
 
-            ) : !gameOver && pendingCell === null ? (
+            ) : !gameOver && pendingCell === null && !isMobile ? (
               <motion.div key="pick-cell" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ type: 'spring', stiffness: 320, damping: 28 }} style={{ background: 'var(--mdd-card)', borderRadius: 20, padding: '40px 24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, textAlign: 'center' }}>
                 <IconCrosshair size={28} color="#0071E3" bg="#E5F0FD" />
                 <div>
