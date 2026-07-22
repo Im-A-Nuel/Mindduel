@@ -952,6 +952,11 @@ html[data-theme="dark"] [style*="background: white"] {
     gap: 16px !important;
   }
   .lp-hero-copy { gap: 14px !important; }
+  /* Stack the hero CTAs full-width so the primary action is an easy, thumb-
+     sized target instead of a narrow pill sharing a row. */
+  .lp-hero-cta { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
+  .lp-hero-cta a { display: block !important; width: 100% !important; }
+  .lp-hero-cta button { width: 100% !important; justify-content: center !important; }
   .lp-hero-h1 { font-size: 33px !important; letter-spacing: -1.1px !important; }
   .lp-hero-demo { order: -1; }
   .lp-demo-card { padding: 16px !important; max-width: 300px !important; }

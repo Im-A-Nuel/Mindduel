@@ -857,12 +857,12 @@ export default function LandingPage() {
             Tic Tac Toe with a twist: answer a quick question to claim each square. Beat your opponent, climb the leaderboard.
           </p>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <div className="lp-hero-cta" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <Link href="/lobby">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                style={{ appearance: 'none', border: 'none', padding: '14px 28px', background: BLUE, color: '#fff', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(0,113,227,0.25)', display: 'flex', alignItems: 'center', gap: 8 }}
+                style={{ appearance: 'none', border: 'none', padding: '14px 28px', background: BLUE, color: '#fff', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(0,113,227,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               >
                 ▶ Start Playing
               </motion.button>
