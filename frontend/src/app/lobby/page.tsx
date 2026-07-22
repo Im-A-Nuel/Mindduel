@@ -112,10 +112,10 @@ const MODE_ICONS: Record<ModeId, React.ReactElement> = {
 
 const CATEGORIES = ['General Knowledge', 'Crypto & Web3', 'Science', 'History', 'Math', 'Pop Culture']
 
-const DIFFICULTIES: { id: AIDifficulty; label: string; desc: string; tag: string; tagBg: string; tagColor: string }[] = [
-  { id: 'easy',   label: 'Easy',   desc: 'AI plays randomly most of the time.',    tag: 'EASY',   tagBg: '#E8F7EE', tagColor: GREEN_DARK },
-  { id: 'medium', label: 'Medium', desc: 'Balanced. AI mixes smart and random.',    tag: 'MEDIUM', tagBg: '#FFF4E0', tagColor: '#8A5A00' },
-  { id: 'hard',   label: 'Hard',   desc: 'Perfect minimax. Every move is optimal.', tag: 'HARD',   tagBg: '#FDECEB', tagColor: '#A81C13' },
+const DIFFICULTIES: { id: AIDifficulty; label: string; desc: string; level: number; dotColor: string }[] = [
+  { id: 'easy',   label: 'Easy',   desc: 'AI plays randomly most of the time.',    level: 1, dotColor: GREEN_DARK },
+  { id: 'medium', label: 'Medium', desc: 'Balanced. AI mixes smart and random.',    level: 2, dotColor: '#8A5A00' },
+  { id: 'hard',   label: 'Hard',   desc: 'Perfect minimax. Every move is optimal.', level: 3, dotColor: '#A81C13' },
 ]
 
 function ModeCard({ mode, selected, onClick }: { mode: typeof MODES[number]; selected: boolean; onClick: () => void }) {
@@ -778,13 +778,13 @@ export default function LobbyPage() {
                             WebkitBackdropFilter: 'blur(12px)',
                           }}
                         >
-                          {/* Tag pill on top - own row, no overlap with title */}
-                          <span style={{
-                            alignSelf: 'flex-start',
-                            padding: '3px 8px', borderRadius: 999,
-                            fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4,
-                            background: d.tagBg, color: d.tagColor,
-                          }}>{d.tag}</span>
+                          {/* Level dots instead of a tag that just repeats the
+                              title. Filled dots show relative AI strength. */}
+                          <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                            {[0, 1, 2].map(i => (
+                              <span key={i} style={{ width: 7, height: 7, borderRadius: 4, background: i < d.level ? d.dotColor : 'var(--mdd-border-strong)' }} />
+                            ))}
+                          </span>
 
                           {/* Title - own row */}
                           <span style={{
