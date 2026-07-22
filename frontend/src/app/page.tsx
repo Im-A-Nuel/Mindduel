@@ -996,7 +996,9 @@ export default function LandingPage() {
           </motion.div>
 
           {/* ── Right: what one turn looks like ── */}
-          <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
+          {/* Hidden on mobile: it restates the numbered timeline on the left,
+              so on a phone the two would stack and repeat each other. */}
+          <motion.div className="lp-how-oneturn" initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
             <div style={{
               background: '#04091C',
               borderRadius: 22,
