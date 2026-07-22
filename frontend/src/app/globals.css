@@ -971,4 +971,6 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-modes-head { margin-bottom: 28px !important; }
   .lp-modes { grid-template-columns: repeat(2, 1fr) !important; }
   .lp-cta-sec { padding: 0 20px 52px !important; }
+  .lp-cta-card { padding: 40px 22px !important; }
+  .lp-cta-h2 { font-size: 28px !important; letter-spacing: -1px !important; }
 }

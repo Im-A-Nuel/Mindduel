@@ -1069,7 +1069,7 @@ export default function LandingPage() {
 
       {/* ── CTA ──────────────────────────────────────────────────────── */}
       <section className="lp-cta-sec" style={{ maxWidth: 1120, margin: '0 auto', padding: '0 28px 80px' }}>
-        <motion.div initial={{ opacity: 0, y: 24, scale: 0.98 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        <motion.div className="lp-cta-card" initial={{ opacity: 0, y: 24, scale: 0.98 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           style={{
             position: 'relative',
             overflow: 'hidden',
@@ -1091,7 +1091,7 @@ export default function LandingPage() {
 
           {/* Content sits above the drifting marks. */}
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <h2 style={{ fontSize: 40, fontWeight: 700, letterSpacing: -1.5, color: '#fff', margin: '0 0 12px' }}>Ready to Duel?</h2>
+            <h2 className="lp-cta-h2" style={{ fontSize: 40, fontWeight: 700, letterSpacing: -1.5, color: '#fff', margin: '0 0 12px' }}>Ready to Duel?</h2>
             <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.66)', margin: '0 0 32px', lineHeight: 1.5 }}>
               Jump into a match and prove your mind is worth more than your opponent&apos;s.
             </p>
