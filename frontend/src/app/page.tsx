@@ -1053,8 +1053,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── Game Modes ───────────────────────────────────────────────── */}
-      <section id="modes" style={{ maxWidth: 1120, margin: '0 auto', padding: '88px 28px' }}>
-        <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: 'center', marginBottom: 52 }}>
+      <section id="modes" className="lp-modes-sec" style={{ maxWidth: 1120, margin: '0 auto', padding: '88px 28px' }}>
+        <motion.div className="lp-modes-head" initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: 'center', marginBottom: 52 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: BLUE, letterSpacing: 1.2, marginBottom: 12, textTransform: 'uppercase' }}>Multiplayer</div>
           <h2 style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1.3, margin: '0 0 10px' }}>Game Modes</h2>
           <p style={{ fontSize: 15, color: MUTED }}>Start with Classic. Try the others when you want a bigger challenge.</p>
