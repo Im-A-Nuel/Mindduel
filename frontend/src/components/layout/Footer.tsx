@@ -69,7 +69,7 @@ export function Footer() {
         </div>
 
         {/* Middle: deployment info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div className="footer-deploy" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, background: '#E8F7EE', color: '#0A7A2D', fontSize: 11, fontWeight: 600 }}>
             <span style={{ width: 6, height: 6, borderRadius: 3, background: GREEN, animation: 'liveDotPulse 1.6s ease-in-out infinite' }} />
             Celo Mainnet

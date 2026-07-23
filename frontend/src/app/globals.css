@@ -966,9 +966,14 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-hero-copy p { font-size: 14px !important; line-height: 1.45 !important; }
   /* 5 stats in 3 columns left a lopsided 3+2. Two columns reads as a tidy
      2+2+1, with a bit more room for each number. */
-  .lp-stats { grid-template-columns: repeat(2, 1fr) !important; padding: 20px 16px !important; gap: 12px 16px !important; }
-  .lp-stats .lp-stat-num { font-size: 24px !important; }
-  .lp-stats .lp-stat-lbl { font-size: 11px !important; }
+  /* All five stats on a single horizontal row so the bar reads as one tidy
+     strip that closes the mobile landing, not a 2+2+1 block. */
+  .lp-stats { grid-template-columns: repeat(5, 1fr) !important; padding: 16px 8px !important; gap: 6px !important; }
+  .lp-stats .lp-stat-num { font-size: 17px !important; letter-spacing: -0.5px !important; }
+  .lp-stats .lp-stat-lbl { font-size: 8.5px !important; line-height: 1.2 !important; }
+  /* Deployment info (Celo Mainnet + contract link) is desktop chrome; drop it
+     on mobile to keep the footer to brand + essential links. */
+  .footer-deploy { display: none !important; }
   /* MiniPay wants a single-screen landing: hero + stats bar, then stop.
      Everything below the stats (Why You'll Like It, How It Works, Game
      Modes, closing CTA) is desktop-only so mobile does not become a long
