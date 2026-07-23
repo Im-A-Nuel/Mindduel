@@ -43,7 +43,7 @@ export function Footer() {
 
   return (
     <footer
-      className={isLanding ? '' : 'footer-hide-mobile'}
+      className={`site-footer ${isLanding ? '' : 'footer-hide-mobile'}`}
       style={{
         borderTop: '0.5px solid rgba(0,0,0,0.06)',
         background: 'var(--mdd-card)',

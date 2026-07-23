@@ -949,6 +949,9 @@ html[data-theme="dark"] [style*="background: white"] {
   /* Landing root is min-height:100vh; on mobile that stretched the page past
      its short content and left a gap before the footer. Size to content. */
   .lp-root { min-height: auto !important; }
+  /* Tighten the footer on mobile so it sits close under the stats bar. */
+  .site-footer { margin-top: 0 !important; }
+  .footer-inner { padding: 14px 16px !important; }
   .lp-hero {
     grid-template-columns: 1fr !important;
     /* Whole hero (board -> headline -> tagline -> CTAs) must fit one MiniPay
