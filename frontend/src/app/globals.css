@@ -952,15 +952,26 @@ html[data-theme="dark"] [style*="background: white"] {
   /* Tighten the footer on mobile so it sits close under the stats bar. */
   .site-footer { margin-top: 0 !important; }
   .footer-inner { padding: 14px 16px !important; }
+  /* Mobile hero is a single flex column. The copy block is flattened with
+     display:contents so its children sit as direct flex items alongside the
+     board, letting us interleave the exact order the design calls for:
+     headline -> board -> tagline -> CTAs -> trust row. */
   .lp-hero {
-    grid-template-columns: 1fr !important;
-    /* Whole hero (board -> headline -> tagline -> CTAs) must fit one MiniPay
-       screen with the stats bar landing at the fold. No section is taller than
-       it needs to be. */
-    padding: 8px 20px 12px !important;
-    gap: 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 10px 20px 14px !important;
+    gap: 12px !important;
   }
-  .lp-hero-copy { gap: 10px !important; }
+  .lp-hero-copy { display: contents !important; }
+  .lp-hero-head  { order: 1; }
+  .lp-hero-demo  { order: 2; align-self: center; }
+  .lp-hero-tag   { order: 3; }
+  .lp-hero-cta   { order: 4; }
+  .lp-hero-trust { order: 5; }
+  /* Pill above the headline is dropped on mobile; the trust row below the CTAs
+     carries the same message. */
+  .lp-hero-pill { display: none !important; }
   /* Both CTAs on one row, equal width and single-line labels so they are the
      same shape and height (How It Works was wrapping to two lines). */
   .lp-hero-cta { flex-direction: row !important; align-items: stretch !important; gap: 8px !important; }
@@ -968,15 +979,13 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-hero-cta button { width: 100% !important; justify-content: center !important; padding: 13px 8px !important; font-size: 14px !important; white-space: nowrap !important; }
   .lp-hero-h1 { font-size: 27px !important; letter-spacing: -0.8px !important; line-height: 1.05 !important; }
   /* Board stays but shrinks hard - it is the biggest space cost on mobile. */
-  .lp-hero-demo { order: -1; }
   .lp-demo-card { padding: 10px !important; max-width: 190px !important; }
   /* Drop the card's header/footer chrome on mobile - the mini board alone
      reads clearly and the labels only wrapped and stole height at this size. */
   .lp-demo-head, .lp-demo-foot { display: none !important; }
-  .lp-hero-copy p { font-size: 13px !important; line-height: 1.4 !important; }
-  /* Trust row duplicates the "Free to play - No sign-up" pill above the
-     headline; drop it on mobile to save a wrapped two-line block. */
-  .lp-hero-trust { display: none !important; }
+  .lp-hero-tag { font-size: 13px !important; line-height: 1.4 !important; }
+  /* Trust row wraps to a tidy centered strip under the CTAs. */
+  .lp-hero-trust { justify-content: flex-start !important; }
   /* 5 stats in 3 columns left a lopsided 3+2. Two columns reads as a tidy
      2+2+1, with a bit more room for each number. */
   /* All five stats on a single horizontal row so the bar reads as one tidy

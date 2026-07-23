@@ -841,19 +841,19 @@ export default function LandingPage() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
         >
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'var(--mdd-card)', borderRadius: 999, boxShadow: '0 0 0 0.5px rgba(0,0,0,0.08)', alignSelf: 'flex-start' }}>
+          <div className="lp-hero-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'var(--mdd-card)', borderRadius: 999, boxShadow: '0 0 0 0.5px rgba(0,0,0,0.08)', alignSelf: 'flex-start' }}>
             <div style={{ width: 7, height: 7, borderRadius: 4, background: GREEN }} />
             <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>Free to play · No sign-up</span>
           </div>
 
-          <div>
+          <div className="lp-hero-head">
             <h1 className="lp-hero-h1" style={{ fontSize: 58, fontWeight: 700, letterSpacing: -2, lineHeight: 1.04, margin: 0 }}>
               Prove Your Mind.<br />
               <span style={{ color: BLUE }}>Climb the Ranks.</span>
             </h1>
           </div>
 
-          <p style={{ fontSize: 17, color: MUTED, lineHeight: 1.55, margin: 0, maxWidth: 440 }}>
+          <p className="lp-hero-tag" style={{ fontSize: 17, color: MUTED, lineHeight: 1.55, margin: 0, maxWidth: 440 }}>
             Tic Tac Toe with a twist: answer a quick question to claim each square. Beat your opponent, climb the leaderboard.
           </p>
 
