@@ -808,7 +808,7 @@ export default function LandingPage() {
   }, [])
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif", color: INK }}>
+    <div className="lp-root" style={{ minHeight: '100vh', background: BG, fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif", color: INK }}>
 
       {/* ── Nav ────────────────────────────────────────────────────── */}
       <nav className="glass-nav" style={{ position: 'sticky', top: 0, zIndex: 40 }}>

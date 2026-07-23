@@ -946,6 +946,9 @@ html[data-theme="dark"] [style*="background: white"] {
      marketing sections hidden, the flex:1 spacer left a big empty gap between
      the stats bar and the footer. Let the footer flow right after content. */
   .app-main { flex: 0 0 auto !important; }
+  /* Landing root is min-height:100vh; on mobile that stretched the page past
+     its short content and left a gap before the footer. Size to content. */
+  .lp-root { min-height: auto !important; }
   .lp-hero {
     grid-template-columns: 1fr !important;
     /* Whole hero (board -> headline -> tagline -> CTAs) must fit one MiniPay
