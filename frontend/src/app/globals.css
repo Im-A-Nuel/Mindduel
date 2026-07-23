@@ -945,10 +945,15 @@ html[data-theme="dark"] [style*="background: white"] {
   /* Don't pin the footer to the viewport bottom on mobile. With the landing's
      marketing sections hidden, the flex:1 spacer left a big empty gap between
      the stats bar and the footer. Let the footer flow right after content. */
-  .app-main { flex: 0 0 auto !important; }
-  /* Landing root is min-height:100vh; on mobile that stretched the page past
-     its short content and left a gap before the footer. Size to content. */
-  .lp-root { min-height: auto !important; }
+  /* Fill the screen: landing root spans the viewport as a flex column, the
+     hero grows to absorb any slack (its content stays vertically centred), and
+     the stats bar sits at the bottom with the footer right after it. This
+     removes both the gap above the footer and the empty band below it. */
+  .lp-root {
+    min-height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
   /* Tighten the footer on mobile so it sits close under the stats bar. */
   .site-footer { margin-top: 0 !important; }
   .footer-inner { padding: 14px 16px !important; }
@@ -960,6 +965,8 @@ html[data-theme="dark"] [style*="background: white"] {
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
+    justify-content: center !important;
+    flex: 1 1 auto !important;
     padding: 10px 20px 14px !important;
     gap: 12px !important;
   }
@@ -978,8 +985,10 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-hero-cta > a { flex: 1 1 0 !important; display: block !important; }
   .lp-hero-cta button { width: 100% !important; justify-content: center !important; padding: 10px 8px !important; font-size: 13px !important; border-radius: 12px !important; white-space: nowrap !important; }
   .lp-hero-h1 { font-size: 27px !important; letter-spacing: -0.8px !important; line-height: 1.05 !important; }
-  /* Larger mini board - it is the visual hook, so give it room. */
-  .lp-demo-card { padding: 12px !important; max-width: 240px !important; }
+  /* Larger mini board - it is the visual hook, so give it room. Explicit width
+     (not just max-width): as a centered flex item the card would otherwise
+     shrink to the grid's min-content and the board collapsed to a tiny square. */
+  .lp-demo-card { padding: 12px !important; width: 240px !important; max-width: 88vw !important; }
   /* Drop the card's header/footer chrome on mobile - the mini board alone
      reads clearly and the labels only wrapped and stole height at this size. */
   .lp-demo-head, .lp-demo-foot { display: none !important; }
