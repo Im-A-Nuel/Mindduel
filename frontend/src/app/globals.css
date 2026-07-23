@@ -129,6 +129,12 @@ body {
   .stat-card { padding: 12px 13px !important; }
   .stat-card-val { font-size: 19px !important; }
   .profile-rank { font-size: 23px !important; }
+  /* History table overflowed on mobile (min-width 380 forced the When column
+     off-screen). Fit it to the viewport: drop the min-width, hide the When
+     column, and let Points size to content. */
+  .hist-row { min-width: 0 !important; }
+  .hist-col-when { display: none !important; }
+  .hist-col-points { width: auto !important; min-width: 60px !important; padding-left: 10px !important; }
 
   /* Two-column layouts → single column */
   .page-cols {

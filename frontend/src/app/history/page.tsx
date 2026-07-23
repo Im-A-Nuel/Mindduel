@@ -217,11 +217,11 @@ export default function HistoryPage() {
           style={{ background: 'var(--mdd-card)', borderRadius: 20, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}
         >
           {/* Table header */}
-          <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', minWidth: 380 }}>
+          <div className="hist-row" style={{ display: 'flex', alignItems: 'center', padding: '14px 16px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', minWidth: 380 }}>
             <div style={{ width: 40, fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>Result</div>
             <div style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, paddingLeft: 12 }}>Opponent · Mode</div>
-            <div style={{ width: 110, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>Points</div>
-            <div style={{ width: 90, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>When</div>
+            <div className="hist-col-points" style={{ width: 110, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>Points</div>
+            <div className="hist-col-when" style={{ width: 90, textAlign: 'right', fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, flexShrink: 0 }}>When</div>
           </div>
 
           <AnimatePresence mode="popLayout">
@@ -296,6 +296,7 @@ export default function HistoryPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2, delay: i * 0.02 }}
+                  className="hist-row"
                   style={{ display: 'flex', alignItems: 'center', padding: '13px 16px', minWidth: 380, background: i % 2 === 1 ? 'var(--mdd-card-alt)' : 'transparent', borderBottom: i < filtered.length - 1 ? '0.5px solid rgba(0,0,0,0.04)' : 'none', cursor: 'default', transition: 'background 120ms ease' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--mdd-bg-soft)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = i % 2 === 1 ? 'var(--mdd-card-alt)' : 'transparent' }}
@@ -336,12 +337,12 @@ export default function HistoryPage() {
                   </div>
 
                   {/* Points delta */}
-                  <div style={{ width: 110, textAlign: 'right', fontSize: 14, fontWeight: 600, color: m.pending || !m.ranked ? MUTED : deltaColor, fontVariantNumeric: 'tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  <div className="hist-col-points" style={{ width: 110, textAlign: 'right', fontSize: 14, fontWeight: 600, color: m.pending || !m.ranked ? MUTED : deltaColor, fontVariantNumeric: 'tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
                     {deltaText}{!m.pending && m.ranked ? ' pts' : ''}
                   </div>
 
                   {/* When */}
-                  <div style={{ width: 90, textAlign: 'right', fontSize: 12.5, color: MUTED, flexShrink: 0 }}>{m.date}</div>
+                  <div className="hist-col-when" style={{ width: 90, textAlign: 'right', fontSize: 12.5, color: MUTED, flexShrink: 0 }}>{m.date}</div>
                 </motion.div>
                 )
               })
