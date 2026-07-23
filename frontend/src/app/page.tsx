@@ -867,11 +867,11 @@ export default function LandingPage() {
                 ▶ Start Playing
               </motion.button>
             </Link>
-            <a href="#how" style={{ textDecoration: 'none' }}>
+            <Link href="/how-it-works" style={{ textDecoration: 'none' }}>
               <button style={{ appearance: 'none', border: '1.5px solid rgba(0,0,0,0.10)', padding: '14px 24px', background: 'var(--mdd-card)', color: INK, borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 How It Works
               </button>
-            </a>
+            </Link>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: FAINT, flexWrap: 'wrap' }}>
@@ -947,7 +947,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── How It Works ─────────────────────────────────────────────── */}
-      <section id="how" style={{ background: 'var(--mdd-card)', borderTop: '0.5px solid rgba(0,0,0,0.06)', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+      <section id="how" className="lp-how-sec" style={{ background: 'var(--mdd-card)', borderTop: '0.5px solid rgba(0,0,0,0.06)', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
         <div className="lp-how" style={{ maxWidth: 1120, margin: '0 auto', padding: '88px 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 72, alignItems: 'center' }}>
 
           {/* ── Left: steps with timeline ── */}

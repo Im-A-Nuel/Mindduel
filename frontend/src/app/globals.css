@@ -969,6 +969,14 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-stats { grid-template-columns: repeat(2, 1fr) !important; padding: 20px 16px !important; gap: 12px 16px !important; }
   .lp-stats .lp-stat-num { font-size: 24px !important; }
   .lp-stats .lp-stat-lbl { font-size: 11px !important; }
+  /* MiniPay wants a single-screen landing: hero + stats bar, then stop.
+     Everything below the stats (Why You'll Like It, How It Works, Game
+     Modes, closing CTA) is desktop-only so mobile does not become a long
+     marketing scroll. */
+  .lp-features-sec,
+  .lp-how-sec,
+  .lp-modes-sec,
+  .lp-cta-sec { display: none !important; }
   .lp-features { grid-template-columns: 1fr !important; gap: 10px !important; }
   /* Mobile keeps the message but drops the heavy, crypto-flavoured card art:
      a clean icon + title + one-liner list instead of six tall visuals. */
