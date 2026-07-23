@@ -204,7 +204,7 @@ function MatchTypeToggle({ value, onChange, rankedDisabled }: { value: 'casual' 
 
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('bg-white rounded-[20px] p-[22px]', className)} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
+    <div className={cn('bg-white rounded-[16px] p-4 sm:rounded-[20px] sm:p-[22px]', className)} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
       {children}
     </div>
   )
@@ -698,7 +698,7 @@ export default function LobbyPage() {
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1.2, margin: '0 0 6px', lineHeight: 1.1, flex: '1 1 auto' }}>New Match</h1>
+            <h1 className="page-title" style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1.2, margin: '0 0 6px', lineHeight: 1.1, flex: '1 1 auto' }}>New Match</h1>
             <button
               onClick={() => setShowLivePopup(true)}
               className="lg:hidden"

@@ -152,7 +152,7 @@ export default function HistoryPage() {
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           style={{ marginBottom: 24 }}
         >
-          <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.8, margin: '0 0 4px' }}>Match History</h1>
+          <h1 className="page-title" style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.8, margin: '0 0 4px' }}>Match History</h1>
           <p style={{ margin: 0, fontSize: 14, color: MUTED }}>All your duels, wins, and losses</p>
         </motion.div>
 

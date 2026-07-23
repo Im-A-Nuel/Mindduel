@@ -124,7 +124,7 @@ export default function LeaderboardPage() {
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.8, margin: 0 }}>Leaderboard</h1>
+              <h1 className="page-title" style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.8, margin: 0 }}>Leaderboard</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 999, background: '#E8F7EE' }}>
                 <div style={{ width: 6, height: 6, borderRadius: 3, background: GREEN, animation: 'pulse 2s infinite' }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: GREEN_DARK, letterSpacing: 0.3 }}>LIVE</span>

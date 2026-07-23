@@ -123,6 +123,9 @@ body {
     padding-top: 24px !important;
   }
 
+  /* Page titles were desktop-scale and read as jumbo on mobile. */
+  .page-title { font-size: 25px !important; letter-spacing: -0.8px !important; }
+
   /* Two-column layouts → single column */
   .page-cols {
     flex-direction: column !important;
