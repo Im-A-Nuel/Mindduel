@@ -944,26 +944,31 @@ html[data-theme="dark"] [style*="background: white"] {
 @media (max-width: 767px) {
   .lp-hero {
     grid-template-columns: 1fr !important;
-    /* First screen shows the whole hero (demo board -> headline -> CTAs ->
-       trust row); the stats/features start only after a scroll. */
-    min-height: calc(100dvh - 64px);
-    align-content: center;
-    padding: 10px 20px 16px !important;
-    gap: 12px !important;
+    /* Whole hero (board -> headline -> tagline -> CTAs) must fit one MiniPay
+       screen with the stats bar landing at the fold. No section is taller than
+       it needs to be. */
+    padding: 8px 20px 12px !important;
+    gap: 10px !important;
   }
-  .lp-hero-copy { gap: 12px !important; }
-  /* Stack the hero CTAs full-width so the primary action is an easy, thumb-
-     sized target instead of a narrow pill sharing a row. */
-  .lp-hero-cta { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
-  .lp-hero-cta a { display: block !important; width: 100% !important; }
-  .lp-hero-cta button { width: 100% !important; justify-content: center !important; }
-  .lp-hero-h1 { font-size: 30px !important; letter-spacing: -1px !important; line-height: 1.05 !important; }
-  /* Keep the demo board on top, but shrink every hero element so the whole
-     hero (board -> headline -> tagline -> CTAs) fits one MiniPay screen with
-     the stats bar landing right at the fold. */
+  .lp-hero-copy { gap: 10px !important; }
+  /* Keep both CTAs on one row so they cost a single line instead of two
+     stacked buttons; Start Playing stays the wider primary. */
+  .lp-hero-cta { flex-direction: row !important; align-items: stretch !important; gap: 8px !important; }
+  .lp-hero-cta > a:first-child { flex: 2 1 0 !important; }
+  .lp-hero-cta > a:last-child { flex: 1 1 0 !important; }
+  .lp-hero-cta a { display: block !important; }
+  .lp-hero-cta button { width: 100% !important; justify-content: center !important; padding: 12px 10px !important; }
+  .lp-hero-h1 { font-size: 27px !important; letter-spacing: -0.8px !important; line-height: 1.05 !important; }
+  /* Board stays but shrinks hard - it is the biggest space cost on mobile. */
   .lp-hero-demo { order: -1; }
-  .lp-demo-card { padding: 12px !important; max-width: 260px !important; }
-  .lp-hero-copy p { font-size: 14px !important; line-height: 1.45 !important; }
+  .lp-demo-card { padding: 10px !important; max-width: 190px !important; }
+  /* Drop the card's header/footer chrome on mobile - the mini board alone
+     reads clearly and the labels only wrapped and stole height at this size. */
+  .lp-demo-head, .lp-demo-foot { display: none !important; }
+  .lp-hero-copy p { font-size: 13px !important; line-height: 1.4 !important; }
+  /* Trust row duplicates the "Free to play - No sign-up" pill above the
+     headline; drop it on mobile to save a wrapped two-line block. */
+  .lp-hero-trust { display: none !important; }
   /* 5 stats in 3 columns left a lopsided 3+2. Two columns reads as a tidy
      2+2+1, with a bit more room for each number. */
   /* All five stats on a single horizontal row so the bar reads as one tidy

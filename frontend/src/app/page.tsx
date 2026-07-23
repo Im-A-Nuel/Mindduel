@@ -874,7 +874,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: FAINT, flexWrap: 'wrap' }}>
+          <div className="lp-hero-trust" style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: FAINT, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: GREEN }} />Free forever</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: BLUE }} />Play in seconds</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 6, height: 6, borderRadius: 3, background: '#AF52DE' }} />Skill only, no luck</div>
@@ -889,7 +889,7 @@ export default function LandingPage() {
           transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="lp-demo-card" style={{ background: 'var(--mdd-card)', borderRadius: 24, padding: 24, boxShadow: '0 4px 32px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.05)', maxWidth: 340, margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div className="lp-demo-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 24, height: 24, borderRadius: 12, background: '#E5F0FD', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: BLUE }}>X</div>
                 <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>Player X</span>
@@ -901,7 +901,7 @@ export default function LandingPage() {
               </div>
             </div>
             <DemoBoard />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, fontSize: 12, color: MUTED, fontWeight: 500 }}>
+            <div className="lp-demo-foot" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, fontSize: 12, color: MUTED, fontWeight: 500 }}>
               <span>Ranked match</span>
               <span style={{ color: GREEN_DARK, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>+25 pts</span>
               <span>Winner</span>
@@ -920,7 +920,7 @@ export default function LandingPage() {
             { label: 'Matches today', value: liveStats?.rankedLast24h ?? null },
             { label: 'Playing now', value: liveStats ? liveStats.activeMatches + liveStats.waitingMatches : null },
           ] as { label: string; value: number | null }[]).map((s, i) => (
-            <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: i * 0.1 }} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: i * 0.08 }} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div className="lp-stat-num" style={{ fontSize: 32, fontWeight: 700, letterSpacing: -1, color: INK }}>
                 {s.value === null ? <span style={{ color: MUTED }}>-</span> : <Counter to={s.value} />}
               </div>
