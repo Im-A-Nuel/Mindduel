@@ -881,12 +881,12 @@ export default function LandingPage() {
           </div>
         </motion.div>
 
-        {/* Demo board - hidden on mobile */}
+        {/* Demo board */}
         <motion.div
           className="lp-hero-demo"
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="lp-demo-card" style={{ background: 'var(--mdd-card)', borderRadius: 24, padding: 24, boxShadow: '0 4px 32px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.05)', maxWidth: 340, margin: '0 auto' }}>
             <div className="lp-demo-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>

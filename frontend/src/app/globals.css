@@ -976,16 +976,17 @@ html[data-theme="dark"] [style*="background: white"] {
      same shape and height (How It Works was wrapping to two lines). */
   .lp-hero-cta { flex-direction: row !important; align-items: stretch !important; gap: 8px !important; }
   .lp-hero-cta > a { flex: 1 1 0 !important; display: block !important; }
-  .lp-hero-cta button { width: 100% !important; justify-content: center !important; padding: 13px 8px !important; font-size: 14px !important; white-space: nowrap !important; }
+  .lp-hero-cta button { width: 100% !important; justify-content: center !important; padding: 10px 8px !important; font-size: 13px !important; border-radius: 12px !important; white-space: nowrap !important; }
   .lp-hero-h1 { font-size: 27px !important; letter-spacing: -0.8px !important; line-height: 1.05 !important; }
-  /* Board stays but shrinks hard - it is the biggest space cost on mobile. */
-  .lp-demo-card { padding: 10px !important; max-width: 190px !important; }
+  /* Larger mini board - it is the visual hook, so give it room. */
+  .lp-demo-card { padding: 12px !important; max-width: 240px !important; }
   /* Drop the card's header/footer chrome on mobile - the mini board alone
      reads clearly and the labels only wrapped and stole height at this size. */
   .lp-demo-head, .lp-demo-foot { display: none !important; }
   .lp-hero-tag { font-size: 13px !important; line-height: 1.4 !important; }
-  /* Trust row wraps to a tidy centered strip under the CTAs. */
-  .lp-hero-trust { justify-content: flex-start !important; }
+  /* Trust row on a single horizontal line: no wrap, smaller text and gaps. */
+  .lp-hero-trust { flex-wrap: nowrap !important; justify-content: flex-start !important; gap: 10px !important; font-size: 10.5px !important; white-space: nowrap !important; }
+  .lp-hero-trust > div { gap: 4px !important; }
   /* 5 stats in 3 columns left a lopsided 3+2. Two columns reads as a tidy
      2+2+1, with a bit more room for each number. */
   /* All five stats on a single horizontal row so the bar reads as one tidy
