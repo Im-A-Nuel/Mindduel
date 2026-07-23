@@ -942,6 +942,10 @@ html[data-theme="dark"] [style*="background: white"] {
 
 /* ── Landing page responsive ───────────────────────────────────────── */
 @media (max-width: 767px) {
+  /* Don't pin the footer to the viewport bottom on mobile. With the landing's
+     marketing sections hidden, the flex:1 spacer left a big empty gap between
+     the stats bar and the footer. Let the footer flow right after content. */
+  .app-main { flex: 0 0 auto !important; }
   .lp-hero {
     grid-template-columns: 1fr !important;
     /* Whole hero (board -> headline -> tagline -> CTAs) must fit one MiniPay
@@ -951,13 +955,11 @@ html[data-theme="dark"] [style*="background: white"] {
     gap: 10px !important;
   }
   .lp-hero-copy { gap: 10px !important; }
-  /* Keep both CTAs on one row so they cost a single line instead of two
-     stacked buttons; Start Playing stays the wider primary. */
+  /* Both CTAs on one row, equal width and single-line labels so they are the
+     same shape and height (How It Works was wrapping to two lines). */
   .lp-hero-cta { flex-direction: row !important; align-items: stretch !important; gap: 8px !important; }
-  .lp-hero-cta > a:first-child { flex: 2 1 0 !important; }
-  .lp-hero-cta > a:last-child { flex: 1 1 0 !important; }
-  .lp-hero-cta a { display: block !important; }
-  .lp-hero-cta button { width: 100% !important; justify-content: center !important; padding: 12px 10px !important; }
+  .lp-hero-cta > a { flex: 1 1 0 !important; display: block !important; }
+  .lp-hero-cta button { width: 100% !important; justify-content: center !important; padding: 13px 8px !important; font-size: 14px !important; white-space: nowrap !important; }
   .lp-hero-h1 { font-size: 27px !important; letter-spacing: -0.8px !important; line-height: 1.05 !important; }
   /* Board stays but shrinks hard - it is the biggest space cost on mobile. */
   .lp-hero-demo { order: -1; }

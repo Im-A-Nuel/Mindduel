@@ -58,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-bg-base text-ink antialiased" suppressHydrationWarning>
         <ClientProviders>
           <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <div style={{ flex: 1 }}>{children}</div>
+            <div className="app-main" style={{ flex: 1 }}>{children}</div>
             <Footer />
           </div>
         </ClientProviders>
