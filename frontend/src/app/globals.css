@@ -958,8 +958,12 @@ html[data-theme="dark"] [style*="background: white"] {
   .lp-hero-cta a { display: block !important; width: 100% !important; }
   .lp-hero-cta button { width: 100% !important; justify-content: center !important; }
   .lp-hero-h1 { font-size: 33px !important; letter-spacing: -1.1px !important; }
-  .lp-hero-demo { order: -1; }
-  .lp-demo-card { padding: 16px !important; max-width: 300px !important; }
+  /* MiniPay opens with less usable height than a normal browser (native top
+     chrome). The demo board card alone ate most of that, pushing the headline
+     and Start Playing button below the fold. Drop it on mobile so the first
+     screen is the value prop + primary CTA, no scroll needed. Desktop keeps
+     the live board. */
+  .lp-hero-demo { display: none !important; }
   /* 5 stats in 3 columns left a lopsided 3+2. Two columns reads as a tidy
      2+2+1, with a bit more room for each number. */
   .lp-stats { grid-template-columns: repeat(2, 1fr) !important; padding: 20px 16px !important; gap: 12px 16px !important; }
