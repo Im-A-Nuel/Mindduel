@@ -125,6 +125,10 @@ body {
 
   /* Page titles were desktop-scale and read as jumbo on mobile. */
   .page-title { font-size: 25px !important; letter-spacing: -0.8px !important; }
+  /* Trim oversized stat/headline numbers on the app pages for mobile. */
+  .stat-card { padding: 12px 13px !important; }
+  .stat-card-val { font-size: 19px !important; }
+  .profile-rank { font-size: 23px !important; }
 
   /* Two-column layouts → single column */
   .page-cols {

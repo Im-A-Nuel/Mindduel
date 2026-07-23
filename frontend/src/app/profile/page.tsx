@@ -533,7 +533,7 @@ export default function ProfilePage() {
                       <span style={{ width: 16, height: 16, borderRadius: 8, background: tier.color, display: 'inline-block' }} />
                       Current Rank
                     </div>
-                    <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -1, marginTop: 6, fontVariantNumeric: 'tabular-nums', color: tier.color }}>
+                    <div className="profile-rank" style={{ fontSize: 30, fontWeight: 700, letterSpacing: -1, marginTop: 6, fontVariantNumeric: 'tabular-nums', color: tier.color }}>
                       {tier.label} <span style={{ fontSize: 16, color: MUTED, fontWeight: 600 }}>· {points} pts</span>
                     </div>
                     <div style={{ display: 'flex', gap: 18, marginTop: 14, flexWrap: 'wrap' }}>

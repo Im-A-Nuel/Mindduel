@@ -80,9 +80,9 @@ function entryToMatch(e: HistoryEntry): Match {
 
 function StatCard({ value, unit, label, accent }: { value: string; unit?: string; label: string; accent?: string }) {
   return (
-    <div style={{ flex: 1, minWidth: 0, background: 'var(--mdd-card)', borderRadius: 16, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
+    <div className="stat-card" style={{ flex: 1, minWidth: 0, background: 'var(--mdd-card)', borderRadius: 16, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, color: accent ?? INK, fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>
-        <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.6 }}>{value}</span>
+        <span className="stat-card-val" style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.6 }}>{value}</span>
         {unit && <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.7, letterSpacing: 0.3 }}>{unit}</span>}
       </div>
       <div style={{ fontSize: 11, fontWeight: 600, color: MUTED, marginTop: 5, textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</div>
