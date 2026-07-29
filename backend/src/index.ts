@@ -18,17 +18,20 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',').map(s => s.trim(
   'https://mindduel.app',
 ]
 
-// Any *.vercel.app origin is allowed by default (the app has no credentialed
-// cookies, so CORS is not a security boundary here). This avoids depending on
-// an exact ALLOWED_ORIGINS env value in prod.
-const VERCEL_RE = /(^|\.)vercel\.app$/
+// Any *.vercel.app origin, and the production mindduel.fun domain (apex or any
+// subdomain, e.g. www), are allowed by default (the app has no credentialed
+// cookies, so CORS is not a security boundary here). Allowing these by regex
+// means the custom domain keeps working regardless of the ALLOWED_ORIGINS env.
+const VERCEL_RE   = /(^|\.)vercel\.app$/
+const MINDDUEL_RE = /(^|\.)mindduel\.fun$/
 
 await app.register(cors, {
   origin: (origin, cb) => {
     if (!origin) return cb(null, true)
     if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true)
     try {
-      if (VERCEL_RE.test(new URL(origin).hostname)) return cb(null, true)
+      const { hostname } = new URL(origin)
+      if (VERCEL_RE.test(hostname) || MINDDUEL_RE.test(hostname)) return cb(null, true)
     } catch { /* malformed origin */ }
     // Deny WITHOUT throwing — a thrown error makes Fastify return 500 with no
     // CORS header (the browser then just reports a confusing CORS failure).
