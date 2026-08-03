@@ -996,7 +996,7 @@ html[data-theme="dark"] [style*="background: white"] {
      same shape and height (How It Works was wrapping to two lines). */
   .lp-hero-cta { flex-direction: row !important; align-items: stretch !important; gap: 8px !important; }
   .lp-hero-cta > a { flex: 1 1 0 !important; display: block !important; }
-  .lp-hero-cta button { width: 100% !important; justify-content: center !important; padding: 10px 8px !important; font-size: 13px !important; border-radius: 12px !important; white-space: nowrap !important; }
+  .lp-hero-cta button { width: 100% !important; justify-content: center !important; min-height: 46px !important; padding: 11px 8px !important; font-size: 13.5px !important; border-radius: 12px !important; white-space: nowrap !important; }
   .lp-hero-h1 { font-size: 27px !important; letter-spacing: -0.8px !important; line-height: 1.05 !important; }
   /* Larger mini board - it is the visual hook, so give it room. Explicit width
      (not just max-width): as a centered flex item the card would otherwise
@@ -1005,9 +1005,9 @@ html[data-theme="dark"] [style*="background: white"] {
   /* Drop the card's header/footer chrome on mobile - the mini board alone
      reads clearly and the labels only wrapped and stole height at this size. */
   .lp-demo-head, .lp-demo-foot { display: none !important; }
-  .lp-hero-tag { font-size: 13px !important; line-height: 1.4 !important; }
+  .lp-hero-tag { font-size: 14px !important; line-height: 1.45 !important; }
   /* Trust row on a single horizontal line: no wrap, smaller text and gaps. */
-  .lp-hero-trust { flex-wrap: nowrap !important; justify-content: flex-start !important; gap: 10px !important; font-size: 10.5px !important; white-space: nowrap !important; }
+  .lp-hero-trust { flex-wrap: nowrap !important; justify-content: flex-start !important; gap: 10px !important; font-size: 11.5px !important; white-space: nowrap !important; }
   .lp-hero-trust > div { gap: 4px !important; }
   /* 5 stats in 3 columns left a lopsided 3+2. Two columns reads as a tidy
      2+2+1, with a bit more room for each number. */
@@ -1015,7 +1015,7 @@ html[data-theme="dark"] [style*="background: white"] {
      strip that closes the mobile landing, not a 2+2+1 block. */
   .lp-stats { grid-template-columns: repeat(5, 1fr) !important; padding: 16px 8px !important; gap: 6px !important; }
   .lp-stats .lp-stat-num { font-size: 17px !important; letter-spacing: -0.5px !important; }
-  .lp-stats .lp-stat-lbl { font-size: 8.5px !important; line-height: 1.2 !important; }
+  .lp-stats .lp-stat-lbl { font-size: 10px !important; line-height: 1.2 !important; }
   /* Deployment info (Celo Mainnet + contract link) is desktop chrome; drop it
      on mobile to keep the footer to brand + essential links. */
   .footer-deploy { display: none !important; }
