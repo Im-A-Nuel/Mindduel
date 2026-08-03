@@ -49,6 +49,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
+        {/* Let system UI (scrollbars, form controls) follow the theme inside
+            the MiniPay webview, per MiniPay UI guidelines. */}
+        <meta name="color-scheme" content="light dark" />
         <script
           // Run before any React hydration so the page paints with the
           // correct theme on first frame (avoids light-flash for dark users).
