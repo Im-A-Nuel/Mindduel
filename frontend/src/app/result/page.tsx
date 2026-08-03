@@ -266,7 +266,7 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
             {txHash && (
               <a
                 href={`${CELO_EXPLORER}/tx/${txHash}`}
-                target="_blank"
+               
                 rel="noopener noreferrer"
                 style={{ textDecoration: 'none' }}
               >

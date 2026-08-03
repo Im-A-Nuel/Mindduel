@@ -77,7 +77,7 @@ export function Footer() {
           {RANKING_CONTRACT_ADDRESS && (
             <a
               href={`${CELO_EXPLORER}/address/${RANKING_CONTRACT_ADDRESS}`}
-              target="_blank" rel="noopener noreferrer"
+              rel="noopener noreferrer"
               title="View MindDuelRanking on Celoscan"
               style={{ color: MUTED, textDecoration: 'none', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 11.5 }}
             >
@@ -100,7 +100,7 @@ export function Footer() {
           ))}
           <a
             href={REPO_URL}
-            target="_blank" rel="noopener noreferrer"
+            rel="noopener noreferrer"
             style={{ color: MUTED, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
             title="GitHub repository"
           >

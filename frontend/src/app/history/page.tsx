@@ -325,7 +325,7 @@ export default function HistoryPage() {
                       {m.txHash && (
                         <a
                           href={`${CELO_EXPLORER}/tx/${m.txHash}`}
-                          target="_blank"
+                         
                           rel="noopener noreferrer"
                           onClick={e => e.stopPropagation()}
                           style={{ color: BLUE, fontWeight: 600, textDecoration: 'none' }}

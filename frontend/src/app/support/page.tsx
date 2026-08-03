@@ -55,7 +55,7 @@ function ContactCard({
             Copy
           </button>
         )}
-        <a href={href} target="_blank" rel="noopener noreferrer" onClick={() => sounds.tap()} style={{ textDecoration: 'none' }}>
+        <a href={href} rel="noopener noreferrer" onClick={() => sounds.tap()} style={{ textDecoration: 'none' }}>
           <button style={{
             appearance: 'none', border: 'none', background: BLUE, color: '#fff',
             padding: '9px 16px', borderRadius: 11, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',

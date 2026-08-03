@@ -144,7 +144,7 @@ export default function TermsPage() {
         <Section title="Questions" delay={0.3}>
           <p style={{ marginTop: 0 }}>
             Ask us anything. Message{' '}
-            <a href={SUPPORT_TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => sounds.tap()} style={{ color: BLUE, textDecoration: 'none', fontWeight: 600 }}>
+            <a href={SUPPORT_TELEGRAM_URL} rel="noopener noreferrer" onClick={() => sounds.tap()} style={{ color: BLUE, textDecoration: 'none', fontWeight: 600 }}>
               @{SUPPORT_TELEGRAM}
             </a>{' '}
             on Telegram, or email{' '}

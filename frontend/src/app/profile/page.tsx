@@ -505,7 +505,7 @@ export default function ProfilePage() {
                             <div style={{ fontSize: 12, color: MUTED, marginTop: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span>{m.mode}</span>
                               {m.txHash && (
-                                <a href={`${CELO_EXPLORER}/tx/${m.txHash}`} target="_blank" rel="noopener noreferrer" style={{ color: BLUE, fontWeight: 600, textDecoration: 'none' }}>
+                                <a href={`${CELO_EXPLORER}/tx/${m.txHash}`} rel="noopener noreferrer" style={{ color: BLUE, fontWeight: 600, textDecoration: 'none' }}>
                                   Celoscan ↗
                                 </a>
                               )}

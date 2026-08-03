@@ -161,7 +161,7 @@ export default function HowItWorksPage() {
               Ranking contract:{' '}
               <a
                 href={`${CELO_EXPLORER}/address/${RANKING_CONTRACT_ADDRESS}`}
-                target="_blank" rel="noopener noreferrer"
+                rel="noopener noreferrer"
                 onClick={() => sounds.tap()}
                 style={{ color: BLUE, textDecoration: 'none', fontFamily: 'ui-monospace, monospace' }}
               >
