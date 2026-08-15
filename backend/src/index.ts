@@ -8,6 +8,7 @@ import { wsRoutes } from './routes/ws.js'
 import { statsRoutes } from './routes/stats.js'
 import { tournamentRoutes } from './routes/tournament.js'
 import { checkinRoutes } from './routes/checkin.js'
+import { profileRoutes } from './routes/profile.js'
 import { getLiveStats, cleanupExpiredMatches } from './lib/match-store.js'
 import { isChainConfigured } from './lib/chain.js'
 
@@ -46,6 +47,7 @@ await app.register(matchRoutes,  { prefix: '/api' })
 await app.register(statsRoutes, { prefix: '/api' })
 await app.register(tournamentRoutes, { prefix: '/api' })
 await app.register(checkinRoutes, { prefix: '/api' })
+await app.register(profileRoutes, { prefix: '/api' })
 await app.register(wsRoutes)
 
 app.get('/health', async () => ({

@@ -86,6 +86,24 @@ export type CheckIn       = typeof checkins.$inferSelect
 export type CheckInInsert = typeof checkins.$inferInsert
 
 /**
+ * Player profile — the display name shown instead of a wallet address.
+ *
+ * MiniPay players are not crypto users, so a 0x string is not an identity we
+ * put in front of them. The name lives here (not only in the browser) because
+ * the leaderboard and match history have to render *other* players' names too.
+ * Keyed by lowercased address so lookups are case-insensitive.
+ */
+export const profiles = pgTable('profiles', {
+  player:      text('player').primaryKey(),   // lowercased wallet address
+  displayName: text('display_name').notNull(),
+  avatarSeed:  text('avatar_seed'),
+  updatedAt:   bigint('updated_at', { mode: 'number' }).notNull(),
+})
+
+export type Profile       = typeof profiles.$inferSelect
+export type ProfileInsert = typeof profiles.$inferInsert
+
+/**
  * Tournament — single-elimination bracket of 4 or 8 players.
  */
 export const tournaments = pgTable('tournaments', {

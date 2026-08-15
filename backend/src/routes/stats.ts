@@ -14,6 +14,7 @@ import {
 } from '../lib/chain.js'
 import { awardBadgesAfterMatch, listBadgesForPlayer, getBadgeMeta, type BadgeType } from '../lib/badges.js'
 import { findBracketByMatchId, recordTournamentMatchResult } from '../lib/tournament-store.js'
+import { getNamesFor } from '../lib/profile-store.js'
 import { z } from 'zod'
 
 const finishBodySchema = z.object({
@@ -46,11 +47,17 @@ export async function statsRoutes(app: FastifyInstance) {
         }))
       : await getLeaderboard(lim)
 
+    // Players are shown by name, not by wallet address, so resolve the names
+    // for this page in one query. Missing names stay null and the client falls
+    // back to its own placeholder.
+    const names = await getNamesFor(rows.map(r => r.address))
+
     return {
       period,
       entries: rows.map((r, i) => ({
         rank:    i + 1,
         address: r.address,
+        name:    names[r.address.toLowerCase()] ?? null,
         points:  r.points,
         wins:    r.wins,
         losses:  r.losses,
@@ -67,7 +74,16 @@ export async function statsRoutes(app: FastifyInstance) {
     }
     const limit = Math.min(100, Math.max(1, Number((request.query as { limit?: string }).limit) || 50))
     const rows = await getHistoryForPlayer(player, limit)
-    return { player, count: rows.length, matches: rows }
+    // Attach opponent names so history reads "vs Alice" rather than "vs 0x…".
+    const names = await getNamesFor(rows.map(r => r.opponent).filter((o): o is string => !!o))
+    return {
+      player,
+      count: rows.length,
+      matches: rows.map(r => ({
+        ...r,
+        opponentName: r.opponent ? names[r.opponent.toLowerCase()] ?? null : null,
+      })),
+    }
   })
 
   // POST /api/match/finish — report the finished match. For ranked matches the
