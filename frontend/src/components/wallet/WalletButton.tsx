@@ -15,10 +15,6 @@ const MUTED      = 'var(--mdd-muted)'
 const RED        = '#FF3B30'
 const GREEN_DARK = '#0A7A2D'
 
-function shortAddr(a: string) {
-  return a.slice(0, 6) + '…' + a.slice(-4)
-}
-
 interface WalletButtonProps {
   className?: string
 }
@@ -102,8 +98,11 @@ export function WalletButton({ className }: WalletButtonProps) {
         }}
       >
         <div style={{ width: 18, height: 18, borderRadius: 9, background: 'linear-gradient(135deg, #FCFF52, #35D07F)', flexShrink: 0 }} />
-        <span className="wallet-addr" style={{ fontVariantNumeric: 'tabular-nums' }}>{shortAddr(address)}</span>
-        <span className="wallet-addr-short" style={{ display: 'none', fontVariantNumeric: 'tabular-nums', fontSize: 11 }}>{address.slice(0, 6)}</span>
+        {/* The raw address is deliberately not shown: MiniPay players are not
+            crypto users and a 0x string reads as jargon. It stays available
+            behind "Copy Address" in the menu for anyone who needs it. */}
+        <span className="wallet-addr">Connected</span>
+        <span className="wallet-addr-short" style={{ display: 'none', fontSize: 11 }}>Connected</span>
         <span className="wallet-network-badge" style={{ fontSize: 9, fontWeight: 700, color: '#35D07F', background: 'rgba(53,208,127,0.16)', padding: '2px 6px', borderRadius: 6, letterSpacing: 0.4, flexShrink: 0 }}>CELO</span>
         <svg style={{ width: 12, height: 12, transform: showMenu ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease', opacity: 0.7, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />

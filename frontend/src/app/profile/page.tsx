@@ -276,14 +276,10 @@ export default function ProfilePage() {
             <div style={{ background: 'var(--mdd-card)', borderRadius: 24, padding: '28px 24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <Identicon seed={editable.avatarSeed || profile.seed} size={96} radius={22} />
 
-              {editable.displayName && (
-                <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: -0.3, marginTop: 16, color: INK }}>
-                  {editable.displayName}
-                </div>
-              )}
-
-              <div style={{ fontSize: editable.displayName ? 13 : 17, fontWeight: editable.displayName ? 500 : 700, letterSpacing: -0.3, marginTop: editable.displayName ? 4 : 16, fontFamily: 'ui-monospace, Menlo, monospace', color: editable.displayName ? MUTED : INK }}>
-                {profile.addr}
+              {/* Name, never a raw 0x address - MiniPay players are not crypto
+                  users, so the wallet address is not an identity we show. */}
+              <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: -0.3, marginTop: 16, color: INK }}>
+                {editable.displayName || 'Your profile'}
               </div>
 
               {editable.bio && (
