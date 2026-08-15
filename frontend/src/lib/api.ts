@@ -129,6 +129,8 @@ export interface QueueResponse {
 export interface LeaderboardEntry {
   rank: number
   address: string
+  /** Player-chosen display name; null when they have not set one. */
+  name: string | null
   points: number
   wins: number
   losses: number
@@ -297,6 +299,8 @@ export interface HistoryEntry {
   /** Points gained (+) or lost (−) on this match. 0 for casual/unranked. */
   pointsDelta: number
   opponent:   string | null
+  /** Opponent's display name; null when they have not set one. */
+  opponentName: string | null
   txHash:     string | null
   createdAt:  number
   finishedAt: number | null
@@ -307,6 +311,45 @@ export async function fetchHistory(player: string, limit = 50): Promise<HistoryE
   if (!res.ok) throw new Error('Failed to fetch history')
   const body = await res.json() as { matches: HistoryEntry[] }
   return body.matches
+}
+
+export interface PlayerProfile {
+  player: string
+  displayName: string | null
+  avatarSeed: string | null
+}
+
+export async function fetchProfile(player: string): Promise<PlayerProfile | null> {
+  try {
+    const res = await fetchWithTimeout(`${API}/api/profile/${encodeURIComponent(player)}`, {}, 8_000)
+    if (!res.ok) return null
+    return await res.json() as PlayerProfile
+  } catch {
+    return null
+  }
+}
+
+/** Save the display name shown to other players. Throws with the server's message. */
+export async function saveProfile(args: { player: string; displayName: string; avatarSeed?: string | null }): Promise<PlayerProfile> {
+  const res = await fetchWithTimeout(`${API}/api/profile`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(args),
+  }, 8_000)
+  const body = await res.json().catch(() => ({})) as Partial<PlayerProfile> & { error?: string }
+  if (!res.ok) throw new Error(body.error ?? 'Failed to save profile')
+  return body as PlayerProfile
+}
+
+/**
+ * What to call a player in lists. Their chosen name if they have one, else a
+ * short "Player abcd" tag - never the raw wallet address, which reads as
+ * jargon to MiniPay users.
+ */
+export function playerLabel(name: string | null | undefined, address: string | null | undefined): string {
+  if (name && name.trim()) return name.trim()
+  if (!address) return 'Player'
+  return `Player ${address.slice(-4)}`
 }
 
 export async function reportVsAiResult(args: {

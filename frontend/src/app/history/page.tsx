@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWallet } from '@/hooks/useWallet'
 import { NavBar } from '@/components/layout/NavBar'
-import { fetchHistory, type HistoryEntry } from '@/lib/api'
+import { fetchHistory, playerLabel, type HistoryEntry } from '@/lib/api'
 import { SkeletonRows } from '@/components/ui/SkeletonRow'
 import { StateIconAlert, StateIconWallet } from '@/components/ui/StateIcons'
 import { CELO_EXPLORER } from '@/lib/constants'
@@ -29,12 +29,6 @@ interface Match {
   txHash: string | null
   date: string
   pending?: boolean
-}
-
-function shortAddr(a: string | null): string {
-  if (!a) return '-'
-  if (a.length <= 9) return a
-  return a.slice(0, 4) + '…' + a.slice(-4)
 }
 
 function formatDate(ts: number): string {
@@ -66,7 +60,7 @@ function modeLabelOf(mode: string): string {
 
 function entryToMatch(e: HistoryEntry): Match {
   return {
-    opp:         shortAddr(e.opponent),
+    opp:         playerLabel(e.opponentName, e.opponent),
     mode:        modeLabelOf(e.mode),
     modeId:      modeIdOf(e.mode),
     win:         e.result === 'win',
@@ -315,7 +309,7 @@ export default function HistoryPage() {
                   {/* Opponent + mode */}
                   <div style={{ flex: 1, minWidth: 0, paddingLeft: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 13.5, fontWeight: 600, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>vs {m.opp}</span>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>vs {m.opp}</span>
                       <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase', background: m.ranked ? '#E5F0FD' : 'var(--mdd-bg)', color: m.ranked ? BLUE : MUTED, flexShrink: 0 }}>
                         {m.ranked ? 'Ranked' : 'Casual'}
                       </span>

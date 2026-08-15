@@ -60,11 +60,18 @@ export async function upsertProfile(address: string, displayName: string, avatar
 export async function getNamesFor(addresses: string[]): Promise<Record<string, string>> {
   const keys = Array.from(new Set(addresses.map(key).filter(Boolean)))
   if (keys.length === 0) return {}
-  const rows = await db
-    .select({ player: profiles.player, displayName: profiles.displayName })
-    .from(profiles)
-    .where(inArray(profiles.player, keys))
-  const out: Record<string, string> = {}
-  for (const r of rows) out[r.player] = r.displayName
-  return out
+  try {
+    const rows = await db
+      .select({ player: profiles.player, displayName: profiles.displayName })
+      .from(profiles)
+      .where(inArray(profiles.player, keys))
+    const out: Record<string, string> = {}
+    for (const r of rows) out[r.player] = r.displayName
+    return out
+  } catch {
+    // Names are decoration on top of the leaderboard and history; if the table
+    // is missing (schema not pushed yet) or the query fails, fall back to no
+    // names rather than failing the whole listing.
+    return {}
+  }
 }

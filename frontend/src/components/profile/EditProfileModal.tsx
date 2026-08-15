@@ -26,7 +26,9 @@ interface Props {
   onSave: (next: EditableProfile) => void
 }
 
-const NAME_MAX = 24
+// Matches the server-side limit in backend/src/lib/profile-store.ts, so a name
+// accepted here is never rejected on save.
+const NAME_MAX = 20
 const BIO_MAX = 140
 
 export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }: Props) {
@@ -178,6 +180,9 @@ export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }
                   onFocus={e => (e.target.style.borderColor = BLUE)}
                   onBlur={e => (e.target.style.borderColor = 'rgba(0,0,0,0.08)')}
                 />
+                <p style={{ margin: '6px 0 0', fontSize: 11.5, color: MUTED, lineHeight: 1.4 }}>
+                  This is how other players see you on the leaderboard and in match history.
+                </p>
               </div>
 
               {/* Bio */}

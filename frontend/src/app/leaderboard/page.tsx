@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { NavBar } from '@/components/layout/NavBar'
-import { fetchLeaderboard } from '@/lib/api'
+import { fetchLeaderboard, playerLabel } from '@/lib/api'
 import { sounds } from '@/lib/sounds'
 import { tierForPoints } from '@/lib/constants'
 import { SkeletonRows } from '@/components/ui/SkeletonRow'
@@ -22,6 +22,8 @@ type Period = 'alltime' | 'week' | 'today'
 interface LeaderboardRow {
   rank: number
   addr: string
+  /** What the player is called here - their name, or a short Player tag. */
+  label: string
   points: number
   wins: number
   losses: number
@@ -90,6 +92,7 @@ export default function LeaderboardPage() {
         setApiRows(data.entries.map(e => ({
           rank: e.rank,
           addr: e.address,
+          label: playerLabel(e.name, e.address),
           points: e.points,
           wins: e.wins,
           losses: e.losses,
@@ -202,7 +205,7 @@ export default function LeaderboardPage() {
                     {e.rank}
                   </div>
                 </div>
-                <div style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12.5, fontWeight: 600, color: INK, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.addr}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: INK, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.label}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5, color: isFirst ? '#7A5A00' : INK, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{e.points.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 600, color: MUTED, marginLeft: 4 }}>pts</span></div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 9px', borderRadius: 999, background: `${tierForPoints(e.points).color}22` }}>
                   <span style={{ width: 6, height: 6, borderRadius: 3, background: tierForPoints(e.points).color }} />
@@ -252,8 +255,8 @@ export default function LeaderboardPage() {
               <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Identicon seed={entry.addr} size={32} radius={8} />
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 13, fontWeight: 600, color: INK, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{entry.addr}</span>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: INK, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{entry.label}</span>
                     {entry.self && <span style={{ fontSize: 10, fontWeight: 700, color: BLUE, background: '#E5F0FD', padding: '2px 6px', borderRadius: 999, letterSpacing: 0.3, flexShrink: 0 }}>YOU</span>}
                   </div>
                 </div>

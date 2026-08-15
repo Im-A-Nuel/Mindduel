@@ -7,7 +7,7 @@ import { useRanking } from '@/hooks/useRanking'
 import { NavBar } from '@/components/layout/NavBar'
 import { CheckInButton } from '@/components/CheckInButton'
 import { EditProfileModal, EditableProfile } from '@/components/profile/EditProfileModal'
-import { fetchBadges, fetchHistory, type BadgeRow, type HistoryEntry } from '@/lib/api'
+import { fetchBadges, fetchHistory, fetchProfile, saveProfile, playerLabel, type BadgeRow, type HistoryEntry } from '@/lib/api'
 import { SkeletonBadgeGrid } from '@/components/ui/SkeletonRow'
 import { useToast } from '@/components/ui/Toast'
 import { IconFlame, IconMedal, StateIconWallet } from '@/components/ui/StateIcons'
@@ -78,12 +78,6 @@ function relativeTime(ts: number | null): string {
 
 function joinedLabel(ts: number): string {
   return new Date(toMs(ts)).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-}
-
-function shortAddr(addr: string | null): string {
-  if (!addr) return 'Unknown'
-  if (addr.length <= 10) return addr
-  return addr.slice(0, 4) + '…' + addr.slice(-4)
 }
 
 // ── Identicon ─────────────────────────────────────────────────────────
@@ -186,13 +180,33 @@ export default function ProfilePage() {
     const short = address.slice(0, 6) + '…' + address.slice(-4)
     setProfile(p => ({ ...p, addr: short, seed: address.slice(0, 10) }))
     setEditable(loadStoredProfile(address, address.slice(0, 10)))
+
+    // The server copy is the one other players see (leaderboard, history), so
+    // it wins over whatever this device happens to have cached.
+    let cancelled = false
+    fetchProfile(address).then(remote => {
+      if (cancelled || !remote?.displayName) return
+      setEditable(prev => ({ ...prev, displayName: remote.displayName as string }))
+    })
+    return () => { cancelled = true }
   }, [address])
 
-  function handleSaveProfile(next: EditableProfile) {
+  async function handleSaveProfile(next: EditableProfile) {
     setEditable(next)
     if (walletAddr) saveStoredProfile(walletAddr, next)
     setEditOpen(false)
-    toast('Profile saved ✓', 'success')
+
+    if (!walletAddr || !next.displayName.trim()) {
+      toast('Profile saved ✓', 'success')
+      return
+    }
+    // Publish the name so it shows up wherever other players see this account.
+    try {
+      await saveProfile({ player: walletAddr, displayName: next.displayName, avatarSeed: next.avatarSeed })
+      toast('Profile saved ✓', 'success')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not publish your name', 'error')
+    }
   }
 
   // Fetch real badges for the connected wallet
@@ -493,7 +507,7 @@ export default function ProfilePage() {
                           </div>
                           <div style={{ flex: 1, paddingLeft: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 13.5, fontWeight: 600, color: INK }}>vs {shortAddr(m.opponent)}</span>
+                              <span style={{ fontSize: 13.5, fontWeight: 600, color: INK }}>vs {playerLabel(m.opponentName, m.opponent)}</span>
                               <span style={{ padding: '1px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase', background: m.ranked ? '#E5F0FD' : 'var(--mdd-bg)', color: m.ranked ? BLUE : MUTED }}>
                                 {m.ranked ? 'Ranked' : 'Casual'}
                               </span>
