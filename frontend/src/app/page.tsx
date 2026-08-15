@@ -1108,6 +1108,26 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
+      {/* ── Sticky Play button (mobile only) ──────────────────────────
+          MiniPay feedback: keep Play reachable at all times on a phone, so
+          the primary action is always one thumb-tap away no matter how far
+          the page has scrolled. Hidden on desktop, where the nav CTA covers it. */}
+      <div className="lp-fab">
+        <Link href="/lobby" onClick={() => sounds.click()} style={{ textDecoration: 'none', display: 'block' }}>
+          <button
+            style={{
+              appearance: 'none', border: 'none', width: '100%',
+              minHeight: 50, padding: '14px 20px',
+              background: BLUE, color: '#fff', borderRadius: 999,
+              fontSize: 15, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
+              boxShadow: '0 6px 20px rgba(0,113,227,0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+          >
+            ▶ Start Playing
+          </button>
+        </Link>
+      </div>
 
     </div>
   )

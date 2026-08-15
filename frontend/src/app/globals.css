@@ -953,19 +953,32 @@ html[data-theme="dark"] [style*="background: white"] {
   }
 }
 
+/* Sticky mobile Play button - desktop keeps the nav CTA instead. */
+.lp-fab { display: none; }
+
 /* ── Landing page responsive ───────────────────────────────────────── */
 @media (max-width: 767px) {
-  /* Don't pin the footer to the viewport bottom on mobile. With the landing's
-     marketing sections hidden, the flex:1 spacer left a big empty gap between
-     the stats bar and the footer. Let the footer flow right after content. */
   /* Fill the screen: landing root spans the viewport as a flex column, the
      hero grows to absorb any slack (its content stays vertically centred), and
      the stats bar sits at the bottom with the footer right after it. This
-     removes both the gap above the footer and the empty band below it. */
+     removes both the gap above the footer and the empty band below it.
+     The bottom padding reserves room for the sticky Play button; with
+     border-box sizing it sits inside the 100dvh, so it adds no scroll. */
   .lp-root {
     min-height: 100dvh !important;
     display: flex !important;
     flex-direction: column !important;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Play stays reachable at any scroll position on a phone: pinned just above
+     the bottom edge, clear of the device safe area. */
+  .lp-fab {
+    display: block;
+    position: fixed;
+    left: 16px; right: 16px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 45;
   }
   /* Tighten the footer on mobile so it sits close under the stats bar. */
   .site-footer { margin-top: 0 !important; }
@@ -996,6 +1009,10 @@ html[data-theme="dark"] [style*="background: white"] {
      same shape and height (How It Works was wrapping to two lines). */
   .lp-hero-cta { flex-direction: row !important; align-items: stretch !important; gap: 8px !important; }
   .lp-hero-cta > a { flex: 1 1 0 !important; display: block !important; }
+  /* The sticky Play button already carries the primary action on mobile, so
+     the hero's own Start Playing would be a duplicate on the same screen.
+     Hide it and let How It Works take the full row. */
+  .lp-hero-cta > a:first-child { display: none !important; }
   .lp-hero-cta button { width: 100% !important; justify-content: center !important; min-height: 46px !important; padding: 11px 8px !important; font-size: 13.5px !important; border-radius: 12px !important; white-space: nowrap !important; }
   .lp-hero-h1 { font-size: 27px !important; letter-spacing: -0.8px !important; line-height: 1.05 !important; }
   /* Larger mini board - it is the visual hook, so give it room. Explicit width
