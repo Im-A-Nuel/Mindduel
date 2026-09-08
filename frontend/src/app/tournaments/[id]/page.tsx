@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { NavBar } from '@/components/layout/NavBar'
-import { getTournamentDetail, type TournamentSummary, type BracketEntry } from '@/lib/api'
+import { getTournamentDetail, fetchProfile, playerLabel, type TournamentSummary, type BracketEntry } from '@/lib/api'
 import { StateIconAlert, IconTrophySm } from '@/components/ui/StateIcons'
 
 const BLUE  = '#0071E3'
@@ -13,16 +13,13 @@ const MUTED      = 'var(--mdd-muted)'
 const GREEN_DARK = '#0A7A2D'
 const BG = 'var(--mdd-bg)'
 
-function shortAddr(a: string | null): string {
-  if (!a) return '-'
-  if (a.length <= 9) return a
-  return a.slice(0, 4) + '…' + a.slice(-4)
-}
-
 export default function BracketViewPage({ params }: { params: { id: string } }) {
   const [tournament, setTournament] = useState<TournamentSummary | null>(null)
   const [bracket, setBracket]       = useState<BracketEntry[] | null>(null)
   const [error, setError]           = useState<string | null>(null)
+  // Address -> display name, so the bracket shows names rather than wallet
+  // addresses (MiniPay players are not crypto users).
+  const [names, setNames]           = useState<Record<string, string>>({})
 
   async function load() {
     try {
@@ -40,6 +37,35 @@ export default function BracketViewPage({ params }: { params: { id: string } }) 
     const id = setInterval(load, 8000)
     return () => clearInterval(id)
   }, [params.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!bracket) return
+    const addrs = new Set<string>()
+    for (const b of bracket) {
+      if (b.playerOne) addrs.add(b.playerOne.toLowerCase())
+      if (b.playerTwo) addrs.add(b.playerTwo.toLowerCase())
+    }
+    if (tournament?.champion) addrs.add(tournament.champion.toLowerCase())
+    const unresolved = Array.from(addrs).filter(a => !(a in names))
+    if (unresolved.length === 0) return
+    let cancelled = false
+    Promise.all(unresolved.map(a => fetchProfile(a).then(p => [a, p?.displayName ?? null] as const)))
+      .then(pairs => {
+        if (cancelled) return
+        setNames(prev => {
+          const next = { ...prev }
+          for (const [a, n] of pairs) next[a] = n ?? ''
+          return next
+        })
+      })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bracket, tournament?.champion])
+
+  function nameFor(addr: string | null): string {
+    if (!addr) return '-'
+    return playerLabel(names[addr.toLowerCase()] || null, addr)
+  }
 
   const rounds = bracket
     ? Array.from(new Set(bracket.map(b => b.round))).sort((a, b) => a - b)
@@ -81,8 +107,8 @@ export default function BracketViewPage({ params }: { params: { id: string } }) 
                 </span>
               </p>
               {tournament.champion && (
-                <div style={{ marginTop: 14, padding: '12px 16px', background: 'linear-gradient(135deg, #FFD700, #E8B800)', borderRadius: 12, color: '#7A5A00', fontWeight: 700, fontSize: 14, fontFamily: 'ui-monospace, Menlo, monospace' }}>
-                  <IconTrophySm size={14} color="#8A5A00" />Champion: {shortAddr(tournament.champion)}
+                <div style={{ marginTop: 14, padding: '12px 16px', background: 'linear-gradient(135deg, #FFD700, #E8B800)', borderRadius: 12, color: '#7A5A00', fontWeight: 700, fontSize: 14 }}>
+                  <IconTrophySm size={14} color="#8A5A00" />Champion: {nameFor(tournament.champion)}
                 </div>
               )}
             </motion.div>
@@ -100,7 +126,7 @@ export default function BracketViewPage({ params }: { params: { id: string } }) 
                       {r === rounds[rounds.length - 1] ? 'Final' : r === rounds[rounds.length - 2] ? 'Semis' : `Round ${r + 1}`}
                     </div>
                     {bracket.filter(b => b.round === r).sort((a, b) => a.position - b.position).map(b => (
-                      <BracketCard key={b.bracketId} entry={b} />
+                      <BracketCard key={b.bracketId} entry={b} nameFor={nameFor} />
                     ))}
                   </div>
                 ))}
@@ -114,13 +140,13 @@ export default function BracketViewPage({ params }: { params: { id: string } }) 
   )
 }
 
-function BracketCard({ entry }: { entry: BracketEntry }) {
+function BracketCard({ entry, nameFor }: { entry: BracketEntry; nameFor: (addr: string | null) => string }) {
   const winnerHighlight = (player: string | null) => entry.winner && entry.winner === player
   const loserDim = (player: string | null) => entry.winner && entry.winner !== player && player !== null
 
   function rowStyle(player: string | null): React.CSSProperties {
     return {
-      padding: '8px 12px', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12.5, fontWeight: 600,
+      padding: '8px 12px', fontSize: 13, fontWeight: 600,
       color: winnerHighlight(player) ? GREEN_DARK : loserDim(player) ? '#9999A0' : INK,
       background: winnerHighlight(player) ? '#E8F7EE' : 'transparent',
       borderBottom: '0.5px solid rgba(0,0,0,0.06)',
@@ -135,11 +161,11 @@ function BracketCard({ entry }: { entry: BracketEntry }) {
       minWidth: 200,
     }}>
       <div style={rowStyle(entry.playerOne)}>
-        <span>{shortAddr(entry.playerOne)}</span>
+        <span>{nameFor(entry.playerOne)}</span>
         {winnerHighlight(entry.playerOne) && <span style={{ fontSize: 11, color: GREEN_DARK }}>✓</span>}
       </div>
       <div style={rowStyle(entry.playerTwo)}>
-        <span>{shortAddr(entry.playerTwo)}</span>
+        <span>{nameFor(entry.playerTwo)}</span>
         {winnerHighlight(entry.playerTwo) && <span style={{ fontSize: 11, color: GREEN_DARK }}>✓</span>}
       </div>
       {entry.matchId && (

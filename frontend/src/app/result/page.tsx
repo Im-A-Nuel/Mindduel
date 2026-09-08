@@ -10,7 +10,7 @@ import { BottomTabBar } from '@/components/layout/BottomTabBar'
 import { ShareButton } from '@/components/ShareButton'
 import { IconRobot, IconCrosshair, IconBolt, IconHandshake } from '@/components/ui/StateIcons'
 import { CELO_EXPLORER, tierForPoints } from '@/lib/constants'
-import { getMatchState } from '@/lib/api'
+import { getMatchState, fetchProfile, playerLabel } from '@/lib/api'
 import { sounds } from '@/lib/sounds'
 
 const BLUE       = '#0071E3'
@@ -170,7 +170,15 @@ function ResultContent({ kind, result, log }: { kind: ResultKind; result: Sessio
   const win  = kind === 'win'
   const draw = kind === 'draw'
 
-  const opponent    = shortAddr(result?.opponent)
+  const opponentAddr = result?.opponent ?? null
+  const [opponentName, setOpponentName] = useState<string | null>(null)
+  useEffect(() => {
+    if (!opponentAddr || opponentAddr === 'MindDuel AI') { setOpponentName(null); return }
+    let cancelled = false
+    fetchProfile(opponentAddr).then(p => { if (!cancelled) setOpponentName(p?.displayName ?? null) })
+    return () => { cancelled = true }
+  }, [opponentAddr])
+  const opponent = opponentAddr === 'MindDuel AI' ? 'MindDuel AI' : playerLabel(opponentName, opponentAddr)
   const mode        = modeLabelOf(result?.mode ?? 'classic')
   const ranked      = result?.ranked ?? false
   const pointsDelta = result?.pointsDelta ?? 0

@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { getAIMove, type AIDifficulty } from '@/lib/ai'
 import { sounds } from '@/lib/sounds'
 import { WalletButton } from '@/components/wallet/WalletButton'
-import { fetchTrivia, revealTrivia, peekTrivia, TriviaSessionExpiredError, WS_URL, reportMatchFinish, reportVsAiResult, getMatchState, joinMatch, type TriviaQuestion } from '@/lib/api'
+import { fetchTrivia, revealTrivia, peekTrivia, TriviaSessionExpiredError, WS_URL, reportMatchFinish, reportVsAiResult, getMatchState, joinMatch, fetchProfile, playerLabel, type TriviaQuestion } from '@/lib/api'
 import { useWallet } from '@/hooks/useWallet'
 import { SoundToggle } from '@/components/SoundToggle'
 import { IconRobot, IconCrosshair } from '@/components/ui/StateIcons'
@@ -559,8 +559,8 @@ function GameOverModal({ winner, isVsAI, myMark, ranked }: { winner: GameWinner;
 // ── Waiting room (PvP only) ───────────────────────────────────────────
 // Gates the match until BOTH players confirm they're ready, so neither client
 // can be mid-connect while the other places the opening mark.
-function ReadySlot({ label, addr, mark, ready, joined, isYou }: {
-  label: string; addr: string | null; mark: 'X' | 'O'; ready: boolean; joined: boolean; isYou: boolean
+function ReadySlot({ label, addr, name, mark, ready, joined, isYou }: {
+  label: string; addr: string | null; name: string; mark: 'X' | 'O'; ready: boolean; joined: boolean; isYou: boolean
 }) {
   const color = isYou ? BLUE : RED
   const statusText = ready ? 'Ready' : joined ? 'Not ready' : 'Connecting'
@@ -610,8 +610,8 @@ function ReadySlot({ label, addr, mark, ready, joined, isYou }: {
       </div>
 
       <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: FAINT }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 600, color: joined ? INK : FAINT, fontVariantNumeric: 'tabular-nums' }}>
-        {addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : 'Waiting to join'}
+      <span style={{ fontSize: 13, fontWeight: 600, color: joined ? INK : FAINT }}>
+        {addr ? name : 'Waiting to join'}
       </span>
 
       <motion.span
@@ -635,8 +635,8 @@ function ReadySlot({ label, addr, mark, ready, joined, isYou }: {
   )
 }
 
-function WaitingRoom({ matchId, myMark, myAddr, oppAddr, oppJoined, iAmReady, oppReady, onReady, ranked, modeLabel }: {
-  matchId: string; myMark: 'X' | 'O'; myAddr: string | null; oppAddr: string | null
+function WaitingRoom({ matchId, myMark, myAddr, myName, oppAddr, oppName, oppJoined, iAmReady, oppReady, onReady, ranked, modeLabel }: {
+  matchId: string; myMark: 'X' | 'O'; myAddr: string | null; myName: string; oppAddr: string | null; oppName: string
   oppJoined: boolean; iAmReady: boolean; oppReady: boolean; onReady: () => void
   ranked: boolean; modeLabel: string
 }) {
@@ -674,9 +674,9 @@ function WaitingRoom({ matchId, myMark, myAddr, oppAddr, oppJoined, iAmReady, op
         </div>
 
         <div style={{ display: 'flex', gap: 10, width: '100%', alignItems: 'center' }}>
-          <ReadySlot label="YOU"      addr={myAddr}  mark={myMark} ready={iAmReady} joined isYou />
+          <ReadySlot label="YOU"      addr={myAddr}  name={myName}  mark={myMark} ready={iAmReady} joined isYou />
           <span style={{ fontSize: 11, fontWeight: 700, color: FAINT, letterSpacing: 1, flexShrink: 0 }}>VS</span>
-          <ReadySlot label="OPPONENT" addr={oppAddr} mark={myMark === 'X' ? 'O' : 'X'} ready={oppReady} joined={oppJoined} isYou={false} />
+          <ReadySlot label="OPPONENT" addr={oppAddr} name={oppName} mark={myMark === 'X' ? 'O' : 'X'} ready={oppReady} joined={oppJoined} isYou={false} />
         </div>
 
         <div style={{ minHeight: 22, display: 'flex', alignItems: 'center' }}>
@@ -880,6 +880,9 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   const [readyPlayers, setReadyPlayers] = useState<string[]>([])
   // Reactive mirror of the player addresses (the refs don't re-render the UI).
   const [matchPlayers, setMatchPlayers] = useState<{ one: string | null; two: string | null }>({ one: null, two: null })
+  // Address -> display name, resolved from the backend so match UI can show
+  // names instead of wallet addresses.
+  const [names, setNames] = useState<Record<string, string>>({})
   // Latch: once the match has started, a later disconnect must never bounce
   // the player back into the waiting room mid-game.
   const [gameStarted, setGameStarted] = useState(false)
@@ -1417,6 +1420,28 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
   // Waiting room only gates PvP. vs-AI never has a second human to wait for.
   // The 3..2..1 replaces it once both players are ready.
   const showWaitingRoom = !isVsAI && !isLoading && !gameStarted && !gameOver && startCountdown === null
+
+  // Resolve display names for both sides so the UI never shows a raw wallet
+  // address - MiniPay players are not crypto users. Falls back to the
+  // "Player abcd" tag from playerLabel() when nobody has set a name.
+  const nameFor = (addr: string | null | undefined): string => {
+    if (!addr) return '???'
+    return playerLabel(names[addr.toLowerCase()], addr)
+  }
+  useEffect(() => {
+    const addrs = [myAddrLower, oppAddrLower].filter((a): a is string => !!a)
+    let cancelled = false
+    Promise.all(addrs.map(a => fetchProfile(a).then(p => [a, p?.displayName ?? null] as const)))
+      .then(pairs => {
+        if (cancelled) return
+        setNames(prev => {
+          const next = { ...prev }
+          for (const [a, n] of pairs) if (n) next[a] = n
+          return next
+        })
+      })
+    return () => { cancelled = true }
+  }, [myAddrLower, oppAddrLower])
 
   // Name ourselves to the room whenever the wallet is (re)known. The socket
   // opens before the connector settles, so `?player=` on the URL can be
@@ -2000,11 +2025,10 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
         // this match so the recording shows real on-chain identities.
         const meAddr = address
         const oppAddr = isVsAI ? null : (myMark === 'X' ? playerTwoAddrRef.current : playerOneAddrRef.current)
-        const fmt = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
         const p = (staticP as { you?: boolean }).you && meAddr
-          ? { ...staticP, addr: fmt(meAddr) }
+          ? { ...staticP, addr: nameFor(meAddr) }
           : (staticP as { opponent?: boolean }).opponent && oppAddr
-          ? { ...staticP, addr: fmt(oppAddr) }
+          ? { ...staticP, addr: nameFor(oppAddr) }
           : staticP
         return (
         <div key={p.rank} style={{ display: 'flex', alignItems: 'center', padding: (p as { you?: boolean }).you ? '9px 8px' : '9px 4px', borderTop: p.rank !== 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', background: (p as { you?: boolean }).you ? '#F5F9FF' : 'transparent', borderRadius: (p as { you?: boolean }).you ? 10 : 0 }}>
@@ -2058,7 +2082,9 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
             matchId={params.matchId}
             myMark={myMark}
             myAddr={myAddrLower}
+            myName={nameFor(myAddrLower)}
             oppAddr={oppAddrLower}
+            oppName={nameFor(oppAddrLower)}
             oppJoined={oppJoined}
             iAmReady={iAmReady}
             oppReady={oppReady}
@@ -2128,7 +2154,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
               <PlayerChip
                 color={BLUE}
                 label="YOU"
-                addr={address ? `${address.slice(0, 6)}…${address.slice(-4)}` : '-'}
+                addr={address ? nameFor(address) : '-'}
                 mark={myMark}
                 active={currentPlayer === myMark}
               />
@@ -2141,7 +2167,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
                   const opp = myMark === 'X'
                     ? playerTwoAddrRef.current
                     : playerOneAddrRef.current
-                  return opp ? `${opp.slice(0, 6)}…${opp.slice(-4)}` : 'waiting…'
+                  return opp ? nameFor(opp) : 'waiting…'
                 })()}
                 mark={myMark === 'X' ? 'O' : 'X'}
                 active={currentPlayer !== myMark}
