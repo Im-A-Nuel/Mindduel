@@ -1,6 +1,14 @@
-import { inArray, eq } from 'drizzle-orm'
+import { inArray, eq, ne, and } from 'drizzle-orm'
 import { db } from './db.js'
 import { profiles, type Profile } from './schema.js'
+
+/** Thrown by upsertProfile when the requested name is already taken by another player. */
+export class NameTakenError extends Error {
+  constructor(name: string) {
+    super(`"${name}" is already taken.`)
+    this.name = 'NameTakenError'
+  }
+}
 
 export const NAME_MIN = 2
 export const NAME_MAX = 20
@@ -41,15 +49,49 @@ export async function getProfile(address: string): Promise<Profile | null> {
   return rows[0] ?? null
 }
 
-/** Create or replace the caller's profile row. */
+/**
+ * Create or replace the caller's profile row. Names are unique (case
+ * insensitive) across all players: this pre-checks for a friendly error, then
+ * relies on the DB's unique index on `nameKey` to catch the rare race where
+ * two players claim the same name at the same moment.
+ */
 export async function upsertProfile(address: string, displayName: string, avatarSeed: string | null): Promise<Profile> {
   const player = key(address)
-  const row = { player, displayName, avatarSeed, updatedAt: Date.now() }
-  await db.insert(profiles).values(row).onConflictDoUpdate({
-    target: profiles.player,
-    set: { displayName: row.displayName, avatarSeed: row.avatarSeed, updatedAt: row.updatedAt },
-  })
+  const nameKey = displayName.toLowerCase()
+
+  const taken = await db.select({ player: profiles.player }).from(profiles)
+    .where(and(eq(profiles.nameKey, nameKey), ne(profiles.player, player)))
+    .limit(1)
+  if (taken.length > 0) throw new NameTakenError(displayName)
+
+  const row = { player, displayName, nameKey, avatarSeed, updatedAt: Date.now() }
+  try {
+    await db.insert(profiles).values(row).onConflictDoUpdate({
+      target: profiles.player,
+      set: { displayName: row.displayName, nameKey: row.nameKey, avatarSeed: row.avatarSeed, updatedAt: row.updatedAt },
+    })
+  } catch (e) {
+    // Postgres unique_violation - another request claimed this name in the
+    // narrow window between the check above and this write.
+    if ((e as { code?: string }).code === '23505') throw new NameTakenError(displayName)
+    throw e
+  }
   return row
+}
+
+/**
+ * Whether `displayName` is free for `address` to claim - either nobody has it,
+ * or `address` already owns it (renaming to your own current name, or just a
+ * different case of it, is always allowed). Used for live-typing feedback in
+ * the profile editor, ahead of the authoritative check in upsertProfile.
+ */
+export async function isNameAvailable(address: string, displayName: string): Promise<boolean> {
+  const player = key(address)
+  const nameKey = displayName.toLowerCase()
+  const taken = await db.select({ player: profiles.player }).from(profiles)
+    .where(and(eq(profiles.nameKey, nameKey), ne(profiles.player, player)))
+    .limit(1)
+  return taken.length === 0
 }
 
 /**

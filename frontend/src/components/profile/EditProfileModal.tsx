@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { IconDice } from '@/components/ui/StateIcons'
 import { sounds } from '@/lib/sounds'
+import { checkNameAvailable } from '@/lib/api'
 
 const INK        = 'var(--mdd-ink)'
 const MUTED      = 'var(--mdd-muted)'
@@ -22,8 +23,11 @@ interface Props {
   open: boolean
   initial: EditableProfile
   defaultSeed: string
+  /** Wallet address whose name is being edited - used for the live uniqueness check. */
+  player: string | null | undefined
   onClose: () => void
-  onSave: (next: EditableProfile) => void
+  /** May reject (e.g. name taken in a last-moment race) - the modal stays open and shows the error inline. */
+  onSave: (next: EditableProfile) => void | Promise<void>
 }
 
 // Matches the server-side limit in backend/src/lib/profile-store.ts, so a name
@@ -31,12 +35,16 @@ interface Props {
 const NAME_MAX = 20
 const BIO_MAX = 140
 
-export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }: Props) {
+export function EditProfileModal({ open, initial, defaultSeed, player, onClose, onSave }: Props) {
   const [displayName, setDisplayName] = useState(initial.displayName)
   const [bio, setBio] = useState(initial.bio)
   const [avatarSeed, setAvatarSeed] = useState(initial.avatarSeed)
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
   const [confirmDiscard, setConfirmDiscard] = useState(false)
+  // Live "is this name taken" check as the player types, debounced so it does
+  // not fire on every keystroke. null = unknown/not yet checked or checking.
+  const [nameStatus, setNameStatus] = useState<'checking' | 'available' | 'taken' | null>(null)
 
   useEffect(() => {
     if (open) {
@@ -44,8 +52,30 @@ export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }
       setBio(initial.bio)
       setAvatarSeed(initial.avatarSeed)
       setError('')
+      setNameStatus(null)
     }
   }, [open, initial])
+
+  // Debounced live availability check. Skips the check entirely when the name
+  // is unchanged from what's already saved (renaming to your own current name
+  // is always fine) or too short to be valid yet.
+  useEffect(() => {
+    const trimmed = displayName.trim()
+    if (!open || !player || trimmed.length < 2 || trimmed === initial.displayName.trim()) {
+      setNameStatus(null)
+      return
+    }
+    setNameStatus('checking')
+    let cancelled = false
+    const t = setTimeout(() => {
+      checkNameAvailable(player, trimmed).then(result => {
+        if (cancelled) return
+        if (!result) { setNameStatus(null); return }
+        setNameStatus(result.available ? 'available' : 'taken')
+      })
+    }, 450)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [displayName, open, player, initial.displayName])
 
   // Has the user changed anything since the modal opened?
   const isDirty =
@@ -53,10 +83,14 @@ export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }
     bio.trim()         !== initial.bio.trim() ||
     (avatarSeed.trim() || defaultSeed) !== initial.avatarSeed
 
-  function handleSave() {
+  async function handleSave() {
     const trimmedName = displayName.trim()
     if (trimmedName.length > NAME_MAX) {
       setError(`Display name must be ${NAME_MAX} characters or fewer.`)
+      return
+    }
+    if (nameStatus === 'taken') {
+      setError('That name is taken. Try another one.')
       return
     }
     if (bio.length > BIO_MAX) {
@@ -64,11 +98,22 @@ export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }
       return
     }
     sounds.click()
-    onSave({
-      displayName: trimmedName,
-      bio: bio.trim(),
-      avatarSeed: avatarSeed.trim() || defaultSeed,
-    })
+    setError('')
+    setSaving(true)
+    try {
+      // Awaited so a last-moment uniqueness conflict (someone else claimed the
+      // name a beat earlier) surfaces here instead of leaving local state
+      // out of sync with what the server actually accepted.
+      await onSave({
+        displayName: trimmedName,
+        bio: bio.trim(),
+        avatarSeed: avatarSeed.trim() || defaultSeed,
+      })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not save profile.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   function attemptClose() {
@@ -176,13 +221,27 @@ export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }
                   onChange={e => setDisplayName(e.target.value.slice(0, NAME_MAX))}
                   placeholder="e.g. CeloChampion"
                   maxLength={NAME_MAX}
-                  style={inputStyle}
+                  style={{
+                    ...inputStyle,
+                    borderColor: nameStatus === 'taken' ? RED : nameStatus === 'available' ? '#34C759' : inputStyle.borderColor,
+                  }}
                   onFocus={e => (e.target.style.borderColor = BLUE)}
-                  onBlur={e => (e.target.style.borderColor = 'rgba(0,0,0,0.08)')}
+                  onBlur={e => (e.target.style.borderColor = nameStatus === 'taken' ? RED : nameStatus === 'available' ? '#34C759' : 'rgba(0,0,0,0.08)')}
                 />
-                <p style={{ margin: '6px 0 0', fontSize: 11.5, color: MUTED, lineHeight: 1.4 }}>
-                  This is how other players see you on the leaderboard and in match history.
-                </p>
+                {nameStatus === 'checking' && (
+                  <p style={{ margin: '6px 0 0', fontSize: 11.5, color: MUTED, lineHeight: 1.4 }}>Checking availability…</p>
+                )}
+                {nameStatus === 'taken' && (
+                  <p style={{ margin: '6px 0 0', fontSize: 11.5, color: RED, fontWeight: 600, lineHeight: 1.4 }}>That name is already taken.</p>
+                )}
+                {nameStatus === 'available' && (
+                  <p style={{ margin: '6px 0 0', fontSize: 11.5, color: '#0A7A2D', fontWeight: 600, lineHeight: 1.4 }}>✓ Name is available.</p>
+                )}
+                {nameStatus === null && (
+                  <p style={{ margin: '6px 0 0', fontSize: 11.5, color: MUTED, lineHeight: 1.4 }}>
+                    This is how other players see you on the leaderboard and in match history. Names are unique.
+                  </p>
+                )}
               </div>
 
               {/* Bio */}
@@ -256,9 +315,16 @@ export function EditProfileModal({ open, initial, defaultSeed, onClose, onSave }
               </button>
               <button
                 onClick={handleSave}
-                style={{ appearance: 'none', border: 'none', background: BLUE, color: '#fff', padding: '10px 22px', borderRadius: 12, fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,113,227,0.25)', flex: '0 1 auto', whiteSpace: 'nowrap' }}
+                disabled={nameStatus === 'taken' || nameStatus === 'checking' || saving}
+                style={{
+                  appearance: 'none', border: 'none', color: '#fff', padding: '10px 22px', borderRadius: 12,
+                  fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit', flex: '0 1 auto', whiteSpace: 'nowrap',
+                  background: nameStatus === 'taken' || nameStatus === 'checking' || saving ? 'var(--mdd-border-strong)' : BLUE,
+                  cursor: nameStatus === 'taken' || nameStatus === 'checking' || saving ? 'not-allowed' : 'pointer',
+                  boxShadow: nameStatus === 'taken' || nameStatus === 'checking' || saving ? 'none' : '0 2px 10px rgba(0,113,227,0.25)',
+                }}
               >
-                Save Changes
+                {saving ? 'Saving…' : 'Save Changes'}
               </button>
             </div>
           </motion.div>

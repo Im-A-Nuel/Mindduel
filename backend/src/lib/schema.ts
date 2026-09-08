@@ -1,4 +1,4 @@
-import { pgTable, text, integer, bigint, index } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, bigint, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
 /**
  * MindDuel matches table (Celo edition).
@@ -92,13 +92,23 @@ export type CheckInInsert = typeof checkins.$inferInsert
  * put in front of them. The name lives here (not only in the browser) because
  * the leaderboard and match history have to render *other* players' names too.
  * Keyed by lowercased address so lookups are case-insensitive.
+ *
+ * `nameKey` is `displayName` lowercased and is the uniqueness key: two
+ * players cannot hold names that only differ by case ("Nuel" vs "nuel"),
+ * since both would render as the same identity to everyone else. The DB
+ * unique index is the actual guard against a race between two concurrent
+ * claims of the same name; the app-level check in profile-store.ts is only a
+ * friendlier pre-check.
  */
 export const profiles = pgTable('profiles', {
   player:      text('player').primaryKey(),   // lowercased wallet address
   displayName: text('display_name').notNull(),
+  nameKey:     text('name_key').notNull(),     // lowercased displayName, unique
   avatarSeed:  text('avatar_seed'),
   updatedAt:   bigint('updated_at', { mode: 'number' }).notNull(),
-})
+}, (table) => ({
+  uniqueName: uniqueIndex('idx_profiles_name_key').on(table.nameKey),
+}))
 
 export type Profile       = typeof profiles.$inferSelect
 export type ProfileInsert = typeof profiles.$inferInsert

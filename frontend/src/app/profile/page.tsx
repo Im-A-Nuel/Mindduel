@@ -191,22 +191,18 @@ export default function ProfilePage() {
     return () => { cancelled = true }
   }, [address])
 
+  // Publishes the name to the server (if set) before committing anything
+  // locally, so a last-moment uniqueness conflict never leaves this device
+  // showing a name the server actually rejected. On failure this rejects,
+  // and the modal (which awaits it) stays open with the error shown inline.
   async function handleSaveProfile(next: EditableProfile) {
+    if (walletAddr && next.displayName.trim()) {
+      await saveProfile({ player: walletAddr, displayName: next.displayName, avatarSeed: next.avatarSeed })
+    }
     setEditable(next)
     if (walletAddr) saveStoredProfile(walletAddr, next)
     setEditOpen(false)
-
-    if (!walletAddr || !next.displayName.trim()) {
-      toast('Profile saved ✓', 'success')
-      return
-    }
-    // Publish the name so it shows up wherever other players see this account.
-    try {
-      await saveProfile({ player: walletAddr, displayName: next.displayName, avatarSeed: next.avatarSeed })
-      toast('Profile saved ✓', 'success')
-    } catch (e) {
-      toast(e instanceof Error ? e.message : 'Could not publish your name', 'error')
-    }
+    toast('Profile saved ✓', 'success')
   }
 
   // Fetch real badges for the connected wallet
@@ -373,6 +369,7 @@ export default function ProfilePage() {
             open={editOpen}
             initial={editable}
             defaultSeed={defaultSeed}
+            player={walletAddr}
             onClose={() => setEditOpen(false)}
             onSave={handleSaveProfile}
           />

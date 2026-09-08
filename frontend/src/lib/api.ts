@@ -329,6 +329,21 @@ export async function fetchProfile(player: string): Promise<PlayerProfile | null
   }
 }
 
+/**
+ * Live-typing check: is this name free for `player` to claim? Best-effort -
+ * on any network hiccup, treat as unknown (null) rather than blocking typing;
+ * the authoritative check still happens on saveProfile.
+ */
+export async function checkNameAvailable(player: string, name: string): Promise<{ available: boolean; error: string | null } | null> {
+  try {
+    const res = await fetchWithTimeout(`${API}/api/profile-name-check?player=${encodeURIComponent(player)}&name=${encodeURIComponent(name)}`, {}, 6_000)
+    if (!res.ok) return null
+    return await res.json() as { available: boolean; error: string | null }
+  } catch {
+    return null
+  }
+}
+
 /** Save the display name shown to other players. Throws with the server's message. */
 export async function saveProfile(args: { player: string; displayName: string; avatarSeed?: string | null }): Promise<PlayerProfile> {
   const res = await fetchWithTimeout(`${API}/api/profile`, {

@@ -1,11 +1,16 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { getProfile, upsertProfile, validateDisplayName, NAME_MIN, NAME_MAX } from '../lib/profile-store.js'
+import { getProfile, upsertProfile, validateDisplayName, isNameAvailable, NameTakenError, NAME_MIN, NAME_MAX } from '../lib/profile-store.js'
 
 const bodySchema = z.object({
   player:      z.string().min(4),
   displayName: z.string(),
   avatarSeed:  z.string().max(64).nullable().optional(),
+})
+
+const checkQuerySchema = z.object({
+  player: z.string().min(4),
+  name:   z.string().min(1),
 })
 
 const ERROR_MESSAGE: Record<string, string> = {
@@ -31,6 +36,23 @@ export async function profileRoutes(app: FastifyInstance) {
     }
   })
 
+  // GET /api/profile-name-check — live availability check for the editor
+  // (a separate path, not /profile/:player, so it can't collide with that
+  // param route). Best-effort: validity is re-checked authoritatively on save.
+  app.get('/profile-name-check', async (request, reply) => {
+    const parsed = checkQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Invalid query' })
+    }
+    const { player, name } = parsed.data
+    const check = validateDisplayName(name)
+    if (!check.ok) {
+      return { available: false, error: ERROR_MESSAGE[check.error] ?? 'Invalid name' }
+    }
+    const available = await isNameAvailable(player, check.name)
+    return { available, error: available ? null : 'That name is taken.' }
+  })
+
   // POST /api/profile — set the display name shown instead of the address.
   //
   // Like the rest of the API this is unauthenticated: the client asserts which
@@ -48,7 +70,14 @@ export async function profileRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: ERROR_MESSAGE[check.error] ?? 'Invalid name' })
     }
 
-    const row = await upsertProfile(player, check.name, avatarSeed ?? null)
-    return { player: row.player, displayName: row.displayName, avatarSeed: row.avatarSeed }
+    try {
+      const row = await upsertProfile(player, check.name, avatarSeed ?? null)
+      return { player: row.player, displayName: row.displayName, avatarSeed: row.avatarSeed }
+    } catch (e) {
+      if (e instanceof NameTakenError) {
+        return reply.status(409).send({ error: 'That name is taken.' })
+      }
+      throw e
+    }
   })
 }
