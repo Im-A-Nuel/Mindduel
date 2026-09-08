@@ -295,9 +295,9 @@ function VisualAchievementBadges() {
           {/* Card labels */}
           <text x="170" y="110" textAnchor="middle" fill="#F59E0B" fontSize="11" fontWeight="800" letterSpacing="0.5">LEGENDARY</text>
           <text x="170" y="126" textAnchor="middle" fill="#78350F" fontSize="8.5" fontWeight="600">MIND DUEL · BADGE</text>
-          {/* On-chain-tracked pill */}
+          {/* Verified-badge pill */}
           <rect x="134" y="140" width="72" height="18" rx="6" fill="#0D0806" stroke="#78350F" strokeWidth="1"/>
-          <text x="170" y="150" textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="8.5" fontWeight="700">🏅 ON-CHAIN</text>
+          <text x="170" y="150" textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="8.5" fontWeight="700">🏅 VERIFIED</text>
         </g>
         {/* Sparkles */}
         {[[54,36,14],[296,28,11],[46,148,12],[302,152,13],[76,96,9],[268,90,10]].map(([x,y,sz],i)=>(

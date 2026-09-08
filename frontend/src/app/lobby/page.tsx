@@ -168,7 +168,7 @@ function CategoryChip({ label, selected, onClick }: { label: string; selected: b
 function MatchTypeToggle({ value, onChange, rankedDisabled }: { value: 'casual' | 'ranked' | 'ai'; onChange: (v: 'casual' | 'ranked' | 'ai') => void; rankedDisabled?: boolean }) {
   const OPTIONS: { id: 'casual' | 'ranked' | 'ai'; title: string; sub: string }[] = [
     { id: 'casual', title: 'Casual',  sub: 'For fun · not recorded' },
-    { id: 'ranked', title: 'Ranked',  sub: 'On-chain · +/− points' },
+    { id: 'ranked', title: 'Ranked',  sub: 'Public ladder · +/− points' },
     { id: 'ai',     title: 'vs AI',   sub: 'Practice vs MindDuel AI' },
   ]
   return (
@@ -249,7 +249,7 @@ function JoinCodeModal({ code, matchId, onStart }: { code: string; matchId: stri
           <ShareButton
             label="Share Link"
             url={inviteUrl}
-            text="Duel me on MindDuel: trivia-gated PvP with on-chain ranking on Celo. Tap to join my match."
+            text="Duel me on MindDuel: trivia-gated PvP with a public leaderboard on Celo. Tap to join my match."
             style={{ flex: 1, borderRadius: 12, padding: '12px', justifyContent: 'center', fontSize: 14 }}
           />
         </div>
@@ -719,7 +719,7 @@ export default function LobbyPage() {
               )}
             </button>
             <CheckInButton />
-            <ShareButton variant="ghost" text="Play MindDuel — trivia-gated PvP, climb the on-chain ranks on Celo. No staking, pure skill." />
+            <ShareButton variant="ghost" text="Play MindDuel — trivia-gated PvP, climb the public ranks on Celo. No staking, pure skill." />
           </div>
           <p style={{ fontSize: 15, color: MUTED, margin: 0, lineHeight: 1.4 }}>
             Configure your duel - pick a mode, go Casual or climb the Ranked ladder, choose what you know.
@@ -816,10 +816,10 @@ export default function LobbyPage() {
             <MatchTypeToggle value={matchType} onChange={(v) => { sounds.select(); setMatchType(v) }} rankedDisabled={!isConnected} />
             <p style={{ margin: '12px 2px 0', fontSize: 12, color: MUTED, lineHeight: 1.5 }}>
               {matchType === 'ranked'
-                ? 'Ranked results are recorded on-chain - winning adds points, losing subtracts them. No tokens are staked.'
+                ? 'Ranked results are recorded permanently - winning adds points, losing subtracts them. No tokens are staked.'
                 : matchType === 'ai'
-                ? 'Practice against MindDuel AI in your chosen mode. Casual - never affects your on-chain ranking.'
-                : 'Casual matches are just for fun and never affect your on-chain ranking.'}
+                ? 'Practice against MindDuel AI in your chosen mode. Casual - never affects your ranking.'
+                : 'Casual matches are just for fun and never affect your ranking.'}
               {matchType === 'ranked' && !isConnected && (
                 <span style={{ display: 'block', marginTop: 4, color: '#8A5A00', fontWeight: 500 }}>
                   Connect a wallet to play Ranked.

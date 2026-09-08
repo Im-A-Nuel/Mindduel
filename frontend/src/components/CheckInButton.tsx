@@ -33,7 +33,7 @@ export function CheckInButton() {
     try {
       await checkIn()
       sounds.correct()
-      toast('Checked in on-chain ✓', 'success')
+      toast('Checked in ✓', 'success')
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Check-in failed'
       if (/reject|denied/i.test(msg)) toast('Check-in cancelled', 'info')
@@ -46,7 +46,7 @@ export function CheckInButton() {
       whileTap={checkedInToday ? {} : { scale: 0.97 }}
       onClick={onClick}
       disabled={checkedInToday || isPending}
-      title="Sign a daily on-chain check-in"
+      title="Confirm your daily check-in"
       style={{
         appearance: 'none', fontFamily: 'inherit',
         padding: '9px 16px', borderRadius: 999,

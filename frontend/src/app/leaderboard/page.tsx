@@ -133,7 +133,7 @@ export default function LeaderboardPage() {
                 <span style={{ fontSize: 11, fontWeight: 700, color: GREEN_DARK, letterSpacing: 0.3 }}>LIVE</span>
               </div>
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: 14, color: MUTED }}>Top players ranked by on-chain points</p>
+            <p style={{ margin: '4px 0 0', fontSize: 14, color: MUTED }}>Top players ranked by points</p>
           </div>
 
           {/* Period filter */}
@@ -296,7 +296,7 @@ export default function LeaderboardPage() {
         {/* Footer note */}
         {rows.length > 0 && (
           <p style={{ textAlign: 'center', fontSize: 12, color: MUTED, marginTop: 24 }}>
-            Rankings derived from settled on-chain ranked matches · Celo
+            Rankings derived from settled ranked matches · Celo
           </p>
         )}
       </div>

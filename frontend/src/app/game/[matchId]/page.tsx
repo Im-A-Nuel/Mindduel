@@ -1359,7 +1359,7 @@ export default function GamePage({ params }: { params: { matchId: string } }) {
       // answer, otherwise let it keep asking the server.
       const settled = !!res.txHash || isDraw
       writeResult(pointsDelta, newPoints, res.txHash ?? null, !settled)
-      if (res.txHash) toast('Ranked result recorded on-chain ✓', 'success')
+      if (res.txHash) toast('Ranked result recorded ✓', 'success')
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [winner])

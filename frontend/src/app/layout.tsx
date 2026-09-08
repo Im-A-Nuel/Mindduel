@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     default:  'MindDuel - Prove Your Mind. Climb the Ranks.',
     template: '%s · MindDuel',
   },
-  description: 'Trivia-gated PvP Tic Tac Toe with on-chain points & ranking on Celo. No staking - pure skill.',
+  description: 'Trivia-gated PvP Tic Tac Toe with a public leaderboard on Celo. No staking - pure skill.',
   keywords: ['celo', 'minipay', 'web3', 'game', 'pvp', 'trivia', 'ranking', 'tic tac toe', 'mindduel'],
   // Talent.app (Celo Proof of Ship) domain ownership verification.
   other: {
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title:       'MindDuel - Prove Your Mind. Climb the Ranks.',
-    description: 'Trivia-gated PvP Tic Tac Toe with on-chain points & ranking on Celo.',
+    description: 'Trivia-gated PvP Tic Tac Toe with a public leaderboard on Celo.',
     type:        'website',
     siteName:    'MindDuel',
     images:      [{ url: '/icon-512.png', width: 512, height: 512 }],
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card:        'summary_large_image',
     title:       'MindDuel',
-    description: 'Prove Your Mind. Win On-Chain.',
+    description: 'Prove Your Mind. Climb the Ranks.',
     images:      ['/icon-512.png'],
   },
 }
