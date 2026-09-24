@@ -995,9 +995,14 @@ html[data-theme="dark"] [style*="background: white"] {
     align-items: stretch !important;
     justify-content: center !important;
     flex: 1 1 auto !important;
-    /* Extra bottom padding clears the sticky Play button on the first,
-       unscrolled screen so it never sits over the trust row. */
-    padding: 10px 20px calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    /* A small safety margin, not a full FAB-height reservation: with
+       justify-content:center only half of any padding added here shows up as
+       visible bottom gap (the rest is absorbed into re-centering), so a large
+       value here bloats the gap between the trust row and the stats bar much
+       faster than it buys real clearance. The footer's own padding (below)
+       is the real protection for the button; this just keeps the trust row
+       off the very edge on short viewports. */
+    padding: 10px 20px 20px !important;
     gap: 12px !important;
   }
   .lp-hero-copy { display: contents !important; }
