@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWallet } from '@/hooks/useWallet'
 import { useRanking } from '@/hooks/useRanking'
@@ -564,6 +565,16 @@ export default function ProfilePage() {
 
             </AnimatePresence>
           </motion.main>
+        </div>
+
+        {/* Legal & support - the only place these are reachable once you're past
+            the landing page, since the landing footer is mobile-hidden inside
+            the app. Profile is on the bottom tab bar, so it's always one tap
+            away from anywhere in the app. */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 18, flexWrap: 'wrap', marginTop: 32, paddingTop: 20, borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
+          <Link href="/how-it-works" style={{ fontSize: 12.5, color: MUTED, textDecoration: 'none' }}>About</Link>
+          <Link href="/support" style={{ fontSize: 12.5, color: MUTED, textDecoration: 'none' }}>Support</Link>
+          <Link href="/terms" style={{ fontSize: 12.5, color: MUTED, textDecoration: 'none' }}>Terms & Privacy</Link>
         </div>
       </div>
       <style>{`
