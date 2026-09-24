@@ -960,19 +960,19 @@ html[data-theme="dark"] [style*="background: white"] {
 @media (max-width: 767px) {
   /* Fill the screen: landing root spans the viewport as a flex column, the
      hero grows to absorb any slack (its content stays vertically centred), and
-     the stats bar sits at the bottom with the footer right after it. This
-     removes both the gap above the footer and the empty band below it.
-     The bottom padding reserves room for the sticky Play button; with
-     border-box sizing it sits inside the 100dvh, so it adds no scroll. */
+     the stats bar sits at the bottom with the footer right after it. */
   .lp-root {
     min-height: 100dvh !important;
     display: flex !important;
     flex-direction: column !important;
-    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   /* Play stays reachable at any scroll position on a phone: pinned just above
-     the bottom edge, clear of the device safe area. */
+     the bottom edge, clear of the device safe area. Being position:fixed it
+     never scrolls away, so BOTH ends of the page need real clearance reserved
+     in the document flow underneath it - the hero for the first, unscrolled
+     screen (below), and the footer for when the page is scrolled all the way
+     down (below), otherwise the button sits on top of whatever text is last. */
   .lp-fab {
     display: block;
     position: fixed;
@@ -980,9 +980,11 @@ html[data-theme="dark"] [style*="background: white"] {
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     z-index: 45;
   }
-  /* Tighten the footer on mobile so it sits close under the stats bar. */
-  .site-footer { margin-top: 0 !important; }
-  .footer-inner { padding: 14px 16px !important; }
+  /* Tighten the footer on mobile so it sits close under the stats bar, but
+     leave clearance below its own content so the fixed Play button never
+     overlaps the last footer line once the page is scrolled to the bottom. */
+  .site-footer { margin-top: 0 !important; padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important; }
+  .footer-inner { padding: 14px 16px 0 !important; }
   /* Mobile hero is a single flex column. The copy block is flattened with
      display:contents so its children sit as direct flex items alongside the
      board, letting us interleave the exact order the design calls for:
@@ -993,7 +995,9 @@ html[data-theme="dark"] [style*="background: white"] {
     align-items: stretch !important;
     justify-content: center !important;
     flex: 1 1 auto !important;
-    padding: 10px 20px 14px !important;
+    /* Extra bottom padding clears the sticky Play button on the first,
+       unscrolled screen so it never sits over the trust row. */
+    padding: 10px 20px calc(64px + env(safe-area-inset-bottom, 0px)) !important;
     gap: 12px !important;
   }
   .lp-hero-copy { display: contents !important; }
