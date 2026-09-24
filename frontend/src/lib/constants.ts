@@ -10,6 +10,9 @@ export const RANKING_CONTRACT_ADDRESS = (
 
 export const CELO_EXPLORER = 'https://celoscan.io'
 
+/** Canonical Tether USD on Celo mainnet, 6 decimals. MiniPay's default stablecoin. */
+export const USDT_ADDRESS = '0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e' as `0x${string}`
+
 export const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3001'
 

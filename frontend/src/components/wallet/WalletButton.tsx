@@ -6,14 +6,13 @@ import { useAccount, useBalance } from 'wagmi'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWallet } from '@/hooks/useWallet'
 import { useMiniPay } from '@/hooks/useMiniPay'
-import { CELO_EXPLORER } from '@/lib/constants'
+import { CELO_EXPLORER, USDT_ADDRESS } from '@/lib/constants'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { sounds } from '@/lib/sounds'
 
 const INK        = 'var(--mdd-ink)'
 const MUTED      = 'var(--mdd-muted)'
 const RED        = '#FF3B30'
-const GREEN_DARK = '#0A7A2D'
 
 interface WalletButtonProps {
   className?: string
@@ -23,9 +22,11 @@ export function WalletButton({ className }: WalletButtonProps) {
   const { address, isConnected, isConnecting, connect, disconnect } = useWallet()
   const { isMiniPay } = useMiniPay()
   const { address: rawAddress } = useAccount()
-  const { data: bal, isFetching: loadingBal, refetch } = useBalance({ address: rawAddress })
+  // USDT is MiniPay's default stablecoin - shown first. Native CELO stays as a
+  // secondary line since the relayer covers gas and most players never touch it.
+  const { data: usdtBal, isFetching: loadingUsdt, refetch: refetchUsdt } = useBalance({ address: rawAddress, token: USDT_ADDRESS })
+  const { data: celoBal, isFetching: loadingCelo, refetch: refetchCelo } = useBalance({ address: rawAddress })
   const [showMenu, setShowMenu] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [confirmDisconnect, setConfirmDisconnect] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
@@ -99,8 +100,8 @@ export function WalletButton({ className }: WalletButtonProps) {
       >
         <div style={{ width: 18, height: 18, borderRadius: 9, background: 'linear-gradient(135deg, #FCFF52, #35D07F)', flexShrink: 0 }} />
         {/* The raw address is deliberately not shown: MiniPay players are not
-            crypto users and a 0x string reads as jargon. It stays available
-            behind "Copy Address" in the menu for anyone who needs it. */}
+            crypto users and a 0x string reads as jargon. "View on Celoscan" in
+            the menu below is the only place it surfaces, for anyone who needs it. */}
         <span className="wallet-addr">Connected</span>
         <span className="wallet-addr-short" style={{ display: 'none', fontSize: 11 }}>Connected</span>
         <span className="wallet-network-badge" style={{ fontSize: 9, fontWeight: 700, color: '#35D07F', background: 'rgba(53,208,127,0.16)', padding: '2px 6px', borderRadius: 6, letterSpacing: 0.4, flexShrink: 0 }}>CELO</span>
@@ -133,12 +134,12 @@ export function WalletButton({ className }: WalletButtonProps) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <span style={{ fontSize: 11, color: MUTED, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>Balance</span>
                   <button
-                    onClick={() => refetch()}
-                    disabled={loadingBal}
+                    onClick={() => { refetchUsdt(); refetchCelo() }}
+                    disabled={loadingUsdt || loadingCelo}
                     aria-label="Refresh balance"
-                    style={{ appearance: 'none', border: 'none', background: 'transparent', padding: 4, cursor: loadingBal ? 'wait' : 'pointer', color: MUTED, display: 'flex', alignItems: 'center' }}
+                    style={{ appearance: 'none', border: 'none', background: 'transparent', padding: 4, cursor: (loadingUsdt || loadingCelo) ? 'wait' : 'pointer', color: MUTED, display: 'flex', alignItems: 'center' }}
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ animation: loadingBal ? 'spin 0.8s linear infinite' : 'none' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ animation: (loadingUsdt || loadingCelo) ? 'spin 0.8s linear infinite' : 'none' }}>
                       <polyline points="23 4 23 10 17 10" />
                       <polyline points="1 20 1 14 7 14" />
                       <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
@@ -146,31 +147,29 @@ export function WalletButton({ className }: WalletButtonProps) {
                   </button>
                 </div>
 
+                {/* USDT first - MiniPay's default stablecoin, and what a player
+                    who isn't crypto-native actually recognizes as "money". */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: INK, fontWeight: 500 }}>
+                    <span style={{ width: 18, height: 18, borderRadius: 9, background: '#26A17B', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>₮</span>
+                    USDT
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: INK, fontVariantNumeric: 'tabular-nums' }}>
+                    {usdtBal ? Number(usdtBal.formatted).toFixed(2) : '-'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, color: MUTED, fontWeight: 500 }}>
                     <span style={{ width: 18, height: 18, borderRadius: 9, background: 'linear-gradient(135deg, #FCFF52, #35D07F)', display: 'inline-block' }} />
                     CELO
                   </span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: INK, fontVariantNumeric: 'tabular-nums' }}>
-                    {bal ? Number(bal.formatted).toFixed(4) : '-'}
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: MUTED, fontVariantNumeric: 'tabular-nums' }}>
+                    {celoBal ? Number(celoBal.formatted).toFixed(4) : '-'}
                   </span>
                 </div>
               </div>
 
               <div style={{ padding: 6 }}>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(address)
-                    sounds.copy()
-                    setCopied(true)
-                    setTimeout(() => setCopied(false), 1200)
-                  }}
-                  style={{ appearance: 'none', border: 'none', display: 'block', width: '100%', padding: '9px 12px', background: 'transparent', borderRadius: 10, textAlign: 'left', fontSize: 13, fontWeight: 500, color: copied ? GREEN_DARK : INK, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 120ms ease' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--mdd-bg-soft)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  {copied ? '✓ Copied!' : '⎘ Copy Address'}
-                </button>
                 <button
                   onClick={() => { window.open(`${CELO_EXPLORER}/address/${address}`, '_blank'); setShowMenu(false) }}
                   style={{ appearance: 'none', border: 'none', display: 'block', width: '100%', padding: '9px 12px', background: 'transparent', borderRadius: 10, textAlign: 'left', fontSize: 13, fontWeight: 500, color: INK, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 120ms ease' }}

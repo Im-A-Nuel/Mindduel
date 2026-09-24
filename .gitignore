@@ -65,6 +65,14 @@ backend/.keys/
 *.swo
 *~
 
+# ── Agent skills (local dev tooling, installed via `npx skills add`) ──
+# Reference docs for coding agents (e.g. celopedia-skills for MiniPay/Celo).
+# Not app code, and .claude/skills/* are symlinks into .agents/skills/ that
+# break into plain text on checkout here (core.symlinks=false) - keep local.
+.agents/
+.claude/
+skills-lock.json
+
 # ── OS ────────────────────────────────────────────────────────────────
 .DS_Store
 .DS_Store?
