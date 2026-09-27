@@ -75,7 +75,16 @@ export default function TermsPage() {
           </div>
         </motion.div>
 
-        <Section title="It is free, and it is a game">
+        <Section title="Who runs this">
+          <p style={{ marginTop: 0, marginBottom: 0 }}>
+            MindDuel is built and operated independently by the MindDuel team. It is not
+            operated, owned, or endorsed by Opera or MiniPay — MiniPay is just the wallet you
+            may be using to open this app. Any question, complaint, or issue about MindDuel
+            should come to us, not to Opera or MiniPay.
+          </p>
+        </Section>
+
+        <Section title="It is free, and it is a game" delay={0.02}>
           <p style={{ marginTop: 0 }}>
             MindDuel costs nothing to play. There is no entry fee, no deposit, no tokens to
             buy, and nothing to win except points and bragging rights. You cannot lose money
