@@ -387,12 +387,12 @@ function VisualGaslessMiniPay() {
         <path d="M258 58 L288 68 V96 C288 118 275 134 258 142 C241 134 228 118 228 96 V68 Z" fill="#04140E" stroke="#10B981" strokeWidth="1.5"/>
         <path d="M247 100 L254 108 L270 90" fill="none" stroke="#4ADE80" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
         <text x="258" y="156" textAnchor="middle" fill="#4ADE80" fontSize="8.5" fontWeight="700">RELAYER</text>
-        <text x="258" y="168" textAnchor="middle" fill="#0F5C3E" fontSize="7.5" fontWeight="600">pays gas</text>
-        {/* 0 GAS badge */}
+        <text x="258" y="168" textAnchor="middle" fill="#0F5C3E" fontSize="7.5" fontWeight="600">pays the fee</text>
+        {/* 0 network fee badge */}
         <rect x="120" y="30" width="100" height="26" rx="9" fill="#03200E" stroke="#16A34A" strokeWidth="1.5">
           <animate attributeName="opacity" values="1;0.6;1" dur="2.4s" repeatCount="indefinite"/>
         </rect>
-        <text x="170" y="44" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="12" fontWeight="800">0 GAS FOR YOU</text>
+        <text x="170" y="44" textAnchor="middle" dominantBaseline="middle" fill="#22C55E" fontSize="11" fontWeight="800">NO FEE FOR YOU</text>
         {/* No signature chip */}
         <rect x="12" y="12" width="130" height="20" rx="7" fill="#071822" stroke="#0A3040" strokeWidth="1"/>
         <text x="77" y="23" textAnchor="middle" dominantBaseline="middle" fill="#4ADE80" fontSize="8.5" fontWeight="600">NO SIGNATURE NEEDED</text>
