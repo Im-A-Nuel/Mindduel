@@ -719,7 +719,7 @@ export default function LobbyPage() {
               )}
             </button>
             <CheckInButton />
-            <ShareButton variant="ghost" text="Play MindDuel — trivia-gated PvP, climb the public ranks on Celo. No staking, pure skill." />
+            <ShareButton variant="ghost" text="Play MindDuel: trivia-gated PvP, climb the public ranks on Celo. No staking, pure skill." />
           </div>
           <p style={{ fontSize: 15, color: MUTED, margin: 0, lineHeight: 1.4 }}>
             Configure your duel - pick a mode, go Casual or climb the Ranked ladder, choose what you know.

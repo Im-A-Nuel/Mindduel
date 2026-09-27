@@ -30,7 +30,7 @@ export function ShareButton({
   async function onShare() {
     sounds.tap()
     const shareUrl = url ?? (typeof window !== 'undefined' ? window.location.origin : 'https://mindduel-celo.vercel.app')
-    const shareText = text ?? 'Play MindDuel — trivia-gated PvP with a public leaderboard on Celo.'
+    const shareText = text ?? 'Play MindDuel: trivia-gated PvP with a public leaderboard on Celo.'
 
     const nav = typeof navigator !== 'undefined' ? navigator : undefined
     if (nav?.share) {
@@ -43,7 +43,7 @@ export function ShareButton({
     }
     try {
       await nav?.clipboard?.writeText(`${shareText} ${shareUrl}`)
-      toast('Link copied — share it!', 'success')
+      toast('Link copied, share it!', 'success')
     } catch {
       window.open(
         `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,

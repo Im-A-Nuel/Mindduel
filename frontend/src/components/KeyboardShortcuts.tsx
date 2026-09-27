@@ -14,8 +14,8 @@ const SHORTCUTS: { section: string; items: Shortcut[] }[] = [
   {
     section: 'Game board',
     items: [
-      { keys: ['1', '–', '9'],  label: 'Claim cell 1–9 during your turn' },
-      { keys: ['A', '–', 'D'],  label: 'Pick trivia answer A–D' },
+      { keys: ['1', '–', '9'],  label: 'Claim cell 1 to 9 during your turn' },
+      { keys: ['A', '–', 'D'],  label: 'Pick trivia answer A to D' },
       { keys: ['Esc'],          label: 'Close any open dialog' },
       { keys: ['Enter'],        label: 'Confirm primary action in dialogs' },
     ],
