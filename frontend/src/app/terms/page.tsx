@@ -78,7 +78,7 @@ export default function TermsPage() {
         <Section title="Who runs this">
           <p style={{ marginTop: 0, marginBottom: 0 }}>
             MindDuel is built and operated independently by the MindDuel team. It is not
-            operated, owned, or endorsed by Opera or MiniPay — MiniPay is just the wallet you
+            operated, owned, or endorsed by Opera or MiniPay. MiniPay is just the wallet you
             may be using to open this app. Any question, complaint, or issue about MindDuel
             should come to us, not to Opera or MiniPay.
           </p>
@@ -99,17 +99,17 @@ export default function TermsPage() {
           <p style={{ marginTop: 0 }}>Only two things, and only to make the game work:</p>
           <ul style={{ margin: '0 0 12px', paddingLeft: 20 }}>
             <li style={{ marginBottom: 8 }}>
-              <strong style={{ color: INK }}>Your wallet address</strong> — used as your name and your save file, so
+              <strong style={{ color: INK }}>Your wallet address</strong>, used as your name and your save file, so
               your rank and badges follow you. If you play as a guest, we do not even have this.
             </li>
             <li>
-              <strong style={{ color: INK }}>Your match results</strong> — who played, who won, and the points that
+              <strong style={{ color: INK }}>Your match results</strong>, meaning who played, who won, and the points that
               changed. Ranked results are also written to a public smart contract on Celo.
             </li>
           </ul>
           <p style={{ marginBottom: 0 }}>
             We do not ask for your name, email, or phone number to play. We do not track you
-            across other sites, and we do not sell anything about you — there is nothing to sell.
+            across other sites, and we do not sell anything about you. There is nothing to sell.
           </p>
         </Section>
 
@@ -118,13 +118,13 @@ export default function TermsPage() {
             You never sign a transaction to play, and you never need funds in your wallet.
             We use your address only to know who you are. Nothing is ever taken from it, and
             we can never move anything out of it. If a page ever asks you to approve a payment
-            to play a normal match, that is not us — close it.
+            to play a normal match, that is not us. Close it.
           </p>
         </Section>
 
         <Section title="Badges and rank" delay={0.15}>
           <p style={{ marginTop: 0 }}>
-            Badges are records tied to your address in our database. They are not NFTs — they
+            Badges are records tied to your address in our database. They are not NFTs, so they
             cannot be traded, sold, or moved to another app.
           </p>
           <p style={{ marginBottom: 0 }}>
@@ -137,7 +137,7 @@ export default function TermsPage() {
         <Section title="Play fair" delay={0.2}>
           <p style={{ marginTop: 0, marginBottom: 0 }}>
             Do not cheat, script, or abuse other players. We may remove a score or block an
-            account that does. That is about it — play the game, be decent, have fun.
+            account that does. That is about it: play the game, be decent, have fun.
           </p>
         </Section>
 
